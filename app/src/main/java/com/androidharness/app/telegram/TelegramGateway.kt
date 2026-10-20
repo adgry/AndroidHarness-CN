@@ -8,13 +8,6 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
-internal data class TelegramRuntimeState(val running: Boolean = false, val connected: Boolean = false, val reconnecting: Boolean = false,
-    val message: String? = null, val action: String? = null, val activeRequestId: Long? = null, val lastContactAt: Long? = null) {
-    val label get() = when { !running -> "Paused"; !connected -> if (reconnecting) "Reconnecting" else "Connecting";
-        action?.contains("approval", true) == true -> "Needs approval"; action?.contains("answer", true) == true -> "Needs answer";
-        activeRequestId != null -> "Working"; else -> "Listening" }
-}
-
 /** One receiver, durable intake, a serial agent worker, and a separate delivery worker. */
 internal class TelegramGateway(
     val store: TelegramGatewayStore,

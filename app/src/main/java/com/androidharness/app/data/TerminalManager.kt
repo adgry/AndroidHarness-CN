@@ -43,7 +43,7 @@ class TerminalManager(
         val started: Boolean = false,
         val lastCommand: String? = null,
         val lastExitCode: Int? = null,
-        val backendLabel: String = "Normal",
+        val backendLabel: String = "普通",
     )
 
     private val _state = MutableStateFlow(TerminalState())
@@ -84,7 +84,7 @@ class TerminalManager(
     suspend fun <T> withClosedStorage(action: suspend () -> T): T {
         synchronized(this) {
             check(!storageMaintenance && !_state.value.started && !_state.value.busy && process == null) {
-                "Close the terminal before cleaning storage."
+                "清理存储前请先关闭终端。"
             }
             storageMaintenance = true
         }
@@ -134,7 +134,7 @@ class TerminalManager(
         try {
             process = builder.start()
         } catch (e: Exception) {
-            appendLines(listOf("failed to start shell: ${e.message}"))
+            appendLines(listOf("无法启动 Shell： ${e.message}"))
             return
         }
         runManager.acquireKeepalive()
@@ -142,7 +142,7 @@ class TerminalManager(
         _state.update {
             it.copy(started = true, cwd = cwd.absolutePath, lines = emptyList())
         }
-        appendLines(listOf("# terminal ready: ${if (linuxEnv.bashExecutable() != null) "bash" else "toybox sh"} (app user)"))
+        appendLines(listOf("# 终端已就绪： ${if (linuxEnv.bashExecutable() != null) "bash" else "toybox sh"} （应用用户）"))
 
         val startedProcess = process ?: return
         readJob = scope.launch {
@@ -175,7 +175,7 @@ class TerminalManager(
                             it.copy(started = false, busy = false,
                                 lastExitCode = if (it.busy && it.lastExitCode == null) -1 else it.lastExitCode)
                         }
-                        appendLines(listOf("# shell exited"))
+                        appendLines(listOf("# Shell 已退出"))
                     }
                 }
             }
@@ -234,11 +234,11 @@ class TerminalManager(
     /** Sends one command line. */
     @Synchronized
     fun send(command: String, workspace: com.androidharness.app.workspace.WorkspaceFs? = null, sessionId: String? = null, projectId: String? = null) {
-        if (storageMaintenance) { appendLines(listOf("# storage cleanup in progress; try again shortly")); return }
+        if (storageMaintenance) { appendLines(listOf("# 正在清理存储，请稍后重试")); return }
         val cmd = command.trimEnd()
         if (cmd.isEmpty()) return
         if (_state.value.busy) {
-            appendLines(listOf("# still running: wait for it to finish"))
+            appendLines(listOf("# 仍在运行，请等待完成"))
             return
         }
         workspace?.let { useWorkspace(it) }
@@ -264,8 +264,8 @@ class TerminalManager(
                 try {
                     val decision = access.select()
                     if (decision.backend == com.androidharness.app.data.env.DeviceBackend.NORMAL) {
-                        _state.update { it.copy(backendLabel = "Normal") }
-                        decision.reason?.let { appendLines(listOf("# Access fallback: $it; using Normal")) }
+                        _state.update { it.copy(backendLabel = "普通") }
+                        decision.reason?.let { appendLines(listOf("# 访问回退：$it；使用普通模式")) }
                         sendAppTier(cmd)
                         return@withRequest
                     }
@@ -281,7 +281,7 @@ class TerminalManager(
                     if (result.rawStderr.isNotBlank()) appendLines(result.rawStderr.lines())
                     result.note?.let { appendLines(listOf(it)) }
                     val receipt = kotlinx.coroutines.currentCoroutineContext()[com.androidharness.app.data.env.AccessRequest]?.receipts?.lastOrNull()
-                    _state.update { it.copy(busy = false, lastExitCode = result.exitCode, backendLabel = receipt?.label ?: "Unavailable") }
+                    _state.update { it.copy(busy = false, lastExitCode = result.exitCode, backendLabel = receipt?.displayLabel ?: "不可用") }
                 } catch (e: kotlinx.coroutines.CancellationException) { throw e }
                 catch (e: Exception) {
                     appendLines(listOf("# ${e.message}"))
@@ -303,7 +303,7 @@ class TerminalManager(
                 val result = workspace.run(script, cwd.path, 120_000, 60_000)
                 result.rawOutput.lines().forEach(::handleLine)
                 if (result.rawStderr.isNotBlank()) appendLines(result.rawStderr.lines())
-                if (result.timedOut) appendLines(listOf("# SSH command timed out; check Termux before retrying a modifying command"))
+                if (result.timedOut) appendLines(listOf("# SSH 命令超时；重试会修改内容的命令前，请先检查 Termux"))
                 _state.update { it.copy(lastExitCode = result.exitCode) }
             } finally {
                 _state.update { it.copy(busy = false) }
@@ -324,7 +324,7 @@ class TerminalManager(
                 out.write((cmd + "\n" + "echo \"$marker:\$?:\$PWD\"\n").toByteArray())
                 out.flush()
             } catch (e: Exception) {
-                appendLines(listOf("write failed: ${e.message}"))
+                appendLines(listOf("写入失败： ${e.message}"))
                 _state.update { it.copy(busy = false, lastExitCode = -1) }
             }
         }
@@ -349,7 +349,7 @@ class TerminalManager(
             val argv = if (useTmpBash) arrayOf(bash, "-c", script) else arrayOf("/system/bin/sh", "-c", script)
             val res = shizuku.runPrivileged(argv, env, cwd.absolutePath, timeoutMs = 120_000, maxBytes = 60_000)
             if (res == null) {
-                appendLines(listOf("# Shizuku unavailable: dropped to app tier"))
+                appendLines(listOf("# Shizuku 不可用：已回退到应用权限"))
                 sendAppTier(cmd)
                 return@launch
             }

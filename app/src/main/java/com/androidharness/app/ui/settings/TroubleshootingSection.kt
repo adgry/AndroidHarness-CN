@@ -125,22 +125,22 @@ internal fun TroubleshootingSection(container: AppContainer, onOpen: (SettingsPa
         DiagnosticArea.NOTIFICATIONS to if (notifications) DiagnosticState.READY else DiagnosticState.OFF)
     val report = diagnosticReport(BuildConfig.VERSION_NAME, Build.VERSION.SDK_INT, states, providers.size, enabledServers.size)
     LaunchedEffect(report) { copied = false }
-    Text("Checks for your default provider and workspace. Optional features can stay off.",
+    Text("检查默认提供商和工作区。可选功能可以保持关闭。",
         style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
     FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        OutlinedButton(onClick = ::refresh) { Icon(Icons.Outlined.Refresh, null, Modifier.size(18.dp)); Spacer(Modifier.width(6.dp)); Text("Refresh status") }
+        OutlinedButton(onClick = ::refresh) { Icon(Icons.Outlined.Refresh, null, Modifier.size(18.dp)); Spacer(Modifier.width(6.dp)); Text("刷新状态") }
         OutlinedButton(onClick = {
-            (context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager).setPrimaryClip(ClipData.newPlainText("Troubleshooting", report))
+            (context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager).setPrimaryClip(ClipData.newPlainText("故障排查", report))
             copied = true
-        }) { Text(if (copied) "Copied" else "Copy report") }
+        }) { Text(if (copied) "已复制" else "复制报告") }
         TextButton(onClick = { context.startActivity(Intent.createChooser(Intent(Intent.ACTION_SEND).apply {
             type = "text/plain"; putExtra(Intent.EXTRA_TEXT, report)
-        }, "Share troubleshooting report")) }) { Text("Share report") }
+        }, "分享故障排查报告")) }) { Text("分享报告") }
     }
-    Text("Reports exclude credentials, addresses, file paths and chats.", style = MaterialTheme.typography.labelSmall,
+    Text("报告不包含凭据、地址、文件路径和聊天。", style = MaterialTheme.typography.labelSmall,
         color = MaterialTheme.colorScheme.onSurfaceVariant)
     DiagnosticCard(DiagnosticArea.PROVIDER.label, providerState,
-        if (provider == null) "Choose a provider to use the assistant." else "${provider.name}\n${catalog.detail}") {
+        if (provider == null) "选择提供商以使用助手。" else "${provider.name}\n${catalog.detail}") {
         val local = provider?.let { com.androidharness.app.local.LocalModelCatalog.isLocal(it.id) } == true
         if (provider != null && !local) TextButton(enabled = catalog != CatalogCheck.CHECKING, onClick = {
             scope.launch {
@@ -157,58 +157,58 @@ internal fun TroubleshootingSection(container: AppContainer, onOpen: (SettingsPa
                 catch (e: kotlinx.coroutines.CancellationException) { catalog = CatalogCheck.NOT_CHECKED; throw e }
                 catch (_: Exception) { catalog = CatalogCheck.FAILED }
             }
-        }) { Text("Check models") }
-        TextButton(onClick = { onOpen(if (local) SettingsPage.LOCAL_MODELS else SettingsPage.MODELS) }) { Text("Manage provider") }
+        }) { Text("检查模型") }
+        TextButton(onClick = { onOpen(if (local) SettingsPage.LOCAL_MODELS else SettingsPage.MODELS) }) { Text("管理提供商") }
     }
-    DiagnosticCard("Storage access · required", states.getValue(DiagnosticArea.STORAGE),
-        if (storage.granted) "The app has storage permission." else "Grant storage access to complete setup and use device folders.") {
-        if (!storage.granted) TextButton(onClick = storage.request) { Text("Grant access") }
+    DiagnosticCard("存储访问 · 必需", states.getValue(DiagnosticArea.STORAGE),
+        if (storage.granted) "应用已获得存储权限。" else "授予存储访问权限以完成设置并使用设备文件夹。") {
+        if (!storage.granted) TextButton(onClick = storage.request) { Text("授予访问权限") }
     }
     DiagnosticCard(DiagnosticArea.WORKSPACE.label, folder, (project?.name?.let { "$it\n" } ?: "") + when (folder) {
-        DiagnosticState.READY -> "The folder can be read. Write access has not been tested."
-        DiagnosticState.ISSUE -> "The folder is unavailable. Choose it again or check its connection."
-        DiagnosticState.CHECKING -> "Checking folder access…"
-        else -> "Remote folder access has not been checked."
+        DiagnosticState.READY -> "文件夹可读取，尚未测试写入权限。"
+        DiagnosticState.ISSUE -> "文件夹不可用。请重新选择或检查连接。"
+        DiagnosticState.CHECKING -> "正在检查文件夹访问权限…"
+        else -> "尚未检查远程文件夹访问权限。"
     }) {
         if (project?.kind == WorkspaceManager.KIND_SSH) TextButton(enabled = folder != DiagnosticState.CHECKING, onClick = {
             scope.launch { folder = DiagnosticState.CHECKING; folder = checkFolder() }
-        }) { Text("Check folder") }
-        TextButton(onClick = { onOpen(SettingsPage.WORKSPACE) }) { Text("Open workspaces") }
+        }) { Text("检查文件夹") }
+        TextButton(onClick = { onOpen(SettingsPage.WORKSPACE) }) { Text("打开工作区") }
     }
-    DiagnosticCard("Linux tools · optional", linuxState, when (linuxState) {
-        DiagnosticState.INSTALLED -> "Toolchain installed. Individual commands have not been tested here."
-        DiagnosticState.ISSUE -> "Installation needs attention. Open terminal settings to repair or retry."
-        DiagnosticState.CHECKING -> "Installation is in progress."
-        else -> "Install Linux tools to run local commands."
-    }) { TextButton(onClick = { onOpen(SettingsPage.ENVIRONMENT) }) { Text("Open terminal settings") } }
-    DiagnosticCard("Shizuku · optional", shizukuState, when {
-        service == UserServiceState.COMPAT_READY -> "Permission granted. Commands are ready in compatibility mode."
-        shizukuState == DiagnosticState.READY -> "Permission granted and command service ready."
-        shizuku == ShizukuState.RUNNING_NO_PERMISSION -> "Shizuku is running. Grant permission in terminal settings."
-        shizukuState == DiagnosticState.CHECKING -> "Connecting to the command service…"
-        shizukuState == DiagnosticState.ISSUE -> "The command service failed to connect. Reconnect in terminal settings."
-        shizuku == ShizukuState.GRANTED -> "Permission granted. The command service is not connected."
-        else -> "Start Shizuku to use commands with system access."
+    DiagnosticCard("Linux 工具 · 可选", linuxState, when (linuxState) {
+        DiagnosticState.INSTALLED -> "工具链已安装，此处尚未测试各个命令。"
+        DiagnosticState.ISSUE -> "安装需要处理。请打开终端设置进行修复或重试。"
+        DiagnosticState.CHECKING -> "正在安装。"
+        else -> "安装 Linux 工具以运行本地命令。"
+    }) { TextButton(onClick = { onOpen(SettingsPage.ENVIRONMENT) }) { Text("打开终端设置") } }
+    DiagnosticCard("Shizuku · 可选", shizukuState, when {
+        service == UserServiceState.COMPAT_READY -> "已授权，兼容模式下的命令已就绪。"
+        shizukuState == DiagnosticState.READY -> "已授权，命令服务已就绪。"
+        shizuku == ShizukuState.RUNNING_NO_PERMISSION -> "Shizuku 正在运行。请在终端设置中授权。"
+        shizukuState == DiagnosticState.CHECKING -> "正在连接命令服务…"
+        shizukuState == DiagnosticState.ISSUE -> "命令服务连接失败。请在终端设置中重新连接。"
+        shizuku == ShizukuState.GRANTED -> "已授权，命令服务尚未连接。"
+        else -> "启动 Shizuku 以运行具有系统访问权限的命令。"
     }, extraDetails = { ShizukuFailureDetails(connectionFailure, container.shizuku::connectionReport,
         container.shizuku::startupReport, recovered = service == UserServiceState.COMPAT_READY) }) {
-        TextButton(onClick = { onOpen(SettingsPage.ENVIRONMENT) }) { Text("Open Shizuku settings") }
+        TextButton(onClick = { onOpen(SettingsPage.ENVIRONMENT) }) { Text("打开 Shizuku 设置") }
     }
-    DiagnosticCard("SSH workspaces · optional", sshState, when (sshState) {
-        DiagnosticState.READY -> "${ssh.values.count { it.connected }} connection(s) active. Check a folder separately to confirm access."
-        DiagnosticState.ISSUE -> "A connection needs attention. Review it in Workspaces."
-        else -> "No active SSH connections. Connect through Workspaces when needed."
-    }) { TextButton(onClick = { onOpen(SettingsPage.WORKSPACE) }) { Text("Manage connections") } }
-    DiagnosticCard("Connected tools · optional", mcpState, when (mcpState) {
-        DiagnosticState.READY -> "All ${enabledServers.size} enabled servers are connected. Tool execution has not been tested here."
-        DiagnosticState.ISSUE -> if (tampered) "Server configuration failed its integrity check. Review and save it in Connected tools." else "A server needs sign-in, reconnection or configuration review."
-        DiagnosticState.OFF -> "No enabled MCP servers."
-        DiagnosticState.CHECKING -> "A server is connecting…"
-        else -> "Some enabled servers have not connected yet."
-    }) { TextButton(onClick = { onOpen(SettingsPage.MCP) }) { Text("Manage tools") } }
-    DiagnosticCard("Notifications · optional", states.getValue(DiagnosticArea.NOTIFICATIONS),
-        if (notifications) "Notifications are allowed by Android." else "You can use the app with notifications off.") {
+    DiagnosticCard("SSH 工作区 · 可选", sshState, when (sshState) {
+        DiagnosticState.READY -> "有 ${ssh.values.count { it.connected }} 个连接处于活动状态。请单独检查文件夹以确认访问权限。"
+        DiagnosticState.ISSUE -> "有连接需要处理。请在“工作区”中检查。"
+        else -> "没有活动的 SSH 连接。需要时可在“工作区”中连接。"
+    }) { TextButton(onClick = { onOpen(SettingsPage.WORKSPACE) }) { Text("管理连接") } }
+    DiagnosticCard("已连接工具 · 可选", mcpState, when (mcpState) {
+        DiagnosticState.READY -> "全部 ${enabledServers.size} 个已启用服务器均已连接。此处尚未测试工具执行。"
+        DiagnosticState.ISSUE -> if (tampered) "服务器配置未通过完整性校验。请在“已连接工具”中检查并保存。" else "有服务器需要登录、重新连接或检查配置。"
+        DiagnosticState.OFF -> "未启用 MCP 服务器。"
+        DiagnosticState.CHECKING -> "有服务器正在连接…"
+        else -> "部分已启用服务器尚未连接。"
+    }) { TextButton(onClick = { onOpen(SettingsPage.MCP) }) { Text("管理工具") } }
+    DiagnosticCard("通知 · 可选", states.getValue(DiagnosticArea.NOTIFICATIONS),
+        if (notifications) "Android 已允许通知。" else "关闭通知后仍可使用应用。") {
         TextButton(onClick = { context.startActivity(Intent(android.provider.Settings.ACTION_APP_NOTIFICATION_SETTINGS)
-            .putExtra(android.provider.Settings.EXTRA_APP_PACKAGE, context.packageName)) }) { Text("Notification settings") }
+            .putExtra(android.provider.Settings.EXTRA_APP_PACKAGE, context.packageName)) }) { Text("通知设置") }
     }
 }
 

@@ -62,11 +62,11 @@ internal fun DestinationPickerDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Choose a folder") },
+        title = { Text("选择文件夹") },
         text = {
             Column {
                 Text(
-                    if (dir == ".") "Workspace root" else dir,
+                    if (dir == ".") "工作区根目录" else dir,
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 2,
@@ -120,7 +120,7 @@ internal fun DestinationPickerDialog(
                     if (dirs.isEmpty()) {
                         item {
                             Text(
-                                "No subfolders here.",
+                                "此处没有子文件夹。",
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
@@ -139,7 +139,7 @@ internal fun DestinationPickerDialog(
                 },
             ) { Text(confirmLabel) }
         },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text("取消") } },
     )
 }
 

@@ -61,7 +61,7 @@ import com.androidharness.app.workspace.normalizeRelPath
 import java.util.zip.GZIPInputStream
 
 /**
- * GitHub-style "Files changed" review for one chat session: every file the
+ * GitHub-style "文件已更改" review for one chat session: every file the
  * agent (or an in-app save) touched this conversation, with cumulative "+N −M"
  * counters and tap-to-expand diffs against the session's baseline content.
  *
@@ -94,10 +94,9 @@ fun ChangesScreen(
         containerColor = scheme.surface,
         topBar = {
             AppHeader(
-                title = "Files changed",
-                subtitle = "${merged.size} " +
-                    (if (merged.size == 1) "file" else "files") +
-                    " · this chat",
+                title = "文件已更改",
+                subtitle = "${merged.size} 个文件" +
+                    " · 此聊天",
                 onBack = onBack,
             )
         },
@@ -118,8 +117,8 @@ fun ChangesScreen(
                 ) {
                     Text(
                         buildString {
-                            append(merged.count { it.isNew }); append(" new · ")
-                            append(merged.size); append(" changed")
+                            append(merged.count { it.isNew }); append(" 个新增 · ")
+                            append(merged.size); append(" 个更改")
                         },
                         style = MaterialTheme.typography.labelLarge,
                         modifier = Modifier.weight(1f),
@@ -131,7 +130,7 @@ fun ChangesScreen(
             if (merged.isEmpty()) {
                 Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     Text(
-                        "No files changed in this chat yet.\nEdits made by the agent show up here.",
+                        "此聊天尚未更改文件。\n代理所做的编辑会显示在这里。",
                         style = MaterialTheme.typography.bodyMedium,
                         color = scheme.onSurfaceVariant,
                         textAlign = androidx.compose.ui.text.style.TextAlign.Center,
@@ -177,34 +176,34 @@ private fun ChangeRow(
     var question by remember { mutableStateOf("") }
     questionTarget?.let { target ->
         AlertDialog(onDismissRequest = { questionTarget = null },
-            title = { Text(if (target.second == null) "Ask about this file" else "Ask about this section") },
+            title = { Text(if (target.second == null) "询问此文件" else "询问此部分") },
             text = { Column {
                 Text(change.relPath, maxLines = 2, overflow = TextOverflow.Ellipsis,
                     style = MaterialTheme.typography.labelMedium)
                 Spacer(Modifier.height(12.dp))
                 OutlinedTextField(value = question, onValueChange = { question = it },
-                    label = { Text("Your question") }, minLines = 2, maxLines = 5,
+                    label = { Text("你的问题") }, minLines = 2, maxLines = 5,
                     modifier = Modifier.fillMaxWidth())
             } },
             confirmButton = { TextButton(enabled = question.isNotBlank(), onClick = {
                 questionTarget = null
                 onAskAgent(com.androidharness.app.core.ChangeQuestion.prompt(change.relPath, question, target.first.unified, target.second))
-            }) { Text("Ask agent") } },
-            dismissButton = { TextButton(onClick = { questionTarget = null }) { Text("Cancel") } })
+            }) { Text("询问代理") } },
+            dismissButton = { TextButton(onClick = { questionTarget = null }) { Text("取消") } })
     }
     confirmation?.let { selection ->
         AlertDialog(onDismissRequest = { confirmation = null },
-            title = { Text(if (selection.second == null) "Undo this file?" else "Undo this section?") },
-            text = { Text("Restore ${change.relPath} to the shown original content. Other files and chat history stay intact.") },
+            title = { Text(if (selection.second == null) "撤销此文件的更改？" else "撤销此部分的更改？") },
+            text = { Text("将 ${change.relPath} 恢复为所示的原始内容，保留其他文件和聊天记录。") },
             confirmButton = { TextButton(onClick = {
                 confirmation = null; applying = true; error = null
                 scope.launch {
                     try { onUndo(selection.first, selection.second) }
-                    catch (e: Exception) { error = e.message ?: "Undo failed" }
+                    catch (e: Exception) { error = e.message ?: "撤销失败" }
                     finally { applying = false; refresh++ }
                 }
-            }) { Text("Undo") } },
-            dismissButton = { TextButton(onClick = { confirmation = null }) { Text("Cancel") } })
+            }) { Text("撤销") } },
+            dismissButton = { TextButton(onClick = { confirmation = null }) { Text("取消") } })
     }
 
     val fileName = change.relPath.substringAfterLast('/')
@@ -253,7 +252,7 @@ private fun ChangeRow(
             DiffStatText(change.added, change.removed)
             Icon(
                 Icons.Filled.KeyboardArrowDown,
-                contentDescription = if (expanded) "Collapse" else "Expand",
+                contentDescription = if (expanded) "收起" else "展开",
                 modifier = Modifier
                     .size(18.dp)
                     .padding(start = 4.dp),
@@ -276,36 +275,36 @@ private fun ChangeRow(
                         strokeWidth = 2.dp,
                     )
                     !current.hasBase -> Text(
-                        "Diff unavailable: the pre-change content was too large to track.",
+                        "无法显示差异：更改前的内容过大，未能记录。",
                         style = MaterialTheme.typography.labelMedium,
                         color = scheme.onSurfaceVariant,
                     )
                     else -> Column {
                         SessionDiffView(current.unified)
-                        TextButton(onClick = { question = ""; questionTarget = current to null }) { Text("Ask about changes") }
+                        TextButton(onClick = { question = ""; questionTarget = current to null }) { Text("询问更改") }
                         error?.let { Text(it, color = scheme.error, style = MaterialTheme.typography.bodySmall) }
                         if (current.current != current.base || current.exists == change.isNew) {
                             TextButton(onClick = { confirmation = current to null }, enabled = canUndo && !applying) {
-                                Text(if (applying) "Undoing…" else "Undo file")
+                                Text(if (applying) "正在撤销…" else "撤销文件更改")
                             }
                             if (current.sections.isNotEmpty()) TextButton(onClick = { showSections = !showSections }) {
-                                Text(if (showSections) "Hide sections" else "Review ${current.sections.size} sections")
+                                Text(if (showSections) "隐藏分段" else "查看 ${current.sections.size} 个分段")
                             }
                             if (showSections) Column(Modifier.heightIn(max = 280.dp).verticalScroll(rememberScrollState())) {
                             current.sections.forEachIndexed { index, section ->
                                 Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                                    Text("Section ${index + 1} · ${section.after.count { it == '\n' }} changed lines",
+                                    Text("第 ${index + 1} 段 · ${section.after.count { it == '\n' }} 行更改",
                                         modifier = Modifier.weight(1f), style = MaterialTheme.typography.labelMedium)
-                                    TextButton(onClick = { confirmation = current to section }, enabled = canUndo && !applying) { Text("Undo section") }
+                                    TextButton(onClick = { confirmation = current to section }, enabled = canUndo && !applying) { Text("撤销此部分") }
                                 }
-                                TextButton(onClick = { question = ""; questionTarget = current to section }) { Text("Ask about section ${index + 1}") }
+                                TextButton(onClick = { question = ""; questionTarget = current to section }) { Text("询问第 ${index + 1} 段") }
                                 Text((section.after.ifEmpty { section.before }).take(180), maxLines = 3,
                                     overflow = TextOverflow.Ellipsis, fontFamily = HarnessMono,
                                     style = MaterialTheme.typography.bodySmall, color = scheme.onSurfaceVariant)
                             }
                             }
                             current.sectionNote?.let { Text(it, style = MaterialTheme.typography.bodySmall) }
-                            if (!canUndo) Text("Pause active tasks before undoing changes.", style = MaterialTheme.typography.bodySmall)
+                            if (!canUndo) Text("请先暂停运行中的任务，再撤销更改。", style = MaterialTheme.typography.bodySmall)
                         }
                     }
                 }

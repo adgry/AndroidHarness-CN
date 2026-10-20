@@ -59,11 +59,11 @@ fun AppHeader(
             when {
                 onBack != null -> IconButton(onClick = onBack) {
                     Icon(if (desktop) Icons.Outlined.Close else Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = if (desktop) "Close panel" else "Back",
+                        contentDescription = if (desktop) "关闭面板" else "返回",
                         modifier = if (desktop) Modifier.padding(4.dp) else Modifier)
                 }
                 onMenu != null -> IconButton(onClick = onMenu) {
-                    Icon(Icons.Filled.Menu, contentDescription = "Open navigation")
+                    Icon(Icons.Filled.Menu, contentDescription = "打开导航")
                 }
             }
             Column(

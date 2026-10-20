@@ -21,9 +21,9 @@ fun ModelReasoningIcon(entry: ModelEntry, providerType: ProviderType? = null, di
     if (status == ModelReasoning.UNKNOWN || status == ModelReasoning.UNSUPPORTED) return
     var details by remember { mutableStateOf(false) }
     val description = when (status) {
-        ModelReasoning.REPORTED -> if (directory) "Reasoning listed in model directory" else "Reasoning reported by provider"
-        ModelReasoning.CUSTOM -> "Reasoning set by you"
-        else -> "Reasoning inferred from model name"
+        ModelReasoning.REPORTED -> if (directory) "模型目录列出了推理支持" else "服务商报告支持推理"
+        ModelReasoning.CUSTOM -> "由你设定为推理模型"
+        else -> "根据模型名称推测支持推理"
     }
     IconButton(onClick = { details = true }) {
         Icon(painterResource(R.drawable.ic_brain),
@@ -32,9 +32,9 @@ fun ModelReasoningIcon(entry: ModelEntry, providerType: ProviderType? = null, di
     }
     if (details) AlertDialog(onDismissRequest = { details = false }, title = { Text(description) },
         text = { Column(Modifier.heightIn(max = 320.dp).verticalScroll(rememberScrollState())) { Text(when (status) {
-            ModelReasoning.REPORTED -> if (directory) "The model directory lists reasoning support. This connection has not confirmed it. Visible thinking text depends on the provider."
-                else "This connection's catalog reports reasoning support. It does not guarantee that the provider exposes thinking text."
-            ModelReasoning.CUSTOM -> "You marked this custom model as a reasoning model. Its provider has not confirmed this setting."
-            else -> "This model family may support reasoning, but this connection has not confirmed it. Thinking controls and visible thinking depend on the provider."
-        }) } }, confirmButton = { TextButton(onClick = { details = false }) { Text("Got it") } })
+            ModelReasoning.REPORTED -> if (directory) "模型目录列出了推理支持，但此连接尚未确认。能否显示思考文本取决于服务商。"
+                else "此连接的目录报告支持推理，但不保证服务商会提供思考文本。"
+            ModelReasoning.CUSTOM -> "你已将此自定义模型标为推理模型，服务商尚未确认此设置。"
+            else -> "此模型系列可能支持推理，但此连接尚未确认。思考控制和思考文本的可见性取决于服务商。"
+        }) } }, confirmButton = { TextButton(onClick = { details = false }) { Text("知道了") } })
 }

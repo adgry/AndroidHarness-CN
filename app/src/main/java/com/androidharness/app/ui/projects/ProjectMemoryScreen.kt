@@ -42,7 +42,7 @@ fun ProjectMemoryScreen(container: AppContainer, projectId: String, onBack: () -
                 val text = withContext(Dispatchers.IO) { ProjectMemory.read(container.workspace.fsFor(captured)) }
                 baseline = text; draft = text; loaded = true; error = null; saved = false
             } catch (e: CancellationException) { throw e }
-            catch (e: Exception) { error = e.message ?: "Could not read memory. Retry when the workspace is available." }
+            catch (e: Exception) { error = e.message ?: "无法读取记忆，请在工作区可用后重试。" }
             finally { busy = false }
         }
     }
@@ -53,24 +53,24 @@ fun ProjectMemoryScreen(container: AppContainer, projectId: String, onBack: () -
     val ssh = remember(project) { project?.let { runCatching { container.workspace.fsFor(it) }.getOrNull() as? com.androidharness.app.workspace.SshFs } }
     Scaffold(topBar = {
         Column {
-            AppHeader("Memory", subtitle = project?.name, onBack = ::leave)
+            AppHeader("记忆", subtitle = project?.name, onBack = ::leave)
             com.androidharness.app.ui.common.SshWorkspaceBar(container, ssh, includeStatusBarPadding = false)
         }
     }) { padding ->
         Column(Modifier.fillMaxSize().padding(padding).imePadding().verticalScroll(rememberScrollState())
             .padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Text("Notes shared by chats in this project.", style = MaterialTheme.typography.bodyMedium)
-            if (project == null) Text("This project is no longer available.")
+            Text("此项目内各聊天共用的笔记。", style = MaterialTheme.typography.bodyMedium)
+            if (project == null) Text("此项目已不可用。")
             else {
                 if (busy) AppLinearProgressIndicator(Modifier.fillMaxWidth())
                 error?.let { Text(it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodyMedium) }
                 if (loaded) {
                     OutlinedTextField(draft, onValueChange = { draft = it; saved = false },
-                        label = { Text("Project notes") }, enabled = !busy, minLines = 5, maxLines = 12,
+                        label = { Text("项目笔记") }, enabled = !busy, minLines = 5, maxLines = 12,
                         modifier = Modifier.fillMaxWidth(),
                         supportingText = { Text("${draft.length} / ${MemoryNotes.MAX_CHARS}") },
                         isError = draft.length > MemoryNotes.MAX_CHARS)
-                    if (saved) Text("Saved", color = MaterialTheme.colorScheme.primary)
+                    if (saved) Text("已保存", color = MaterialTheme.colorScheme.primary)
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         Button(onClick = {
                             val captured = project
@@ -82,31 +82,31 @@ fun ProjectMemoryScreen(container: AppContainer, projectId: String, onBack: () -
                                     withContext(Dispatchers.IO) {
                                         val fs = container.workspace.fsFor(captured)
                                         container.runManager.withIdleWorkspace(fs,
-                                            busyMessage = "A task is working in this project. Your draft is safe; save after it finishes.") {
+                                            busyMessage = "有任务正在此项目中运行。草稿已保留，请在任务结束后保存。") {
                                             ProjectMemory.save(fs, expected, content)
                                         }
                                     }
                                     baseline = content; error = null; saved = true
                                 } catch (e: CancellationException) { throw e }
-                                catch (e: Exception) { error = e.message ?: "Could not save memory. Your draft is safe; try again." }
+                                catch (e: Exception) { error = e.message ?: "无法保存记忆。草稿已保留，请重试。" }
                                 finally { busy = false }
                             }
                         }, enabled = dirty && !busy && draft.length <= MemoryNotes.MAX_CHARS,
-                            modifier = Modifier.weight(1f).heightIn(min = 48.dp)) { Text("Save") }
+                            modifier = Modifier.weight(1f).heightIn(min = 48.dp)) { Text("保存") }
                         OutlinedButton(onClick = { draft = ""; saved = false }, enabled = !busy && draft.isNotEmpty(),
-                            modifier = Modifier.weight(1f).heightIn(min = 48.dp)) { Text("Clear") }
+                            modifier = Modifier.weight(1f).heightIn(min = 48.dp)) { Text("清空") }
                     }
                 }
                 TextButton(onClick = { if (dirty) discardFor = "reload" else load() }, enabled = !busy,
-                    modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) { Text(if (loaded) "Reload latest notes" else "Retry") }
+                    modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) { Text(if (loaded) "重新加载最新笔记" else "重试") }
             }
         }
     }
     if (discardFor != null) AlertDialog(onDismissRequest = { discardFor = null },
-        title = { Text("Discard your changes?") }, text = { Text("Your unsaved notes will be lost.") },
+        title = { Text("放弃更改？") }, text = { Text("未保存的笔记将会丢失。") },
         confirmButton = { TextButton(onClick = {
             val action = discardFor; discardFor = null
             if (action == "back") onBack() else load()
-        }) { Text("Discard") } },
-        dismissButton = { TextButton(onClick = { discardFor = null }) { Text("Keep editing") } })
+        }) { Text("放弃") } },
+        dismissButton = { TextButton(onClick = { discardFor = null }) { Text("继续编辑") } })
 }

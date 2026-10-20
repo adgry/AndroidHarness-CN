@@ -51,13 +51,13 @@ fun AddWorkspaceDialog(
         return
     }
     if (destination == null) {
-        AlertDialog(onDismissRequest = onDismiss, title = { Text("Add workspace") }, text = {
+        AlertDialog(onDismissRequest = onDismiss, title = { Text("添加工作区") }, text = {
             Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                Button(onClick = { destination = "github" }, modifier = Modifier.fillMaxWidth()) { Text("Import from GitHub") }
-                Button(onClick = { destination = "local" }, modifier = Modifier.fillMaxWidth()) { Text("On this device") }
-                OutlinedButton(onClick = { destination = "ssh" }, modifier = Modifier.fillMaxWidth()) { Text("Connect through SSH") }
+                Button(onClick = { destination = "github" }, modifier = Modifier.fillMaxWidth()) { Text("从 GitHub 导入") }
+                Button(onClick = { destination = "local" }, modifier = Modifier.fillMaxWidth()) { Text("此设备上") }
+                OutlinedButton(onClick = { destination = "ssh" }, modifier = Modifier.fillMaxWidth()) { Text("通过 SSH 连接") }
             }
-        }, confirmButton = { TextButton(onClick = onDismiss) { Text("Cancel") } })
+        }, confirmButton = { TextButton(onClick = onDismiss) { Text("取消") } })
         return
     }
     val scope = rememberCoroutineScope()
@@ -71,9 +71,9 @@ fun AddWorkspaceDialog(
         val assessment = container.workspace.assessPath(trimmed)
         when {
             !assessment.directoryExists ->
-                error = "That folder could not be read. Try another one."
+                error = "无法读取此文件夹，请选择其他文件夹。"
             assessment.region == PathClassifier.Region.APP_DATA ->
-                error = "That is the app's own private storage. Use the app workspace instead."
+                error = "这是应用的私有存储，请使用应用工作区。"
             else -> scope.launch {
                 onSelected(container.workspace.addShellProject(trimmed, activateWorkspace).id)
                 onDismiss()
@@ -94,18 +94,18 @@ fun AddWorkspaceDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Add a workspace") },
+        title = { Text("添加工作区") },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 Text(
-                    "The workspace is where the agent reads and writes files.",
+                    "工作区是代理读取和写入文件的位置。",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
 
-                Text("App workspace", style = MaterialTheme.typography.titleSmall)
+                Text("应用工作区", style = MaterialTheme.typography.titleSmall)
                 Text(
-                    "Private folder only this app can see. Shell always works here.",
+                    "仅此应用可见的私有文件夹，可直接使用 Shell。",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -118,34 +118,34 @@ fun AddWorkspaceDialog(
                         } else onDismiss()
                     },
                     modifier = Modifier.fillMaxWidth(),
-                ) { Text("Use app workspace") }
+                ) { Text("使用应用工作区") }
 
                 HorizontalDivider()
 
-                Text("Device folder", style = MaterialTheme.typography.titleSmall)
+                Text("设备文件夹", style = MaterialTheme.typography.titleSmall)
                 Text(
-                    "Any folder on this phone or SD card. Pick it in the built-in " +
-                        "browser, no typing needed. Full shell.",
+                    "选择手机或 SD 卡上的任意文件夹。在内置" +
+                        "浏览器中选择，无需手动输入。支持完整 Shell。",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
                 OutlinedButton(
                     onClick = { showFolderBrowser = true },
                     modifier = Modifier.fillMaxWidth(),
-                ) { Text("Browse device folders") }
+                ) { Text("浏览设备文件夹") }
 
                 HorizontalDivider()
 
-                Text("System picker", style = MaterialTheme.typography.titleSmall)
+                Text("系统选择器", style = MaterialTheme.typography.titleSmall)
                 Text(
-                    "Choose a folder without granting broad storage access. File tools " +
-                        "work in the selected folder. Shell commands need direct storage " +
-                        "access, or use the app workspace.",
+                    "无需授予广泛的存储权限即可选择文件夹。文件工具" +
+                        "可在所选文件夹中工作。Shell 命令需要直接存储" +
+                        "访问权限，也可改用应用工作区。",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
                 OutlinedButton(onClick = onPickSaf, modifier = Modifier.fillMaxWidth()) {
-                    Text("Open system picker")
+                    Text("打开系统选择器")
                 }
 
                 error?.let { msg ->
@@ -158,7 +158,7 @@ fun AddWorkspaceDialog(
             }
         },
         confirmButton = {
-            TextButton(onClick = onDismiss) { Text("Close") }
+            TextButton(onClick = onDismiss) { Text("关闭") }
         },
     )
 }

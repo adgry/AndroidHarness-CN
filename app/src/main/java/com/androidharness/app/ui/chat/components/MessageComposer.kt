@@ -261,7 +261,7 @@ internal fun MessageComposer(
                             color = MaterialTheme.colorScheme.primary,
                         )
                         Text(
-                            "Transcribing audio with Groq Whisper…",
+                            "正在使用 Groq Whisper 转写音频…",
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.primary,
                             maxLines = 1,
@@ -313,7 +313,7 @@ internal fun MessageComposer(
                                 )
                                 Icon(
                                     Icons.Filled.Close,
-                                    contentDescription = "Remove skill",
+                                    contentDescription = "移除技能",
                                     modifier = Modifier.size(14.dp),
                                 )
                             }
@@ -338,7 +338,7 @@ internal fun MessageComposer(
                             .weight(1f)
                             .heightIn(max = lineHeight * visibleLines + inputPadding * 2)
                             .then(inputFocus?.let { Modifier.focusRequester(it) } ?: Modifier)
-                            .semantics { contentDescription = "Message input" }
+                            .semantics { contentDescription = "消息输入框" }
                             .onFocusChanged { focused = it.isFocused }
                             .onPreviewKeyEvent { event ->
                                 if (desktopInput && !event.isCtrlPressed && event.key == Key.Tab) {
@@ -375,11 +375,11 @@ internal fun MessageComposer(
                             ) {
                                 if (value.text.isEmpty()) Text(
                                     text = when {
-                                        isInbuiltListening -> "Listening…"
-                                        !attachedSkill.isNullOrBlank() -> "Add a note, or send…"
-                                        busy -> "Queue message"
-                                        desktop -> "Describe a task…"
-                                        else -> "Message…"
+                                        isInbuiltListening -> "正在聆听…"
+                                        !attachedSkill.isNullOrBlank() -> "添加备注或直接发送…"
+                                        busy -> "将消息加入队列"
+                                        desktop -> "描述任务…"
+                                        else -> "输入消息…"
                                     },
                                     maxLines = 1,
                                     overflow = TextOverflow.Ellipsis,
@@ -444,7 +444,7 @@ internal fun MessageComposer(
                 ExpressiveIconButton(
                     onClick = onToggleInbuiltVoice,
                     modifier = Modifier.size(actionSize)
-                        .semantics { contentDescription = if (isInbuiltListening) "Stop voice input" else "Voice input" },
+                        .semantics { contentDescription = if (isInbuiltListening) "停止语音输入" else "语音输入" },
                     shape = RoundedCornerShape(corner),
                     colors = IconButtonDefaults.iconButtonColors(
                         containerColor = if (isInbuiltListening) MaterialTheme.colorScheme.primary else Color.Transparent,
@@ -466,7 +466,7 @@ internal fun MessageComposer(
                 ExpressiveIconButton(
                     onClick = { haptics.performHapticFeedback(HapticFeedbackType.Confirm); onSend() },
                     modifier = Modifier.size(actionSize)
-                        .semantics { contentDescription = "Queue message" },
+                        .semantics { contentDescription = "将消息加入队列" },
                     shape = RoundedCornerShape(corner),
                     colors = IconButtonDefaults.iconButtonColors(
                         containerColor = MaterialTheme.colorScheme.primary,
@@ -486,7 +486,7 @@ internal fun MessageComposer(
                             haptics.performHapticFeedback(HapticFeedbackType.Confirm)
                             onStopAndTranscribeGroq()
                         }
-                        .semantics { contentDescription = "Transcribe voice message" },
+                        .semantics { contentDescription = "转写语音消息" },
                     contentAlignment = Alignment.Center,
                 ) {
                     Box(
@@ -505,7 +505,7 @@ internal fun MessageComposer(
                 ExpressiveIconButton(
                     onClick = { haptics.performHapticFeedback(HapticFeedbackType.Confirm); onStop() },
                     modifier = Modifier.size(actionSize)
-                        .semantics { contentDescription = "Stop" },
+                        .semantics { contentDescription = "停止" },
                     shape = RoundedCornerShape(corner),
                     colors = IconButtonDefaults.iconButtonColors(containerColor = buttonColor, contentColor = iconColor),
                 ) {
@@ -517,7 +517,7 @@ internal fun MessageComposer(
                 ExpressiveIconButton(
                     onClick = { haptics.performHapticFeedback(HapticFeedbackType.Confirm); onSend() },
                     modifier = Modifier.size(actionSize)
-                        .semantics { contentDescription = "Send message" },
+                        .semantics { contentDescription = "发送消息" },
                     shape = RoundedCornerShape(corner),
                     colors = IconButtonDefaults.iconButtonColors(containerColor = buttonColor, contentColor = iconColor),
                 ) {
@@ -560,7 +560,7 @@ internal fun MessageComposer(
                 if (canSend || showStopOnly || isGroqLocked) trailing()
                 else IconButton(onClick = {}, enabled = false, modifier = Modifier.size(44.dp)) {
                     Surface(shape = CircleShape, color = scheme.primary.copy(alpha = 0.45f)) {
-                        Icon(painterResource(R.drawable.ic_chat_arrow_up), "Send message", Modifier.padding(9.dp).size(18.dp), tint = scheme.onPrimary)
+                        Icon(painterResource(R.drawable.ic_chat_arrow_up), "发送消息", Modifier.padding(9.dp).size(18.dp), tint = scheme.onPrimary)
                     }
                 }
             }
@@ -731,7 +731,7 @@ private fun RecordingStrip(
                     ) {
                         TrashGlyph(color = onContainer, size = 18.dp)
                         Text(
-                            text = "Release to cancel",
+                            text = "松开取消",
                             style = MaterialTheme.typography.labelMedium,
                             color = onContainer,
                         )
@@ -747,7 +747,7 @@ private fun RecordingStrip(
 
             if (locked) {
                 Text(
-                    text = "Hands free",
+                    text = "免手持",
                     style = MaterialTheme.typography.labelSmall,
                     color = onContainer.copy(alpha = 0.8f),
                 )
@@ -765,7 +765,7 @@ private fun RecordingStrip(
                         size = 13.dp,
                     )
                     Text(
-                        text = "cancel",
+                        text = "取消",
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
@@ -1013,9 +1013,9 @@ Box(
                 }
                 .semantics {
                     contentDescription = if (recording) {
-                        "Recording. Release to send, slide left to cancel, slide up to lock"
+                        "正在录音。松开发送，左滑取消，上滑锁定"
                     } else {
-                        "Tap to lock recording, hold to record a voice message"
+                        "点按锁定录音，长按录制语音消息"
                     }
                 },
             contentAlignment = Alignment.Center,
@@ -1056,7 +1056,7 @@ private fun ComposerLeadingButton(
         ExpressiveIconButton(
             onClick = { haptics.performHapticFeedback(HapticFeedbackType.Confirm); expanded = true },
             modifier = Modifier.size(size)
-                .semantics { contentDescription = "Message actions" },
+                .semantics { contentDescription = "消息操作" },
             shape = RoundedCornerShape(17.dp),
             colors = IconButtonDefaults.iconButtonColors(
                 containerColor = if (expanded) MaterialTheme.colorScheme.secondaryContainer else Color.Transparent,
@@ -1071,7 +1071,7 @@ private fun ComposerLeadingButton(
             onDismissRequest = { expanded = false },
         ) {
             DropdownMenuItem(
-                text = { Text("Photo or image") },
+                text = { Text("照片或图片") },
                 leadingIcon = { ImageGlyph(color = MaterialTheme.colorScheme.onSurfaceVariant, size = 18.dp) },
                 onClick = {
                     expanded = false
@@ -1079,7 +1079,7 @@ private fun ComposerLeadingButton(
                 },
             )
             DropdownMenuItem(
-                text = { Text("Any file") },
+                text = { Text("任意文件") },
                 leadingIcon = { Icon(Icons.Outlined.Description, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(18.dp)) },
                 onClick = {
                     expanded = false
@@ -1091,7 +1091,7 @@ private fun ComposerLeadingButton(
                 DropdownMenuItem(
                     text = {
                         androidx.compose.foundation.layout.Column {
-                            Text("Schedule message")
+                            Text("定时发送消息")
                             scheduleUnavailableReason?.let { Text(it, style = MaterialTheme.typography.labelSmall) }
                         }
                     },
@@ -1112,7 +1112,7 @@ private fun DiscardRecordingButton(onClick: () -> Unit, size: Dp = 52.dp) {
             .clip(CircleShape)
             .background(MaterialTheme.colorScheme.errorContainer)
             .clickable(onClick = onClick)
-            .semantics { contentDescription = "Discard recording" },
+            .semantics { contentDescription = "放弃录音" },
         contentAlignment = Alignment.Center,
     ) {
         TrashGlyph(color = MaterialTheme.colorScheme.onErrorContainer)

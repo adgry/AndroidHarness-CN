@@ -316,7 +316,7 @@ class GitCommandTest {
             gitHeadBranchCmd(),
         )
         // A plain push on a branch with no upstream leaves no tracking config.
-        success(gitCmd("init", "config user.name Test", "config user.email test@example.com"))
+        success(gitCmd("init --initial-branch=master", "config user.name Test", "config user.email test@example.com"))
         tmp.root.resolve("f.txt").writeText("first")
         success(gitCmd("add -A", "commit -m initial"))
         // Inside the per-test folder so repeated runs never see a stale
@@ -340,7 +340,7 @@ class GitCommandTest {
      */
     @Test
     fun `push -u repairs a branch tracking the wrong merge ref`() {
-        success(gitCmd("init", "config user.name Test", "config user.email test@example.com"))
+        success(gitCmd("init --initial-branch=master", "config user.name Test", "config user.email test@example.com"))
         tmp.root.resolve("f.txt").writeText("first")
         success(gitCmd("add -A", "commit -m initial"))
         val remote = tmp.root.resolve("wrong-merge-remote.git").absolutePath

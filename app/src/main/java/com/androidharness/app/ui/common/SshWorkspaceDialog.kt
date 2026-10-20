@@ -39,7 +39,7 @@ fun SshWorkspaceDialog(container: AppContainer, existing: SshFs? = null, onSelec
                 val result = withContext(Dispatchers.IO) {
                     container.sshConnections.preview(candidate) { s ->
                         val absolute = s.realpath(path?.takeIf { it.isNotBlank() } ?: s.home)
-                        require(s.stat(absolute).isDir) { "Choose a directory" }
+                        require(s.stat(absolute).isDir) { "选择目录" }
                         absolute to s.ls(absolute).filterIsInstance<ChannelSftp.LsEntry>()
                             .filter { it.filename != "." && it.filename != ".." && it.attrs.isDir && !it.attrs.isLink }
                             .map { it.filename }.sorted()
@@ -53,7 +53,7 @@ fun SshWorkspaceDialog(container: AppContainer, existing: SshFs? = null, onSelec
     }
     AlertDialog(
         onDismissRequest = { if (!busy) onDismiss() },
-        title = { Text(if (existing == null) "Connect through SSH" else "Connection settings") },
+        title = { Text(if (existing == null) "通过 SSH 连接" else "连接设置") },
         text = {
             SecureDialogEffect()
             Column(Modifier.heightIn(max = 480.dp).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -63,40 +63,40 @@ fun SshWorkspaceDialog(container: AppContainer, existing: SshFs? = null, onSelec
                             enabled = !busy, label = { Text("Termux") })
                         Spacer(Modifier.width(8.dp))
                         FilterChip(selected = !config.termux, onClick = { edit(config.copy(termux = false, host = "", port = 22)) },
-                            enabled = !busy, label = { Text("Another computer") })
+                            enabled = !busy, label = { Text("另一台电脑") })
                     }
                     if (config.termux) {
-                        TextButton(onClick = { showSetup = !showSetup }) { Text("Set up Termux") }
-                        if (showSetup) SelectionContainer { Text("pkg install openssh git\npasswd\nwhoami\nsshd\n\nCheck the fingerprint using:\nfor key in \$PREFIX/etc/ssh/ssh_host_*_key.pub; do ssh-keygen -lf \"\$key\" -E sha256; done\n\nProjects can stay in Termux's home folder. Configure Git identity and GitHub authentication in Termux.") }
+                        TextButton(onClick = { showSetup = !showSetup }) { Text("设置 Termux") }
+                        if (showSetup) SelectionContainer { Text("pkg install openssh git\npasswd\nwhoami\nsshd\n\n使用以下命令检查指纹：\nfor key in \$PREFIX/etc/ssh/ssh_host_*_key.pub; do ssh-keygen -lf \"\$key\" -E sha256; done\n\n项目可保存在 Termux 主目录中。请在 Termux 中配置 Git 身份和 GitHub 身份验证。") }
                     }
-                    OutlinedTextField(config.host, { edit(config.copy(host = it.trim())) }, label = { Text("Host") }, enabled = !busy && !config.termux, singleLine = true)
+                    OutlinedTextField(config.host, { edit(config.copy(host = it.trim())) }, label = { Text("主机") }, enabled = !busy && !config.termux, singleLine = true)
                     var port by remember(config.termux) { mutableStateOf(config.port.toString()) }
-                    OutlinedTextField(port, { port = it; edit(config.copy(port = it.toIntOrNull() ?: 0)) }, label = { Text("Port") }, enabled = !busy, singleLine = true)
-                    OutlinedTextField(config.username, { edit(config.copy(username = it.trim())) }, label = { Text("Username") }, enabled = !busy, singleLine = true)
+                    OutlinedTextField(port, { port = it; edit(config.copy(port = it.toIntOrNull() ?: 0)) }, label = { Text("端口") }, enabled = !busy, singleLine = true)
+                    OutlinedTextField(config.username, { edit(config.copy(username = it.trim())) }, label = { Text("用户名") }, enabled = !busy, singleLine = true)
                     Row {
-                        FilterChip(!keyMode, { keyMode = false; edit(config.copy(privateKey = "", passphrase = "")) }, enabled = !busy, label = { Text("Password") })
+                        FilterChip(!keyMode, { keyMode = false; edit(config.copy(privateKey = "", passphrase = "")) }, enabled = !busy, label = { Text("密码") })
                         Spacer(Modifier.width(8.dp))
-                        FilterChip(keyMode, { keyMode = true; edit(config.copy(password = "")) }, enabled = !busy, label = { Text("SSH key") })
+                        FilterChip(keyMode, { keyMode = true; edit(config.copy(password = "")) }, enabled = !busy, label = { Text("SSH 密钥") })
                     }
                     if (keyMode) {
-                        OutlinedTextField(config.privateKey, { edit(config.copy(privateKey = it)) }, label = { Text("Paste private key") },
+                        OutlinedTextField(config.privateKey, { edit(config.copy(privateKey = it)) }, label = { Text("粘贴私钥") },
                             visualTransformation = PasswordVisualTransformation(), enabled = !busy, minLines = 3, maxLines = 4)
-                        OutlinedTextField(config.passphrase, { edit(config.copy(passphrase = it)) }, label = { Text("Key passphrase (optional)") },
+                        OutlinedTextField(config.passphrase, { edit(config.copy(passphrase = it)) }, label = { Text("密钥口令（可选）") },
                             visualTransformation = PasswordVisualTransformation(), enabled = !busy, singleLine = true)
-                    } else OutlinedTextField(config.password, { edit(config.copy(password = it)) }, label = { Text("Password") },
+                    } else OutlinedTextField(config.password, { edit(config.copy(password = it)) }, label = { Text("密码") },
                         visualTransformation = PasswordVisualTransformation(), enabled = !busy, singleLine = true)
                     observed?.let { pin ->
-                        Text(if (initial.fingerprint.isNotBlank() && pin != initial.fingerprint) "Host key changed. Verify the new fingerprint on the server before accepting it." else "Verify this fingerprint matches your server before trusting it.")
+                        Text(if (initial.fingerprint.isNotBlank() && pin != initial.fingerprint) "主机密钥已更改。接受前，请在服务器上核对新指纹。" else "信任前，请核对此指纹与服务器是否一致。")
                         SelectionContainer { Text(pin) }
-                        Button(enabled = !busy, onClick = { config = config.copy(fingerprint = pin); browse(existing?.root) }) { Text("Trust & continue") }
+                        Button(enabled = !busy, onClick = { config = config.copy(fingerprint = pin); browse(existing?.root) }) { Text("信任并继续") }
                     }
                 } else {
-                    Text("Choose a project folder")
+                    Text("选择项目文件夹")
                     SelectionContainer { Text(folder) }
-                    if (existing == null && folder != "/") TextButton(enabled = !busy, onClick = { browse(folder.substringBeforeLast('/').ifEmpty { "/" }) }) { Text("↑ Parent folder") }
+                    if (existing == null && folder != "/") TextButton(enabled = !busy, onClick = { browse(folder.substringBeforeLast('/').ifEmpty { "/" }) }) { Text("↑ 上级文件夹") }
                     if (existing == null) folders.forEach { name -> TextButton(enabled = !busy, onClick = { browse(folder.trimEnd('/') + "/" + name) }, modifier = Modifier.fillMaxWidth()) { Text(name) } }
-                    if (folders.isEmpty()) Text("No subfolders. You can use this folder.")
-                    TextButton(enabled = !busy, onClick = { verified = false }) { Text("Edit connection") }
+                    if (folders.isEmpty()) Text("没有子文件夹，可使用此文件夹。")
+                    TextButton(enabled = !busy, onClick = { verified = false }) { Text("编辑连接") }
                 }
                 if (busy) AppLinearProgressIndicator(Modifier.fillMaxWidth())
                 error?.let { Text(it, color = MaterialTheme.colorScheme.error) }
@@ -109,7 +109,7 @@ fun SshWorkspaceDialog(container: AppContainer, existing: SshFs? = null, onSelec
                     busy = true
                     scope.launch {
                         try {
-                            check(existing == null || (container.runManager.runningSessionIds.value.isEmpty() && !container.terminal.state.value.busy)) { "Finish running commands before changing the connection" }
+                            check(existing == null || (container.runManager.runningSessionIds.value.isEmpty() && !container.terminal.state.value.busy)) { "请等待命令运行完成后再更改连接" }
                             val selectedId = withContext(Dispatchers.IO) {
                                 val id = if (existing == null) container.workspace.addSshProject(config, folder, activateWorkspace).id
                                 else { container.sshConnections.save(config); null }
@@ -135,8 +135,8 @@ fun SshWorkspaceDialog(container: AppContainer, existing: SshFs? = null, onSelec
                         finally { busy = false }
                     }
                 }
-            }) { Text(if (verified) if (existing == null) "Use this workspace" else "Save connection" else "Connect") }
+            }) { Text(if (verified) if (existing == null) "使用此工作区" else "保存连接" else "连接") }
         },
-        dismissButton = { TextButton(enabled = !busy, onClick = onDismiss) { Text("Cancel") } },
+        dismissButton = { TextButton(enabled = !busy, onClick = onDismiss) { Text("取消") } },
     )
 }

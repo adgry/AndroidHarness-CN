@@ -194,9 +194,9 @@ fun AppNav(container: AppContainer) {
     val chatWorkspaceContext = workspaceSessionId != null || workspaceChatViewModel != null
     val workspaceSummary = if (chatWorkspaceContext) {
         val count = chatWorkspaceSelection?.grants?.size ?: 1
-        "$count workspace${if (count == 1) "" else "s"}" +
-            currentWorkspace?.name?.let { " · Primary: $it" }.orEmpty()
-    } else currentWorkspace?.name ?: "Choose workspace"
+        "$count 个工作区" +
+            currentWorkspace?.name?.let { " · 主要：$it" }.orEmpty()
+    } else currentWorkspace?.name ?: "选择工作区"
     val activeFs by remember(workspaceSessionId, workspaceProjectId) { container.workspace.forTools(workspaceSessionId, workspaceProjectId) }
         .collectAsStateWithLifecycle(initialValue = null)
     var workspaceError by remember { mutableStateOf<String?>(null) }
@@ -294,7 +294,7 @@ fun AppNav(container: AppContainer) {
             SidebarChatAction.ARCHIVE -> scope.launch {
                 val wasArchived = session.id in settings.archivedSessions
                 container.settings.setArchived(session.id, !wasArchived)
-                if (sidebarSnackbar.showSnackbar(if (wasArchived) "Chat restored" else "Chat archived", actionLabel = "Undo") ==
+                if (sidebarSnackbar.showSnackbar(if (wasArchived) "聊天已恢复" else "聊天已归档", actionLabel = "撤销") ==
                     androidx.compose.material3.SnackbarResult.ActionPerformed) container.settings.setArchived(session.id, wasArchived)
             }
         }
@@ -320,8 +320,8 @@ fun AppNav(container: AppContainer) {
             onProjectChat = { project -> if (!creatingProjectChat) {
                 creatingProjectChat = true
                 val create = { scope.launch {
-                    try { openChat(container.sessions.createSession("New chat", project.id)) }
-                    catch (e: Exception) { if (e is kotlinx.coroutines.CancellationException) throw e; workspaceError = e.message ?: "Could not create chat." }
+                    try { openChat(container.sessions.createSession("新聊天", project.id)) }
+                    catch (e: Exception) { if (e is kotlinx.coroutines.CancellationException) throw e; workspaceError = e.message ?: "无法创建聊天。" }
                     finally { creatingProjectChat = false }
                 }; Unit }
                 if (desktopNavigation) {
@@ -337,10 +337,10 @@ fun AppNav(container: AppContainer) {
             onAutomation = { navigateFromSidebar { nav.navigate("automation") { launchSingleTop = true } } },
             onProviders = { navigateFromSidebar { nav.navigate("providers") { launchSingleTop = true } } },
             onSettings = { navigateFromSidebar { nav.navigate("settings") { launchSingleTop = true } } },
-            workspaceLabel = if (chatWorkspaceContext) "Workspaces for this chat" else "Workspace", workspaceSummary = workspaceSummary,
+            workspaceLabel = if (chatWorkspaceContext) "此聊天的工作区" else "工作区", workspaceSummary = workspaceSummary,
             onWorkspaces = { scope.launch { drawerState.close() }; showWorkspaceSheet = true }, onCollapse = onCollapse,
             currentRoute = currentRoute, projectCreationEnabled = !creatingProjectChat,
-            changesSummary = changes.takeIf { it.isNotEmpty() }?.let { "${it.size} files changed" },
+            changesSummary = changes.takeIf { it.isNotEmpty() }?.let { "${it.size} 个文件已更改" },
             onChanges = { currentSessionId?.let { sid -> navigateFromSidebar { nav.navigate("changes/${encode(sid)}") } } },
             snackbar = sidebarSnackbar,
             projectsView = settings.sidebarProjects,
@@ -357,7 +357,7 @@ fun AppNav(container: AppContainer) {
                 SidebarProjectAction.ARCHIVE -> scope.launch {
                     val wasArchived = project.id in settings.archivedProjects
                     container.settings.setProjectArchived(project.id, !wasArchived)
-                    if (sidebarSnackbar.showSnackbar(if (wasArchived) "Project restored" else "Project archived", actionLabel = "Undo") ==
+                    if (sidebarSnackbar.showSnackbar(if (wasArchived) "项目已恢复" else "项目已归档", actionLabel = "撤销") ==
                         androidx.compose.material3.SnackbarResult.ActionPerformed) container.settings.setProjectArchived(project.id, wasArchived)
                 }
             } },
@@ -576,7 +576,7 @@ fun AppNav(container: AppContainer) {
                             try {
                                 val sid = sessionArg.takeIf { it.isNotBlank() }
                                     ?: sourceId?.let { container.sessions.createProjectSession(it) }
-                                    ?: error("Choose a workspace before asking about code.")
+                                    ?: error("请先选择工作区，再询问代码问题。")
                                 container.pendingCodeDraft.value = com.androidharness.app.ui.files.CodeChatDraft(sid, prompt)
                                 val route = if (draftSessionId == sid) "chat" else "chat/$sid"
                                 if (!nav.popBackStack(route, inclusive = false)) openChat(sid)
@@ -735,8 +735,8 @@ fun AppNav(container: AppContainer) {
         )
     }
     workspaceError?.let { message ->
-        AlertDialog(onDismissRequest = { workspaceError = null }, title = { Text("Workspace") },
-            text = { Text(message) }, confirmButton = { TextButton(onClick = { workspaceError = null }) { Text("OK") } })
+        AlertDialog(onDismissRequest = { workspaceError = null }, title = { Text("工作区") },
+            text = { Text(message) }, confirmButton = { TextButton(onClick = { workspaceError = null }) { Text("确定") } })
     }
     if (showAddWorkspace) {
         com.androidharness.app.ui.common.AddWorkspaceDialog(
@@ -751,17 +751,17 @@ fun AppNav(container: AppContainer) {
     }
 
     // One-time "the toolchain gained new packages" notice for installs that
-    // predate the addition. "Fetch now" lands on Settings and starts the
+    // predate the addition. "立即下载" lands on Settings and starts the
     // update so the progress card is visible; every path marks it as seen.
     if (showLatePackagesNotice) {
         AlertDialog(
             onDismissRequest = { dismissLatePackagesNotice() },
-            title = { Text("Terminal & environment updated") },
+            title = { Text("终端与环境已更新") },
             text = {
                 Text(
-                    "The Linux toolchain gained new packages: ${latePackages.joinToString(", ")}. " +
-                        "Fetch them to add the new tools to your installed environment; " +
-                        "until then they show up as missing.",
+                    "Linux 工具链新增软件包： ${latePackages.joinToString(", ")}. " +
+                        "下载这些软件包，即可为现有环境添加新工具；" +
+                        "下载前会显示为缺失。",
                 )
             },
             confirmButton = {
@@ -769,10 +769,10 @@ fun AppNav(container: AppContainer) {
                     dismissLatePackagesNotice()
                     nav.navigate("settings")
                     scope.launch { container.linuxEnv.updateEnvironment() }
-                }) { Text("Fetch now") }
+                }) { Text("立即下载") }
             },
             dismissButton = {
-                TextButton(onClick = { dismissLatePackagesNotice() }) { Text("Later") }
+                TextButton(onClick = { dismissLatePackagesNotice() }) { Text("稍后") }
             },
         )
     }
@@ -786,34 +786,34 @@ fun AppNav(container: AppContainer) {
             title = { Text(session.title, maxLines = 2, overflow = TextOverflow.Ellipsis) },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                    SessionAction("Rename") {
+                    SessionAction("重命名") {
                         renamingSession = session
                         actionsSession = null
                     }
-                    SessionAction(if (pinned) "Unpin" else "Pin") {
+                    SessionAction(if (pinned) "取消置顶" else "置顶") {
                         sidebarAction(session, SidebarChatAction.PIN)
                         actionsSession = null
                     }
-                    SessionAction(if (archived) "Unarchive" else "Archive") {
+                    SessionAction(if (archived) "取消归档" else "归档") {
                         sidebarAction(session, SidebarChatAction.ARCHIVE)
                         actionsSession = null
                     }
-                    SessionAction("Chat details") { detailsSession = session; actionsSession = null }
-                    SessionAction("Delete", destructive = true) {
+                    SessionAction("聊天详情") { detailsSession = session; actionsSession = null }
+                    SessionAction("删除", destructive = true) {
                         deletingSession = session
                         actionsSession = null
                     }
                 }
             },
             confirmButton = {
-                TextButton(onClick = { actionsSession = null }) { Text("Close") }
+                TextButton(onClick = { actionsSession = null }) { Text("关闭") }
             },
         )
     }
 
     deletingSession?.let { session ->
-        AlertDialog(onDismissRequest = { deletingSession = null }, title = { Text("Delete chat?") },
-            text = { Text("Delete \"${session.title}\" and its conversation history?") },
+        AlertDialog(onDismissRequest = { deletingSession = null }, title = { Text("删除聊天？") },
+            text = { Text("删除“${session.title}”及其聊天记录？") },
             confirmButton = { TextButton(onClick = {
                 val remove = { scope.launch {
                     container.runManager.stopAndJoin(session.id)
@@ -823,21 +823,21 @@ fun AppNav(container: AppContainer) {
                 }; Unit }
                 deletingSession = null
                 if (desktopNavigation && session.id == currentSessionId) desktopGuard.navigate(remove) else remove()
-            }) { Text("Delete chat", color = MaterialTheme.colorScheme.error) } },
-            dismissButton = { TextButton(onClick = { deletingSession = null }) { Text("Keep chat") } })
+            }) { Text("删除聊天", color = MaterialTheme.colorScheme.error) } },
+            dismissButton = { TextButton(onClick = { deletingSession = null }) { Text("保留聊天") } })
     }
     detailsSession?.let { session ->
         val choice = if (settings.sameModelAcrossChats) com.androidharness.app.data.ChatModelSelection.from(settings, providers).active
             else runCatching { com.androidharness.app.data.ChatModelSelection.decode(session.modelSelectionJson)?.active
                 ?: com.androidharness.app.data.ChatModelSelection.from(settings, providers).active }.getOrNull()
-        AlertDialog(onDismissRequest = { detailsSession = null }, title = { Text("Chat details") },
+        AlertDialog(onDismissRequest = { detailsSession = null }, title = { Text("聊天详情") },
             text = { Column(Modifier.heightIn(max = 340.dp).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 Text(session.title, style = MaterialTheme.typography.titleSmall)
-                Text("Workspace: ${allWorkspaces.firstOrNull { it.id == session.projectId }?.name ?: "Other chats"}")
-                Text("Model: ${choice?.model ?: "Unavailable"}")
-                Text("Tokens used: ${formatTokens(session.totalInputTokens + session.totalOutputTokens)}")
-                Text("Updated: ${formatRelativeTime(session.updatedAt)}")
-            } }, confirmButton = { TextButton(onClick = { detailsSession = null }) { Text("Close") } })
+                Text("工作区：${allWorkspaces.firstOrNull { it.id == session.projectId }?.name ?: "其他聊天"}")
+                Text("模型：${choice?.model ?: "不可用"}")
+                Text("已用 Token：${formatTokens(session.totalInputTokens + session.totalOutputTokens)}")
+                Text("更新时间：${formatRelativeTime(session.updatedAt)}")
+            } }, confirmButton = { TextButton(onClick = { detailsSession = null }) { Text("关闭") } })
     }
 
     deletingProject?.let { project ->
@@ -851,20 +851,20 @@ fun AppNav(container: AppContainer) {
     }
 
     renamingProject?.let { project ->
-        AlertDialog(onDismissRequest = { renamingProject = null }, title = { Text("Rename project") },
-            text = { OutlinedTextField(projectName, { projectName = it }, singleLine = true, label = { Text("Project name") }) },
+        AlertDialog(onDismissRequest = { renamingProject = null }, title = { Text("重命名项目") },
+            text = { OutlinedTextField(projectName, { projectName = it }, singleLine = true, label = { Text("项目名称") }) },
             confirmButton = { TextButton(enabled = projectName.isNotBlank(), onClick = { scope.launch {
                 try { container.workspace.renameProject(project.id, projectName); renamingProject = null }
                 catch (e: Exception) { if (e is kotlinx.coroutines.CancellationException) throw e; workspaceError = e.message }
-            } }) { Text("Save") } },
-            dismissButton = { TextButton(onClick = { renamingProject = null }) { Text("Cancel") } })
+            } }) { Text("保存") } },
+            dismissButton = { TextButton(onClick = { renamingProject = null }) { Text("取消") } })
     }
 
     renamingSession?.let { session ->
         var title by remember(session) { mutableStateOf(session.title) }
         AlertDialog(
             onDismissRequest = { renamingSession = null },
-            title = { Text("Rename chat") },
+            title = { Text("重命名聊天") },
             text = {
                 OutlinedTextField(
                     value = title,
@@ -879,10 +879,10 @@ fun AppNav(container: AppContainer) {
                         scope.launch { container.sessions.renameSession(session.id, title.trim()) }
                     }
                     renamingSession = null
-                }) { Text("Save") }
+                }) { Text("保存") }
             },
             dismissButton = {
-                TextButton(onClick = { renamingSession = null }) { Text("Cancel") }
+                TextButton(onClick = { renamingSession = null }) { Text("取消") }
             },
         )
     }
@@ -919,7 +919,7 @@ internal fun MessageHitRow(
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(
-                hit.sessionTitle.ifBlank { "Chat" },
+                hit.sessionTitle.ifBlank { "聊天" },
                 style = MaterialTheme.typography.labelSmall,
                 color = scheme.onSurfaceVariant,
                 maxLines = 1,

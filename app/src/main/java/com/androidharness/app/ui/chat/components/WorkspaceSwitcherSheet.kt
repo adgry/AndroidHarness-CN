@@ -33,7 +33,7 @@ import com.androidharness.app.workspace.WorkspaceDescription
 
 /**
  * Quick workspace switching without leaving chat: every project as a
- * divider-separated row with its capability ("full shell" vs "file tools"),
+ * divider-separated row with its capability ("完整 Shell" vs "文件工具"),
  * tap to activate, delete non-app workspaces, one tap to add more.
  *
  * Why a sheet: picking a workspace affects what every tool touches next, so
@@ -62,15 +62,15 @@ fun WorkspaceSwitcherSheet(
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Column(Modifier.weight(1f)) {
-                    Text(if (chatWorkspace) "Chat workspace" else "Workspace", style = MaterialTheme.typography.titleMediumEmphasized)
+                    Text(if (chatWorkspace) "聊天工作区" else "工作区", style = MaterialTheme.typography.titleMediumEmphasized)
                     Text(
-                        if (chatWorkspace) "Assigned to this chat" else "Default for new chats",
+                        if (chatWorkspace) "已分配给此聊天" else "新聊天的默认工作区",
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
                 IconButton(onClick = onDismiss) {
-                    Icon(Icons.Filled.Close, contentDescription = "Close")
+                    Icon(Icons.Filled.Close, contentDescription = "关闭")
                 }
             }
             // Bounded height: wrap-content lists inside sheets fight the
@@ -102,7 +102,7 @@ fun WorkspaceSwitcherSheet(
                             )
                             Text(
                                 desc.kindLabel +
-                                    if (desc.shellCapable) " · full shell" else " · file tools only",
+                                    if (desc.shellCapable) " · 完整 Shell" else " · 仅文件工具",
                                 style = MaterialTheme.typography.labelSmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 maxLines = 1,
@@ -112,7 +112,7 @@ fun WorkspaceSwitcherSheet(
                         if (project.id == currentProjectId) {
                             Icon(
                                 Icons.Filled.CheckCircle,
-                                contentDescription = "Active",
+                                contentDescription = "当前使用",
                                 tint = MaterialTheme.colorScheme.primary,
                                 modifier = Modifier.size(18.dp),
                             )
@@ -124,7 +124,7 @@ fun WorkspaceSwitcherSheet(
                             }) {
                                 Icon(
                                     Icons.Outlined.Delete,
-                                    contentDescription = "Delete ${project.name}",
+                                    contentDescription = "删除 ${project.name}",
                                     tint = MaterialTheme.colorScheme.error,
                                     modifier = Modifier.size(18.dp),
                                 )
@@ -142,7 +142,7 @@ fun WorkspaceSwitcherSheet(
                     TextButton(onClick = {
                         onDismiss()
                         onAdd()
-                    }) { Text("Add workspace…") }
+                    }) { Text("添加工作区…") }
                 }
             }
         }

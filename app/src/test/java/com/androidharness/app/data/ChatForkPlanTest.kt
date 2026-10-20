@@ -9,13 +9,13 @@ import org.junit.Test
 class ChatForkPlanTest {
 
     @Test
-    fun `fork title prepends Fork of only once`() {
+    fun `fork title prepends localized prefix only once`() {
         val original = "Setup Docker"
-        val fork1 = if (original.startsWith("Fork of ")) original else "Fork of $original"
-        assertEquals("Fork of Setup Docker", fork1)
+        val fork1 = if (original.startsWith("Fork of ") || original.startsWith("分支：")) original else "分支：$original"
+        assertEquals("分支：Setup Docker", fork1)
 
-        val fork2 = if (fork1.startsWith("Fork of ")) fork1 else "Fork of $fork1"
-        assertEquals("Fork of Setup Docker", fork2)
+        val fork2 = if (fork1.startsWith("Fork of ") || fork1.startsWith("分支：")) fork1 else "分支：$fork1"
+        assertEquals("分支：Setup Docker", fork2)
     }
 
     @Test

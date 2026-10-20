@@ -254,7 +254,7 @@ class ProviderThinkingIntegrationTest {
         // A different model must not inherit the first model's false capability flag.
         assertEquals("max", options.resolveThinking(c.copy(model = "deepseek-v4-pro")).effort)
         val alias = config("kilo-auto/free", url = HarnessProvider.KILO_BASE_URL)
-        assertEquals("Thinking", com.androidharness.app.agent.ThinkingSpecs.resolve(alias, ThinkingLevel.MAX,
+        assertEquals("思考", com.androidharness.app.agent.ThinkingSpecs.resolve(alias, ThinkingLevel.MAX,
             modelEntry = ModelEntry(alias.model, reasoning = false)).label)
     }
 

@@ -112,19 +112,19 @@ internal fun SubagentPagerCard(
                 Spacer(Modifier.width(10.dp))
                 Column(Modifier.weight(1f)) {
                     Text(
-                        if (anyRunning) "Running $runningCount of ${calls.size} subagents…"
-                        else "Spawned ${calls.size} subagents",
+                        if (anyRunning) "正在运行 $runningCount / ${calls.size} 个子代理…"
+                        else "已启动 ${calls.size} 个子代理",
                         style = MaterialTheme.typography.labelLarge,
                     )
                     val summary = buildString {
-                        if (doneCount > 0) append("$doneCount done")
+                        if (doneCount > 0) append("$doneCount 个已完成")
                         if (failedCount > 0) {
                             if (isNotEmpty()) append(" · ")
-                            append("$failedCount failed")
+                            append("$failedCount 个失败")
                         }
                         if (anyRunning) {
                             if (isNotEmpty()) append(" · ")
-                            append("$runningCount running")
+                            append("$runningCount 个运行中")
                         }
                     }
                     if (summary.isNotEmpty()) {
@@ -145,13 +145,13 @@ internal fun SubagentPagerCard(
                         running -> DotLoading(Modifier.size(width = 20.dp, height = 12.dp))
                         failedCount > 0 -> Icon(
                             Icons.Filled.Close,
-                            contentDescription = "Failed",
+                            contentDescription = "失败",
                             tint = scheme.error,
                             modifier = Modifier.size(18.dp),
                         )
                         else -> Icon(
                             Icons.Filled.CheckCircle,
-                            contentDescription = "Done",
+                            contentDescription = "完成",
                             tint = success,
                             modifier = Modifier.size(18.dp),
                         )

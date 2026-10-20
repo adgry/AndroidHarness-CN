@@ -66,14 +66,14 @@ fun SkillsScreen(
         containerColor = MaterialTheme.colorScheme.surface,
         topBar = {
             AppHeader(
-                title = "Skills",
-                subtitle = "$enabledCount enabled · ${bundled.size} bundled",
+                title = "技能",
+                subtitle = "已启用 $enabledCount 项 · 内置 ${bundled.size} 项",
                 onBack = onBack,
             )
         },
         floatingActionButton = {
             FloatingActionButton(onClick = { showAdd = true }) {
-                Icon(Icons.Outlined.Add, contentDescription = "Add skill")
+                Icon(Icons.Outlined.Add, contentDescription = "添加技能")
             }
         },
     ) { padding ->
@@ -86,16 +86,16 @@ fun SkillsScreen(
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             Text(
-                "The model sees these names every turn and loads a body with skill_view when one matches. /skills opens the picker. /name force-loads one.",
+                "模型每轮都会看到这些名称，匹配时通过 skill_view 加载正文。/skills 打开选择器，/name 强制加载指定技能。",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
-            SkillGroup("Bundled", bundled, container, scope, onEdit = null)
+            SkillGroup("内置", bundled, container, scope, onEdit = null)
             if (user.isNotEmpty()) {
-                SkillGroup("Your skills", user, container, scope, onEdit = { editing = it })
+                SkillGroup("你的技能", user, container, scope, onEdit = { editing = it })
             }
             if (project.isNotEmpty()) {
-                SkillGroup("This workspace", project, container, scope, onEdit = null)
+                SkillGroup("此工作区", project, container, scope, onEdit = null)
             }
             Spacer(Modifier.height(72.dp))
         }
@@ -103,7 +103,7 @@ fun SkillsScreen(
 
     if (showAdd) {
         SkillEditorDialog(
-            title = "Add skill",
+            title = "添加技能",
             initial = skillTemplate(),
             onDismiss = { showAdd = false },
             onSave = { content ->
@@ -115,7 +115,7 @@ fun SkillsScreen(
     editing?.let { skill ->
         val current = container.skills.view(skill.name).getOrNull()?.content ?: skillTemplate(skill.name, skill.description)
         SkillEditorDialog(
-            title = "Edit ${skill.name}",
+            title = "编辑 ${skill.name}",
             initial = current,
             onDismiss = { editing = null },
             onSave = { content ->
@@ -158,10 +158,10 @@ private fun SkillGroup(
                     }
                     if (onEdit != null) {
                         IconButton(onClick = { onEdit(skill) }) {
-                            Text("Edit", style = MaterialTheme.typography.labelSmall)
+                            Text("编辑", style = MaterialTheme.typography.labelSmall)
                         }
                         IconButton(onClick = { container.skills.deleteUser(skill.name) }) {
-                            Icon(Icons.Outlined.Delete, contentDescription = "Delete", modifier = Modifier.padding(0.dp))
+                            Icon(Icons.Outlined.Delete, contentDescription = "删除", modifier = Modifier.padding(0.dp))
                         }
                     }
                     Switch(
@@ -209,7 +209,7 @@ private fun SkillEditorDialog(
                     label = { Text("SKILL.md") },
                 )
                 Text(
-                    "Catalog line: ${parsed?.name ?: "?"} · ${parsed?.catalogDescription ?: "fix frontmatter"}",
+                    "目录项：${parsed?.name ?: "?"} · ${parsed?.catalogDescription ?: "请修正 frontmatter"}",
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -229,8 +229,8 @@ private fun SkillEditorDialog(
                     }
                 },
                 enabled = error == null,
-            ) { Text("Save") }
+            ) { Text("保存") }
         },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text("取消") } },
     )
 }

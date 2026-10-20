@@ -6,10 +6,24 @@ import kotlinx.serialization.Serializable
 enum class AccessMode(val label: String) {
     AUTO("Auto"), NORMAL("Normal"), SHIZUKU("Shizuku"), ROOT("Root"),
     /** Keeps both privileged transports connected: Shizuku for ordinary work, root for root requests. */
-    BOTH("Both"),
+    BOTH("Both");
+    val displayLabel: String get() = when (this) {
+        AUTO -> "自动"
+        NORMAL -> "普通"
+        SHIZUKU -> "Shizuku"
+        ROOT -> "Root"
+        BOTH -> "混合"
+    }
 }
 @Serializable
-enum class RootUse(val label: String) { SESSION("App session"), CHAT("Current chat"), NEXT_ACTION("Next action") }
+enum class RootUse(val label: String) {
+    SESSION("App session"), CHAT("Current chat"), NEXT_ACTION("Next action");
+    val displayLabel: String get() = when (this) {
+        SESSION -> "本次应用会话"
+        CHAT -> "当前聊天"
+        NEXT_ACTION -> "下一次操作"
+    }
+}
 @Serializable
 enum class DeviceBackend { NORMAL, SHIZUKU, ROOT }
 
@@ -19,6 +33,11 @@ data class ExecutionReceipt(
     val uid: Int? = null,
     val fallbackReason: String? = null,
 ) {
+    val displayLabel: String get() = when (backend) {
+        DeviceBackend.NORMAL -> "普通"
+        DeviceBackend.ROOT -> "Root"
+        DeviceBackend.SHIZUKU -> if (uid == 0) "Shizuku · Root" else "Shizuku · ADB"
+    }
     val label: String get() = when (backend) {
         DeviceBackend.NORMAL -> "Normal"
         DeviceBackend.ROOT -> "Root"

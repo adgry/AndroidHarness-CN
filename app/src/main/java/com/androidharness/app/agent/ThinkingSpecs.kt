@@ -34,31 +34,31 @@ object ThinkingSpecs {
         val customLevel: String? = null,
         val requestMapping: String? = null,
     ) {
-        val label: String get() = customLevel?.let(CustomReasoning::label) ?: when (spec.style) {
-            Style.AUTOMATIC -> if (spec.reasoningSupported) "On" else "Thinking"
-            Style.NONE -> "Off"
-            Style.TOGGLE -> if (level == ThinkingLevel.OFF) "Off" else "On"
-            else -> level.label
+        val label: String get() = customLevel?.let(CustomReasoning::displayLabel) ?: when (spec.style) {
+            Style.AUTOMATIC -> if (spec.reasoningSupported) "开启" else "思考"
+            Style.NONE -> "关闭"
+            Style.TOGGLE -> if (level == ThinkingLevel.OFF) "关闭" else "开启"
+            else -> level.displayLabel
         }
         fun optionLabel(value: ThinkingLevel): String =
-            if (spec.style == Style.TOGGLE && value != ThinkingLevel.OFF) "On" else value.label
+            if (spec.style == Style.TOGGLE && value != ThinkingLevel.OFF) "开启" else value.displayLabel
         val active: Boolean get() = customLevel?.let { it != "disabled" } ?: (spec.style == Style.AUTOMATIC || level != ThinkingLevel.OFF)
         val detail: String get() = if (customLevel != null) {
-            "Thinking: $label\n" + when {
-                spec.style == Style.TOGGLE && requestMapping == null -> "Native on/off control"
-                requestMapping == null -> "Reasoning mapping required"
-                customConfig?.mapping.isNullOrBlank() -> "Inherited model/provider mapping"
-                else -> "Custom CEL request mapping"
+            "思考：$label\n" + when {
+                spec.style == Style.TOGGLE && requestMapping == null -> "原生开关控制"
+                requestMapping == null -> "需要推理映射"
+                customConfig?.mapping.isNullOrBlank() -> "沿用的模型或服务商映射"
+                else -> "自定义 CEL 请求映射"
             }
         } else when (spec.style) {
-            Style.NONE -> "This model has no reasoning control"
-            Style.AUTOMATIC -> if (spec.reasoningSupported) "On · This model manages its own reasoning effort" else "Reasoning support is unverified. Add a custom mapping only for settings this model supports."
-            Style.TOGGLE -> "$label · This model supports thinking on or off"
+            Style.NONE -> "此模型不支持推理控制"
+            Style.AUTOMATIC -> if (spec.reasoningSupported) "开启 · 此模型自行管理推理强度" else "推理支持尚未确认，请仅为此模型支持的设置添加自定义映射。"
+            Style.TOGGLE -> "$label · 此模型支持开启或关闭思考"
             else -> buildList {
-                add("Thinking: $label")
-                if (requested != level) add("Requested ${requested.label} · Using ${level.label}")
-                budget?.takeIf { it > 0 }?.let { add("Up to $it thinking tokens") }
-                add(if (spec.outputLimitManaged) "Output limit managed by ChatGPT" else "Up to $maxOutputTokens total output tokens")
+                add("思考：$label")
+                if (requested != level) add("请求 ${requested.displayLabel} · 使用 ${level.displayLabel}")
+                budget?.takeIf { it > 0 }?.let { add("最多 $it 个思考 Token") }
+                add(if (spec.outputLimitManaged) "输出上限由 ChatGPT 管理" else "最多 $maxOutputTokens 个输出 Token")
             }.joinToString("\n")
         }
     }

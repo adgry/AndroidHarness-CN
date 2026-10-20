@@ -79,10 +79,10 @@ internal fun EmptyState(
     val scheme = MaterialTheme.colorScheme
     val desktop = com.androidharness.app.ui.LocalDesktopLayout.current
     val suggestions = listOf(
-        Icons.Outlined.Terminal to "Create a Python hello world and run it",
-        Icons.Outlined.Folder to "Explore my workspace and summarize it",
-        Icons.Outlined.Code to "Build a simple HTML landing page",
-        Icons.Outlined.CreateNewFolder to "Set up a new project with a README",
+        Icons.Outlined.Terminal to "创建并运行 Python Hello World",
+        Icons.Outlined.Folder to "探索我的工作区并总结",
+        Icons.Outlined.Code to "构建简单的 HTML 首页",
+        Icons.Outlined.CreateNewFolder to "创建包含 README 的新项目",
     )
     var entered by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) {
@@ -101,14 +101,14 @@ internal fun EmptyState(
         HarnessMark(size = if (desktop) 40.dp else 52.dp)
         Spacer(Modifier.height(20.dp))
         Text(
-            if (hasProvider) "What do you want to build?" else "Connect a provider",
+            if (hasProvider) "你想构建什么？" else "连接服务商",
             style = MaterialTheme.typography.headlineSmallEmphasized,
             textAlign = TextAlign.Center,
         )
         Spacer(Modifier.height(10.dp))
         Text(
-            if (hasProvider) "Start with an idea or create a new project."
-            else "Add an API key for OpenAI, Anthropic or Gemini to get started.",
+            if (hasProvider) "从一个想法开始，或创建新项目。"
+            else "添加 OpenAI、Anthropic 或 Gemini 的 API 密钥以开始使用。",
             style = MaterialTheme.typography.bodyMedium,
             color = scheme.onSurfaceVariant,
             textAlign = TextAlign.Center,
@@ -185,7 +185,7 @@ internal fun EmptyState(
             Button(onClick = onAddProvider) {
                 Icon(Icons.Filled.Add, contentDescription = null, modifier = Modifier.size(18.dp))
                 Spacer(Modifier.width(6.dp))
-                Text("Add provider")
+                Text("添加服务商")
             }
         }
     }
@@ -204,13 +204,13 @@ private fun DonationRow() {
         modifier = Modifier
             .fillMaxWidth()
             .heightIn(min = 48.dp)
-            .clickable(role = Role.Button, onClickLabel = "Open Buy Me a Coffee") {
+            .clickable(role = Role.Button, onClickLabel = "打开 Buy Me a Coffee") {
                 try {
                     context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(DONATION_URL)))
                 } catch (_: ActivityNotFoundException) {
                     Toast.makeText(
                         context,
-                        "No browser available. Visit buymeacoffee.com/sanuj7 to donate.",
+                        "没有可用的浏览器，请访问 buymeacoffee.com/sanuj7 捐赠。",
                         Toast.LENGTH_LONG,
                     ).show()
                 }
@@ -233,9 +233,9 @@ private fun DonationRow() {
         }
         Spacer(Modifier.width(12.dp))
         Column(Modifier.weight(1f)) {
-            Text("Donate", style = MaterialTheme.typography.bodyMedium)
+            Text("捐赠", style = MaterialTheme.typography.bodyMedium)
             Text(
-                "Help us keep building",
+                "支持我们继续开发",
                 style = MaterialTheme.typography.bodySmall,
                 color = scheme.onSurfaceVariant,
             )

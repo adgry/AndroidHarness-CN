@@ -186,7 +186,7 @@ internal fun ToolCallCard(
                             contentColor = if (receipt.uid == 0) scheme.onTertiaryContainer else scheme.onSecondaryContainer,
                             shape = RoundedCornerShape(50), modifier = Modifier.padding(top = 4.dp),
                         ) {
-                            Text(receipt.label + if (receipt.fallbackReason != null) " · fallback" else "",
+                            Text(receipt.displayLabel + if (receipt.fallbackReason != null) " · 回退" else "",
                                 style = MaterialTheme.typography.labelSmall,
                                 modifier = Modifier.padding(horizontal = 7.dp, vertical = 3.dp))
                         }
@@ -207,13 +207,13 @@ internal fun ToolCallCard(
                     when (key) {
                         1 -> Icon(
                             Icons.Filled.CheckCircle,
-                            contentDescription = "Done",
+                            contentDescription = "完成",
                             tint = success,
                             modifier = Modifier.size(18.dp),
                         )
                         2 -> Icon(
                             Icons.Filled.Close,
-                            contentDescription = "Failed",
+                            contentDescription = "失败",
                             tint = scheme.error,
                             modifier = Modifier.size(18.dp),
                         )
@@ -222,7 +222,7 @@ internal fun ToolCallCard(
                 }
                 Icon(
                     Icons.Filled.KeyboardArrowDown,
-                    contentDescription = if (expanded) "Collapse" else "Expand",
+                    contentDescription = if (expanded) "收起" else "展开",
                     tint = scheme.onSurfaceVariant,
                     modifier = Modifier
                         .padding(start = 2.dp)
@@ -347,22 +347,22 @@ internal fun ToolGroupCard(
                     Text(
                         when {
                             allSubagents && anyRunning ->
-                                "Running ${activeIds.size} of ${calls.size} subagents…"
-                            allSubagents -> "Spawned ${calls.size} subagents"
-                            anyRunning -> "Running tools…"
-                            else -> "Ran ${calls.size} tools"
+                                "正在运行 ${activeIds.size} / ${calls.size} 个子代理…"
+                            allSubagents -> "已启动 ${calls.size} 个子代理"
+                            anyRunning -> "正在运行工具…"
+                            else -> "已运行 ${calls.size} 个工具"
                         },
                         style = MaterialTheme.typography.labelLarge,
                     )
                     val summary = buildString {
-                        if (doneCount > 0) append("$doneCount done")
+                        if (doneCount > 0) append("$doneCount 个已完成")
                         if (failedCount > 0) {
                             if (isNotEmpty()) append(" · ")
-                            append("$failedCount failed")
+                            append("$failedCount 个失败")
                         }
                         if (anyRunning) {
                             if (isNotEmpty()) append(" · ")
-                            append("${activeIds.size} running")
+                            append("${activeIds.size} 个运行中")
                         }
                     }
                     if (summary.isNotEmpty()) {
@@ -383,13 +383,13 @@ internal fun ToolGroupCard(
                         running -> Spacer(Modifier.size(18.dp))
                         failedCount > 0 -> Icon(
                             Icons.Filled.Close,
-                            contentDescription = "Failed",
+                            contentDescription = "失败",
                             tint = scheme.error,
                             modifier = Modifier.size(18.dp),
                         )
                         else -> Icon(
                             Icons.Filled.CheckCircle,
-                            contentDescription = "Done",
+                            contentDescription = "完成",
                             tint = success,
                             modifier = Modifier.size(18.dp),
                         )
@@ -397,7 +397,7 @@ internal fun ToolGroupCard(
                 }
                 Icon(
                     Icons.Filled.KeyboardArrowDown,
-                    contentDescription = if (expanded) "Collapse" else "Expand",
+                    contentDescription = if (expanded) "收起" else "展开",
                     tint = scheme.onSurfaceVariant,
                     modifier = Modifier
                         .padding(start = 2.dp)
@@ -511,7 +511,7 @@ internal fun TurnActivityCard(
                 )
                 Spacer(Modifier.width(8.dp))
                 Text(
-                    if (failedCount > 0) "Work summary · $failedCount failed" else "Work summary",
+                    if (failedCount > 0) "工作摘要 · $failedCount 个失败" else "工作摘要",
                     style = MaterialTheme.typography.labelMedium,
                     color = if (failedCount > 0) scheme.error else scheme.onSurface,
                     modifier = Modifier.weight(1f),
@@ -520,7 +520,7 @@ internal fun TurnActivityCard(
                     style = MaterialTheme.typography.labelMedium, color = scheme.onSurfaceVariant)
                 Icon(
                     painterResource(R.drawable.ic_chat_chevron_right),
-                    contentDescription = if (expanded) "Collapse activity" else "Expand activity",
+                    contentDescription = if (expanded) "收起活动" else "展开活动",
                     tint = scheme.onSurfaceVariant,
                     modifier = Modifier.padding(start = 8.dp).size(18.dp).graphicsLayer { rotationZ = rotation.value / 2 },
                 )
@@ -534,7 +534,7 @@ internal fun TurnActivityCard(
                     verticalArrangement = Arrangement.spacedBy(8.dp),
                     modifier = Modifier.padding(start = 12.dp, end = 12.dp, bottom = 12.dp),
                 ) {
-                    if (workedLabel.isNotBlank()) Text("Worked for $workedLabel", style = MaterialTheme.typography.labelSmall,
+                    if (workedLabel.isNotBlank()) Text("已工作 $workedLabel", style = MaterialTheme.typography.labelSmall,
                         color = scheme.onSurfaceVariant)
                     CardHistory(rows, key = { it.key }) { row ->
                         when (row) {

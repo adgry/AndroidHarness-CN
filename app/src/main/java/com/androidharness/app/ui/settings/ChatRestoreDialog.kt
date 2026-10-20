@@ -32,16 +32,16 @@ internal fun ChatRestoreDialog(container: AppContainer, preview: ChatImportPrevi
             catch (e: Exception) { error = e.message }
         }
     }
-    AlertDialog(onDismissRequest = { if (!busy) onDismiss() }, title = { Text("Reconnect restored chats") },
+    AlertDialog(onDismissRequest = { if (!busy) onDismiss() }, title = { Text("重新关联已恢复的聊天") },
         text = {
             Column(Modifier.heightIn(max = 460.dp).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                Text("Choose a workspace for ${if (preview.sessions.size == 1) "this restored chat" else "these ${preview.sessions.size} restored chats"}. Existing chats stay unchanged. Files and folder permissions are not included in the backup.")
+                Text("为${if (preview.sessions.size == 1) "此恢复的聊天" else "这 ${preview.sessions.size} 个恢复的聊天"}选择工作区。保留现有聊天。备份不包含文件和文件夹权限。")
                 preview.missingWorkspaces.forEach { source ->
                     var expanded by remember(source.id) { mutableStateOf(false) }
                     Text(source.name, style = MaterialTheme.typography.titleSmall)
                     Box {
                         OutlinedButton(onClick = { expanded = true }, enabled = !busy, modifier = Modifier.fillMaxWidth()) {
-                            Text(projects.firstOrNull { it.id == mapping[source.id] }?.name ?: "Choose workspace")
+                            Text(projects.firstOrNull { it.id == mapping[source.id] }?.name ?: "选择工作区")
                         }
                         DropdownMenu(expanded, { expanded = false }) {
                             projects.forEach { project -> DropdownMenuItem(text = { Text(project.name) }, onClick = {
@@ -50,8 +50,8 @@ internal fun ChatRestoreDialog(container: AppContainer, preview: ChatImportPrevi
                         }
                     }
                 }
-                TextButton(onClick = { adding = true }, enabled = !busy) { Text("Add workspace") }
-                Text("Read-only access stays read-only. Chats that used multiple workspaces need separate folders for each one.", style = MaterialTheme.typography.bodySmall)
+                TextButton(onClick = { adding = true }, enabled = !busy) { Text("添加工作区") }
+                Text("只读访问仍保持只读。曾使用多个工作区的聊天，需要分别为每个工作区选择文件夹。", style = MaterialTheme.typography.bodySmall)
                 error?.let { Text(it, color = MaterialTheme.colorScheme.error) }
             }
         },
@@ -61,12 +61,12 @@ internal fun ChatRestoreDialog(container: AppContainer, preview: ChatImportPrevi
                 scope.launch {
                     try { onImported(container.chatBackup.importPrepared(preview, mapping)) }
                     catch (e: CancellationException) { throw e }
-                    catch (e: Exception) { error = e.message ?: "Could not restore chats." }
+                    catch (e: Exception) { error = e.message ?: "无法恢复聊天。" }
                     finally { busy = false }
                 }
-            }) { Text(if (busy) "Restoring…" else "Restore chats") }
+            }) { Text(if (busy) "正在恢复…" else "恢复聊天") }
         },
-        dismissButton = { TextButton(enabled = !busy, onClick = onDismiss) { Text("Cancel") } })
+        dismissButton = { TextButton(enabled = !busy, onClick = onDismiss) { Text("取消") } })
     if (adding) com.androidharness.app.ui.common.AddWorkspaceDialog(container, onDismiss = { adding = false },
         onSelected = { adding = false }, onPickSaf = { adding = false; picker.launch(null) }, activateWorkspace = false)
 }

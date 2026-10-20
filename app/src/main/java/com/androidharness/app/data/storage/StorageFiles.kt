@@ -74,14 +74,14 @@ internal object StorageFiles {
     }
 
     suspend fun snapshot(anchor: File, target: File, withHashes: Boolean = true): List<StorageStamp> {
-        require(contained(anchor, target)) { "Storage path changed. Scan again." }
+        require(contained(anchor, target)) { "存储路径已更改，请重新扫描。" }
         val out = mutableListOf<StorageStamp>()
         suspend fun visit(path: Path, depth: Int = 0) {
-            check(depth <= 64) { "Folder is too deep to review safely." }
+            check(depth <= 64) { "文件夹层级过深，无法安全检查。" }
             currentCoroutineContext().ensureActive()
-            check(out.size < MAX_ENTRIES) { "Too many files to review safely." }
+            check(out.size < MAX_ENTRIES) { "文件过多，无法安全检查。" }
             val a = attrs(path)
-            check(a.isDirectory || a.isRegularFile) { "Linked or special files are protected." }
+            check(a.isDirectory || a.isRegularFile) { "链接和特殊文件受保护。" }
             val hash = if (a.isRegularFile && withHashes) {
                 val digest = MessageDigest.getInstance("SHA-256")
                 // NOFOLLOW also rejects a last-component symlink swapped after the attribute read.
@@ -97,7 +97,7 @@ internal object StorageFiles {
                 digest.digest().joinToString("") { "%02x".format(it) }
             } else ""
             check(attrs(path).let { it.fileKey() == a.fileKey() && it.size() == a.size() && it.lastModifiedTime() == a.lastModifiedTime() }) {
-                "Files changed during the scan. Try again."
+                "扫描期间文件发生变化，请重试。"
             }
             out += StorageStamp(target.toPath().relativize(path).toString(), a.size().takeUnless { a.isDirectory } ?: 0,
                 a.lastModifiedTime().toMillis(), a.fileKey()?.toString(), a.isDirectory, hash)
@@ -117,7 +117,7 @@ internal object StorageFiles {
             if (metadata.any { it.modified >= olderThan } || metadata.none { !it.directory && it.size > 0 }) null
             else {
                 val stamps = snapshot(anchor, target)
-                check(stamps.map { it.copy(sha256 = "") } == metadata) { "Files changed while preparing cleanup." }
+                check(stamps.map { it.copy(sha256 = "") } == metadata) { "准备清理时文件发生变化。" }
                 StorageCandidate(id, title, detail, group, anchor, target, stamps)
             }
         } catch (e: kotlinx.coroutines.CancellationException) { throw e }

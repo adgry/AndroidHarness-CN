@@ -13,11 +13,11 @@ import com.androidharness.app.data.WorkspaceLayoutMode
 
 @Composable
 internal fun WorkspaceLayoutSection(selected: WorkspaceLayoutMode, onSelect: (WorkspaceLayoutMode) -> Unit) {
-    SettingsAnchor("Workspace layout") {
+    SettingsAnchor("工作区布局") {
         SettingsPanel(Modifier.fillMaxWidth()) {
             Column(Modifier.padding(14.dp).selectableGroup(), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                Text("Workspace layout", style = MaterialTheme.typography.titleSmall)
-                Text("Narrow windows keep one full-width panel.",
+                Text("工作区布局", style = MaterialTheme.typography.titleSmall)
+                Text("窄窗口使用单个全宽面板。",
                     style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 WorkspaceLayoutMode.entries.forEach { mode ->
                     Row(Modifier.fillMaxWidth().selectable(selected == mode, role = Role.RadioButton,

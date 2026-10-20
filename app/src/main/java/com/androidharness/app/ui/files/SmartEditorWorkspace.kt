@@ -24,9 +24,9 @@ internal data class SmartSource(val text: String, val version: String, val decod
 internal data class SmartSnapshot(val sources: Map<String, SmartSource>, val limited: Boolean, val skipped: Int) {
     val texts get() = sources.mapValues { it.value.text }
     val notice get() = when {
-        limited -> "Some project files exceed the indexing limit. Rename is unavailable."
-        skipped > 0 -> "$skipped project files could not be indexed. Rename is unavailable."
-        else -> "Project symbols and standard libraries · dependency folders excluded"
+        limited -> "部分项目文件超出索引限制，无法重命名。"
+        skipped > 0 -> "$skipped 个项目文件未能建立索引，无法重命名。"
+        else -> "项目符号与标准库 · 不含依赖文件夹"
     }
 }
 
@@ -54,7 +54,7 @@ internal class SmartEditorWorkspace {
                     val node = fs.resolve(path)
                     if (!node.isFile || node.length > WorkspaceSearch.MAX_FILE_BYTES) { skipped++; continue }
                     val bytes = node.openInputStream()?.use(::readSmartBytes)
-                        ?: error("Could not read file")
+                        ?: error("无法读取文件")
                     if (bytes.size > WorkspaceSearch.MAX_FILE_BYTES) { skipped++; continue }
                     bytesRead += bytes.size
                     val decoded = EditorFileCodec.decode(bytes) ?: run { skipped++; continue }
@@ -70,18 +70,18 @@ internal class SmartEditorWorkspace {
             if (draft != null) sources[path] = SmartSource(draft.text, draft.diskVersion, draft.decoded())
         }
         for ((path, value) in overrides + (active to text)) {
-            require(value.length <= 512_000) { "This file is too large for smart editor tools." }
+            require(value.length <= 512_000) { "此文件过大，无法使用智能编辑工具。" }
             val old = sources[path] ?: withContext(Dispatchers.IO) {
                 val node = fs.resolve(path)
-                check(node.length <= WorkspaceSearch.MAX_FILE_BYTES) { "This file is too large for smart editor tools." }
-                val bytes = node.openInputStream()?.use(::readSmartBytes) ?: error("Could not read $path")
-                check(bytes.size <= WorkspaceSearch.MAX_FILE_BYTES) { "This file is too large for smart editor tools." }
-                val decoded = EditorFileCodec.decode(bytes) ?: error("$path is no longer text.")
+                check(node.length <= WorkspaceSearch.MAX_FILE_BYTES) { "此文件过大，无法使用智能编辑工具。" }
+                val bytes = node.openInputStream()?.use(::readSmartBytes) ?: error("无法读取 $path")
+                check(bytes.size <= WorkspaceSearch.MAX_FILE_BYTES) { "此文件过大，无法使用智能编辑工具。" }
+                val decoded = EditorFileCodec.decode(bytes) ?: error("$path 已不再是文本。")
                 SmartSource(decoded.text, EditorDiskSnapshot(bytes).version, decoded)
             }
             sources[path] = old.copy(text = value)
         }
-        check(sources.values.sumOf { it.text.length.toLong() } <= 8_000_000) { "The open project is too large for local language tools. Close some large drafts and try again." }
+        check(sources.values.sumOf { it.text.length.toLong() } <= 8_000_000) { "打开的项目过大，本地语言工具无法处理。请关闭部分大型草稿后重试。" }
         return disk.copy(sources = sources)
     }
 }
@@ -105,7 +105,7 @@ internal fun applySmartEdits(source: String, edits: List<SmartTextEdit>): String
     var right = source.length
     val text = StringBuilder(source)
     for (edit in edits.sortedByDescending { it.start }) {
-        require(edit.start >= 0 && edit.start <= edit.end && edit.end <= right) { "The language service returned overlapping or invalid edits." }
+        require(edit.start >= 0 && edit.start <= edit.end && edit.end <= right) { "语言服务返回了重叠或无效的编辑。" }
         text.replace(edit.start, edit.end, edit.text)
         right = edit.start
     }

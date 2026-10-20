@@ -69,12 +69,12 @@ internal class EditorDraftStore(
             if (queued != null) return@withLock queued.draft
             val file = file(key)
             if (!file.exists()) return@withLock null
-            check(file.length() <= 128_000_000L) { "The editor recovery file is too large to read." }
+            check(file.length() <= 128_000_000L) { "编辑器恢复文件过大，无法读取。" }
             val draft = json.decodeFromString<EditorDraft>(file.readText())
             check(draft.version == 1 && draft.charset in setOf("UTF-8", "UTF-16LE", "UTF-16BE") &&
                 draft.eol in setOf("\n", "\r\n") &&
                 (draft.diskVersion == "missing" || draft.diskVersion.matches(Regex("[a-f0-9]{64}")))) {
-                "The editor recovery file could not be read. It has been kept on the device."
+                "无法读取编辑器恢复文件，该文件已保留在设备上。"
             }
             statuses.update { it + (key to EditorDraftStatus.SAVED) }
             draft
@@ -85,10 +85,10 @@ internal class EditorDraftStore(
         writes.withLock {
             if (synchronized(gate) { pending[key] !== request }) return@withLock
             try {
-                check(root.isDirectory || root.mkdirs()) { "Could not create editor recovery storage." }
+                check(root.isDirectory || root.mkdirs()) { "无法创建编辑器恢复存储。" }
                 val target = file(key)
                 if (request.draft == null) {
-                    check(!target.exists() || target.delete()) { "Could not remove the saved draft." }
+                    check(!target.exists() || target.delete()) { "无法移除已保存的草稿。" }
                 } else {
                     val temporary = File(root, "${target.name}.tmp")
                     try {
@@ -97,7 +97,7 @@ internal class EditorDraftStore(
                             stream.fd.sync()
                         }
                         // Same-directory rename replaces the previous complete record atomically.
-                        check(temporary.renameTo(target)) { "Could not finish saving the editor draft." }
+                        check(temporary.renameTo(target)) { "未能完成编辑器草稿保存。" }
                     } finally { temporary.delete() }
                 }
                 synchronized(gate) {

@@ -138,12 +138,12 @@ internal fun MainHeader(
                         .padding(start = 10.dp, end = 10.dp),
                 ) {
                     IconButton(onClick = onOpenDrawer) {
-                        Icon(painterResource(R.drawable.ic_chat_menu), contentDescription = "Open navigation", modifier = Modifier.size(18.dp))
+                        Icon(painterResource(R.drawable.ic_chat_menu), contentDescription = "打开导航", modifier = Modifier.size(18.dp))
                     }
                     Column(Modifier.weight(1f).padding(horizontal = 6.dp, vertical = 6.dp)) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            if (sessionTitle.startsWith("Fork of ")) {
-                                Icon(Icons.Outlined.ForkRight, contentDescription = "Forked session",
+                            if ((sessionTitle.startsWith("Fork of ") || sessionTitle.startsWith("分支："))) {
+                                Icon(Icons.Outlined.ForkRight, contentDescription = "分支聊天",
                                     tint = scheme.primary, modifier = Modifier.size(16.dp))
                                 Spacer(Modifier.width(4.dp))
                             }
@@ -162,13 +162,13 @@ internal fun MainHeader(
                         Icon(
                             painterResource(R.drawable.ic_chat_folder),
                             modifier = Modifier.size(18.dp),
-                            contentDescription = "Workspace files",
+                            contentDescription = "工作区文件",
                             tint = scheme.onSurfaceVariant,
                         )
                     }
                     Box {
                         IconButton(onClick = { menu = true }) {
-                            Icon(painterResource(R.drawable.ic_chat_ellipsis_vertical), contentDescription = "More options", modifier = Modifier.size(18.dp))
+                            Icon(painterResource(R.drawable.ic_chat_ellipsis_vertical), contentDescription = "更多选项", modifier = Modifier.size(18.dp))
                         }
                         DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
                             WorkspaceMenuEntries { menu = false }
@@ -178,7 +178,7 @@ internal fun MainHeader(
                                 onClick = { menu = false; onOpenGitHub() },
                             )
                             DropdownMenuItem(
-                                text = { Text(if (mode == AgentMode.PLAN && !dualPlanning) "Act mode" else "Plan mode") },
+                                text = { Text(if (mode == AgentMode.PLAN && !dualPlanning) "执行模式" else "规划模式") },
                                 leadingIcon = {
                                     Icon(
                                         Icons.Outlined.EditNote,
@@ -188,7 +188,7 @@ internal fun MainHeader(
                                 },
                                 trailingIcon = {
                                     if (mode == AgentMode.PLAN && !dualPlanning) {
-                                        Icon(Icons.Filled.Check, contentDescription = "Enabled", tint = scheme.primary)
+                                        Icon(Icons.Filled.Check, contentDescription = "已启用", tint = scheme.primary)
                                     }
                                 },
                                 onClick = {
@@ -197,7 +197,7 @@ internal fun MainHeader(
                                 },
                             )
                             DropdownMenuItem(
-                                text = { Text("Dual planning") },
+                                text = { Text("双模型规划") },
                                 leadingIcon = {
                                     Icon(
                                         Icons.Outlined.ForkRight,
@@ -207,7 +207,7 @@ internal fun MainHeader(
                                 },
                                 trailingIcon = {
                                     if (dualPlanning) {
-                                        Icon(Icons.Filled.Check, contentDescription = "Enabled", tint = scheme.primary)
+                                        Icon(Icons.Filled.Check, contentDescription = "已启用", tint = scheme.primary)
                                     }
                                 },
                                 onClick = {
@@ -216,7 +216,7 @@ internal fun MainHeader(
                                 },
                             )
                             DropdownMenuItem(
-                                text = { Text("Thinking · ${thinkingResolved?.label ?: thinkingLevel.label}") },
+                                text = { Text("思考 · ${thinkingResolved?.label ?: thinkingLevel.displayLabel}") },
                                 leadingIcon = {
                                     Icon(
                                         painterResource(R.drawable.ic_brain),
@@ -234,7 +234,7 @@ internal fun MainHeader(
                                 onClick = { menu = false; thinkingMenu = true },
                             )
                             DropdownMenuItem(
-                                text = { Text("Permission · ${permissionMode.label}") },
+                                text = { Text("权限 · ${permissionMode.label}") },
                                 leadingIcon = {
                                     Icon(
                                         Icons.Outlined.Shield,
@@ -257,7 +257,7 @@ internal fun MainHeader(
                                 onClick = { menu = false; permissionMenu = true },
                             )
                             DropdownMenuItem(
-                                text = { Text("Context & limits") },
+                                text = { Text("上下文与限制") },
                                 leadingIcon = {
                                     Icon(Icons.Outlined.QueryStats, contentDescription = null)
                                 },
@@ -265,17 +265,17 @@ internal fun MainHeader(
                             )
                             HorizontalDivider(Modifier.padding(vertical = 6.dp))
                             DropdownMenuItem(
-                                text = { Text("Terminal") },
+                                text = { Text("终端") },
                                 leadingIcon = { Icon(Icons.Outlined.Terminal, contentDescription = null) },
                                 onClick = { menu = false; onOpenTerminal() },
                             )
                             DropdownMenuItem(
-                                text = { Text("Web preview (localhost)") },
+                                text = { Text("网页预览（localhost）") },
                                 leadingIcon = { Icon(Icons.Outlined.Language, contentDescription = null) },
                                 onClick = { menu = false; onOpenWebPreview() },
                             )
                             DropdownMenuItem(
-                                text = { Text("Undo file changes…") },
+                                text = { Text("撤销文件更改…") },
                                 leadingIcon = { Icon(Icons.Outlined.History, contentDescription = null) },
                                 enabled = canUndo,
                                 onClick = { menu = false; onOpenUndo() },
@@ -294,7 +294,7 @@ internal fun MainHeader(
                                         if (entry == permissionMode) {
                                             Icon(
                                                 Icons.Filled.Check,
-                                                contentDescription = "Selected",
+                                                contentDescription = "已选择",
                                                 tint = if (entry == PermissionMode.FULL_ACCESS) FullAccessOrange
                                                 else scheme.primary,
                                             )
@@ -319,11 +319,11 @@ internal fun MainHeader(
                     }
                     Spacer(Modifier.width(8.dp))
                     ExpressiveIconButton(onClick = onOpenGitHub, enabled = canOpenGitHub) {
-                        Icon(painterResource(R.drawable.ic_github), contentDescription = "Open GitHub",
+                        Icon(painterResource(R.drawable.ic_github), contentDescription = "打开 GitHub",
                             modifier = Modifier.size(18.dp))
                     }
                     if (showWebPreviewShortcut) ExpressiveIconButton(onClick = onOpenWebPreview) {
-                        Icon(Icons.Outlined.Language, contentDescription = "Open web browser", modifier = Modifier.size(18.dp))
+                        Icon(Icons.Outlined.Language, contentDescription = "打开浏览器", modifier = Modifier.size(18.dp))
                     }
                 }
             }
@@ -358,28 +358,28 @@ private fun DesktopConversationHeader(
             if (thinkingResolved?.customConfig != null || levels.isNotEmpty() || thinkingResolved?.spec?.style == com.androidharness.app.agent.ThinkingSpecs.Style.AUTOMATIC)
                 HeaderThinkingControl(thinking, levels, thinkingMenu, { thinkingMenu = it }, onThinking, onModel, thinkingResolved, busy, onCustomizeThinking, onSetCustomThinking, onAddThinkingLevel)
             TextButton(onClick = { onMode(if (mode == AgentMode.PLAN) AgentMode.ACT else AgentMode.PLAN) }) {
-                Text(if (mode == AgentMode.PLAN) "Plan" else "Act", style = MaterialTheme.typography.labelMedium)
+                Text(if (mode == AgentMode.PLAN) "规划" else "执行", style = MaterialTheme.typography.labelMedium)
             }
             ExpressiveIconButton(onClick = onGitHub, enabled = canGitHub, modifier = Modifier.size(36.dp)) {
-                Icon(painterResource(R.drawable.ic_github), "Open GitHub", Modifier.size(18.dp))
+                Icon(painterResource(R.drawable.ic_github), "打开 GitHub", Modifier.size(18.dp))
             }
             if (showPreviewShortcut) ExpressiveIconButton(onClick = onPreview, modifier = Modifier.size(36.dp)) {
-                Icon(Icons.Outlined.Language, "Open web browser", Modifier.size(18.dp))
+                Icon(Icons.Outlined.Language, "打开浏览器", Modifier.size(18.dp))
             }
             Box {
                 IconButton(onClick = { menu = true }, modifier = Modifier.size(36.dp)) {
-                    Icon(Icons.Filled.MoreVert, "Conversation actions", Modifier.size(18.dp))
+                    Icon(Icons.Filled.MoreVert, "聊天操作", Modifier.size(18.dp))
                 }
                 DropdownMenu(menu, { menu = false }) {
                     WorkspaceMenuEntries { menu = false }
-                    DropdownMenuItem(text = { Text("Context & limits") }, onClick = { menu = false; onContext() })
-                    DropdownMenuItem(text = { Text("Web preview") }, onClick = { menu = false; onPreview() })
+                    DropdownMenuItem(text = { Text("上下文与限制") }, onClick = { menu = false; onContext() })
+                    DropdownMenuItem(text = { Text("网页预览") }, onClick = { menu = false; onPreview() })
                     DropdownMenuItem(text = { Text("GitHub") }, enabled = canGitHub, onClick = { menu = false; onGitHub() })
-                    DropdownMenuItem(text = { Text("Undo file changes") }, enabled = canUndo, onClick = { menu = false; onUndo() })
+                    DropdownMenuItem(text = { Text("撤销文件更改") }, enabled = canUndo, onClick = { menu = false; onUndo() })
                     HorizontalDivider()
                     PermissionMode.entries.forEach { option ->
                         DropdownMenuItem(text = { Text(option.label) }, onClick = { menu = false; onPermission(option) },
-                            trailingIcon = { if (permission == option) Icon(Icons.Filled.Check, "Selected", Modifier.size(16.dp)) })
+                            trailingIcon = { if (permission == option) Icon(Icons.Filled.Check, "已选择", Modifier.size(16.dp)) })
                     }
                 }
             }
@@ -403,7 +403,7 @@ private fun HeaderModelPicker(label: String, onPickModel: () -> Unit, modifier: 
                 color = MaterialTheme.colorScheme.primary) }
         }
         Spacer(Modifier.width(4.dp))
-        Icon(Icons.Filled.KeyboardArrowDown, contentDescription = "Switch model",
+        Icon(Icons.Filled.KeyboardArrowDown, contentDescription = "切换模型",
             tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(14.dp))
     }
 }
@@ -450,10 +450,10 @@ private fun HeaderThinkingControl(
             ) {
                 Row(Modifier.heightIn(min = 28.dp).padding(horizontal = 8.dp, vertical = 3.dp),
                     verticalAlignment = Alignment.CenterVertically) {
-                    Icon(painterResource(R.drawable.ic_brain), contentDescription = "Thinking level", modifier = Modifier.size(14.dp),
+                    Icon(painterResource(R.drawable.ic_brain), contentDescription = "思考级别", modifier = Modifier.size(14.dp),
                         tint = if (thinkingOn) scheme.primary else scheme.onSurfaceVariant)
                     Spacer(Modifier.width(4.dp))
-                    Text(resolved?.label ?: thinkingLevel.label, maxLines = 1, overflow = TextOverflow.Ellipsis, style = MaterialTheme.typography.labelSmall,
+                    Text(resolved?.label ?: thinkingLevel.displayLabel, maxLines = 1, overflow = TextOverflow.Ellipsis, style = MaterialTheme.typography.labelSmall,
                         fontWeight = FontWeight.Medium)
                 }
             }
@@ -464,44 +464,44 @@ private fun HeaderThinkingControl(
             offset = DpOffset(with(density) { horizontalOffset.toDp() }, 4.dp),
             modifier = Modifier.widthIn(min = 248.dp.coerceAtMost(maxMenuWidth), max = maxMenuWidth)
                 .onSizeChanged { menuWidth = it.width }
-                .semantics { paneTitle = "Thinking options" },
+                .semantics { paneTitle = "思考选项" },
         ) {
-            Text("Thinking level", Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+            Text("思考级别", Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
                 style = MaterialTheme.typography.labelLarge, color = scheme.onSurfaceVariant)
             if (appliesNext) {
-                Text("Applies to your next message", Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
+                Text("适用于下一条消息", Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
                     style = MaterialTheme.typography.labelSmall, color = scheme.primary)
             }
             if (resolved?.customConfig == null && thinkingLevels.isEmpty()) {
-                Text(if (resolved?.spec?.reasoningSupported == true) "This model manages its own effort." else "Levels aren't reported for this model.",
+                Text(if (resolved?.spec?.reasoningSupported == true) "此模型会自行管理思考强度。" else "此模型未报告思考级别。",
                     Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
                     style = MaterialTheme.typography.bodySmall, color = scheme.onSurfaceVariant)
             }
             resolved?.customConfig?.levels?.forEach { name ->
-                ThinkingMenuOption(com.androidharness.app.agent.CustomReasoning.label(name),
+                ThinkingMenuOption(com.androidharness.app.agent.CustomReasoning.displayLabel(name),
                     resolved.customLevel == com.androidharness.app.agent.CustomReasoning.wire(name)) {
                     onCustomLevel(name); onMenuChange(false)
                 }
             }
             if (resolved?.customConfig == null) thinkingLevels.forEach { entry ->
-                ThinkingMenuOption(resolved?.optionLabel(entry) ?: entry.label, entry == (resolved?.level ?: thinkingLevel)) {
+                ThinkingMenuOption(resolved?.optionLabel(entry) ?: entry.displayLabel, entry == (resolved?.level ?: thinkingLevel)) {
                     onSetThinking(entry); onMenuChange(false)
                 }
             }
             HorizontalDivider(Modifier.padding(vertical = 4.dp))
             if (onCustomize != null) DropdownMenuItem(
-                text = { Text("Customize thinking") },
+                text = { Text("自定义思考") },
                 leadingIcon = { Icon(Icons.Outlined.EditNote, null, tint = scheme.onSurfaceVariant) },
                 onClick = { onMenuChange(false); onCustomize() },
             )
             val addLevel = onAddLevel ?: onCustomize
             if (addLevel != null) DropdownMenuItem(
-                text = { Text("Add thinking level") },
+                text = { Text("添加思考级别") },
                 leadingIcon = { Icon(Icons.Filled.Add, null, tint = scheme.primary) },
                 onClick = { onMenuChange(false); addLevel() },
             )
             DropdownMenuItem(
-                text = { Text("Switch model…") },
+                text = { Text("切换模型…") },
                 leadingIcon = {
                     Icon(Icons.Outlined.SwapHoriz, contentDescription = null, tint = scheme.primary)
                 },
@@ -523,7 +523,7 @@ private fun ThinkingMenuOption(label: String, isSelected: Boolean, onClick: () -
             .semantics { selected = isSelected },
         text = { Text(label, color = if (isSelected) scheme.onSecondaryContainer else scheme.onSurface,
             fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal) },
-        trailingIcon = { if (isSelected) Icon(Icons.Filled.Check, "Selected", tint = scheme.onSecondaryContainer) },
+        trailingIcon = { if (isSelected) Icon(Icons.Filled.Check, "已选择", tint = scheme.onSecondaryContainer) },
         onClick = onClick,
     )
 }
@@ -535,9 +535,9 @@ internal val FullAccessOrange = Color(0xFFF59E0B)
 private fun WorkspaceMenuEntries(onDismiss: () -> Unit) {
     val launcher = com.androidharness.app.ui.files.LocalWorkspaceToolLauncher.current ?: return
     listOf(
-        com.androidharness.app.ui.files.WorkspaceToolMode.FILES to "Quick Open",
-        com.androidharness.app.ui.files.WorkspaceToolMode.SEARCH to "Search project",
-        com.androidharness.app.ui.files.WorkspaceToolMode.COMMANDS to "Command palette",
+        com.androidharness.app.ui.files.WorkspaceToolMode.FILES to "快速打开",
+        com.androidharness.app.ui.files.WorkspaceToolMode.SEARCH to "搜索项目",
+        com.androidharness.app.ui.files.WorkspaceToolMode.COMMANDS to "命令面板",
     ).forEach { (mode, label) ->
         DropdownMenuItem(text = { Text(label) }, onClick = { onDismiss(); launcher(mode) })
     }

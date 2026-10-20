@@ -649,14 +649,14 @@ class LinuxEnvironmentManager(
             .keys.toList()
         return when {
             missingPkgs.isEmpty() && missingBins.isEmpty() ->
-                "All present: bash, git, gh, python, pip, node, npm."
+                "全部可用：bash、git、gh、python、pip、node、npm。"
             else -> buildString {
                 if (missingPkgs.isNotEmpty()) {
-                    append("Missing packages: ").append(missingPkgs.joinToString(", "))
+                    append("缺少软件包：").append(missingPkgs.joinToString(", "))
                 }
                 if (missingBins.isNotEmpty()) {
                     if (isNotEmpty()) append(" · ")
-                    append("Broken (marked installed but binary gone): ")
+                    append("损坏（已标记安装但二进制文件缺失）：")
                         .append(missingBins.joinToString(", "))
                 }
             }

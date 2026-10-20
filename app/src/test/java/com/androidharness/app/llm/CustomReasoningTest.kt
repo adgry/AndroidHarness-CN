@@ -18,13 +18,13 @@ class CustomReasoningTest {
         assertEquals("extreme", OpenAiCompatProvider(client, json).buildRequestBody(c, "fixture", user, emptyList(), opts)["reasoning_effort"]!!.jsonPrimitive.content)
         val key = CustomReasoning.key(c)
         val chosen = opts.copy(customThinkingLevels = mapOf(key to "low"))
-        assertEquals("Low", chosen.resolveThinking(c).label)
+        assertEquals("低", chosen.resolveThinking(c).label)
         val custom = CustomReasoningConfig(listOf("Only mine"), """{"reasoning_effort":"high"}""")
         val saved = opts.copy(customReasoning = mapOf(key to custom))
         assertEquals(listOf("Only mine"), saved.resolveThinking(c).customConfig!!.levels)
         assertEquals("high", OpenAiCompatProvider(client, json).buildRequestBody(c, "fixture", user, emptyList(), saved)["reasoning_effort"]!!.jsonPrimitive.content)
         assertTrue(opts.customReasoning.isEmpty())
-        assertEquals("Max", opts.copy(modelCatalogs = mapOf(c.id to listOf(entry.copy(reasoningEfforts = listOf("low", "max", "extreme")))))
+        assertEquals("最高", opts.copy(modelCatalogs = mapOf(c.id to listOf(entry.copy(reasoningEfforts = listOf("low", "max", "extreme")))))
             .resolveThinking(c).label)
     }
     private val config = ProviderConfig("deepseek", "DeepSeek", ProviderType.OPENAI_COMPAT, "https://api.deepseek.com/v1", "deepseek-v4-flash")
@@ -48,7 +48,7 @@ class CustomReasoningTest {
     @Test fun `optional blank mapping uses the selected native effort and off toggle`() {
         val custom = CustomReasoningConfig(listOf("disabled", "low", "high", "max"))
         val selected = options(custom = custom).resolveThinking(config)
-        assertEquals("Max", selected.label)
+        assertEquals("最高", selected.label)
         assertEquals("max", body(custom = custom)["reasoning_effort"]!!.jsonPrimitive.content)
         assertEquals("disabled", body(custom = custom, level = "disabled")["thinking"]!!.jsonObject["type"]!!.jsonPrimitive.content)
         val budget = config.copy(type = ProviderType.ANTHROPIC, baseUrl = "https://api.anthropic.com", model = "claude-sonnet-4-5")
@@ -128,7 +128,7 @@ class CustomReasoningTest {
         val c = config.copy(baseUrl = "https://api.openai.com/v1", model = "gpt-oss-120b")
         val custom = ReasoningMapping.validate(CustomReasoningConfig(listOf("Low", "Max")), c, ThinkingSpecs.forProvider(c))
         assertEquals("max", body(c, custom)["reasoning_effort"]!!.jsonPrimitive.content)
-        assertEquals("Max", options(c, custom).resolveThinking(c).label)
+        assertEquals("最高", options(c, custom).resolveThinking(c).label)
     }
 
     @Test fun `custom declarations can override incomplete reasoning capability metadata`() {
@@ -221,8 +221,8 @@ class CustomReasoningTest {
 
     @Test fun `model managed thinking says On only when support is known`() {
         val c = config.copy(baseUrl = "https://custom.example/v1", model = "custom")
-        assertEquals("On", RequestOptions().resolveThinking(c, ModelEntry("custom", reasoning = true)).label)
-        assertEquals("Thinking", RequestOptions().resolveThinking(c).label)
-        assertEquals("Off", RequestOptions().resolveThinking(c, ModelEntry("custom", reasoning = false)).label)
+        assertEquals("开启", RequestOptions().resolveThinking(c, ModelEntry("custom", reasoning = true)).label)
+        assertEquals("思考", RequestOptions().resolveThinking(c).label)
+        assertEquals("关闭", RequestOptions().resolveThinking(c, ModelEntry("custom", reasoning = false)).label)
     }
 }

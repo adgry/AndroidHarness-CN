@@ -17,17 +17,17 @@ import java.text.DateFormat
 import java.util.Date
 
 internal fun scheduleStatus(task: AutomationTask, connection: AutomationConnection, now: Long): String = when {
-    task.lastStatus == AutomationStatus.RUNNING -> "Running"
-    task.lastStatus == AutomationStatus.BLOCKED || task.lastStatus == AutomationStatus.FAILED -> "Needs your attention"
+    task.lastStatus == AutomationStatus.RUNNING -> "运行中"
+    task.lastStatus == AutomationStatus.BLOCKED || task.lastStatus == AutomationStatus.FAILED -> "需要你处理"
     !task.enabled -> when (task.lastStatus) {
-        AutomationStatus.COMPLETED, AutomationStatus.PASSED -> "Completed"
-        AutomationStatus.CANCELLED -> "Cancelled"
-        else -> "Paused"
+        AutomationStatus.COMPLETED, AutomationStatus.PASSED -> "已完成"
+        AutomationStatus.CANCELLED -> "已取消"
+        else -> "已暂停"
     }
     task.lastStatus == AutomationStatus.QUEUED || task.nextRunAt?.let { it <= now } == true ->
-        if (!connection.allows(task)) connection.waitingMessage(task) else task.lastMessage?.takeIf { it.startsWith("Waiting for this chat") } ?: "Waiting to start"
-    task.nextRunAt != null -> "Scheduled ${DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT).format(Date(task.nextRunAt))}"
-    else -> "Ready"
+        if (!connection.allows(task)) connection.waitingMessage(task) else task.lastMessage?.takeIf { it.startsWith("正在等待此聊天") || it.startsWith("Waiting for this chat") } ?: "等待开始"
+    task.nextRunAt != null -> "计划于 ${DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT).format(Date(task.nextRunAt))}"
+    else -> "就绪"
 }
 
 @Composable
@@ -39,12 +39,12 @@ internal fun ScheduledMessageRow(tasks: List<AutomationTask>, connection: Automa
             horizontalArrangement = Arrangement.spacedBy(10.dp)) {
             Icon(Icons.Outlined.Schedule, null, modifier = Modifier.size(18.dp), tint = MaterialTheme.colorScheme.primary)
             Column(Modifier.weight(1f)) {
-                Text(if (tasks.size == 1) scheduleStatus(tasks.first(), connection, now) else "${tasks.size} scheduled messages",
+                Text(if (tasks.size == 1) scheduleStatus(tasks.first(), connection, now) else "${tasks.size} 条定时消息",
                     style = MaterialTheme.typography.labelLarge, maxLines = 2, overflow = TextOverflow.Ellipsis)
                 if (tasks.size == 1) Text(tasks.first().title, style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
             }
-            Icon(Icons.Outlined.ChevronRight, "Open scheduled messages", modifier = Modifier.size(18.dp))
+            Icon(Icons.Outlined.ChevronRight, "打开定时消息", modifier = Modifier.size(18.dp))
         }
     }
 }

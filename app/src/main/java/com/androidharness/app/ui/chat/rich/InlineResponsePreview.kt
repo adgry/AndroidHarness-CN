@@ -46,8 +46,8 @@ internal fun InlineResponsePreview(node: RichResponse.Node.Preview, onFollowUp: 
     LaunchedEffect(web) { error = null; unavailable = false; summary = ""; web.show(artifact, dark, responseLayout = true) }
     val content: @Composable (Modifier) -> Unit = { modifier -> Box(modifier) {
         if (unavailable) Column(Modifier.fillMaxWidth().padding(20.dp)) {
-            Text("Preview unavailable", style = MaterialTheme.typography.bodyMedium)
-            TextButton(onClick = { reload++ }) { Text("Reload preview") }
+            Text("预览不可用", style = MaterialTheme.typography.bodyMedium)
+            TextButton(onClick = { reload++ }) { Text("重新加载预览") }
         } else AndroidView(factory = { ctx -> FrameLayout(ctx).apply {
             (web.parent as? android.view.ViewGroup)?.removeView(web)
             if (!web.isReleased) addView(web, FrameLayout.LayoutParams(-1, -1))
@@ -63,16 +63,16 @@ internal fun InlineResponsePreview(node: RichResponse.Node.Preview, onFollowUp: 
         Row(Modifier.fillMaxWidth().padding(start = 12.dp, end = 2.dp), verticalAlignment = Alignment.CenterVertically) {
             Text(node.title, Modifier.weight(1f), style = MaterialTheme.typography.labelLarge)
             IconButton(onClick = { expanded = !fullscreen }) { Icon(if (fullscreen) Icons.Filled.Close else Icons.Outlined.Fullscreen,
-                if (fullscreen) "Close response preview" else "Expand response preview", Modifier.size(19.dp)) }
+                if (fullscreen) "关闭回复预览" else "展开回复预览", Modifier.size(19.dp)) }
         }
     }
     val footer: @Composable () -> Unit = {
         if (error != null) Row(Modifier.fillMaxWidth().padding(horizontal = 12.dp), verticalAlignment = Alignment.CenterVertically) {
-            Text("Some preview content couldn’t load.", Modifier.weight(1f), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error)
-            IconButton(onClick = { reload++ }) { Icon(Icons.Outlined.Refresh, "Reload response preview", Modifier.size(18.dp)) }
+            Text("部分预览内容无法加载。", Modifier.weight(1f), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error)
+            IconButton(onClick = { reload++ }) { Icon(Icons.Outlined.Refresh, "重新加载回复预览", Modifier.size(18.dp)) }
         }
         onFollowUp?.let { follow ->
-            TextButton(onClick = { expanded = false; follow(RichResponse.followUp("Help me explore this further.", node.title, summary)) }, Modifier.padding(horizontal = 2.dp)) { Text("Ask about this") }
+            TextButton(onClick = { expanded = false; follow(RichResponse.followUp("Help me explore this further.", node.title, summary)) }, Modifier.padding(horizontal = 2.dp)) { Text("询问此内容") }
         }
     }
     Surface(Modifier.fillMaxWidth(), shape = RoundedCornerShape(14.dp), color = MaterialTheme.colorScheme.surface,
@@ -80,7 +80,7 @@ internal fun InlineResponsePreview(node: RichResponse.Node.Preview, onFollowUp: 
         Column {
             controls(false)
             if (!expanded) { content(Modifier.fillMaxWidth().height(height.coerceIn(100, 900).dp)); footer() }
-            else Text("Preview expanded", Modifier.padding(12.dp), style = MaterialTheme.typography.bodySmall)
+            else Text("预览已展开", Modifier.padding(12.dp), style = MaterialTheme.typography.bodySmall)
         }
     }
     // A large sheet keeps the conversation/composer visible behind it. Follow-up returns to the same composer.

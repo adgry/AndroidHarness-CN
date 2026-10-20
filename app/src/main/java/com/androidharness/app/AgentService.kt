@@ -30,7 +30,7 @@ import kotlinx.coroutines.launch
 
 /** Pushes the agent's live status for the notification to display. */
 object RuntimeNotifier {
-    private val _status = MutableStateFlow("Running in background")
+    private val _status = MutableStateFlow("正在后台运行")
     val status: StateFlow<String> = _status
 
     /** Heads-up events posted when a run ends while the app may be backgrounded. */
@@ -99,15 +99,15 @@ object RunResultNotifications {
         manager.createNotificationChannel(
             NotificationChannel(
                 AgentService.RESULTS_CHANNEL_ID,
-                "Run results",
+                "运行结果",
                 NotificationManager.IMPORTANCE_DEFAULT,
-            ).apply { description = "Notified when a background agent run finishes" },
+            ).apply { description = "后台代理运行结束时通知" },
         )
         manager.notify(notificationId(result.sessionId), build(context, result))
     }
 
     private fun build(context: Context, result: RunResultNotification): Notification {
-        val preview = result.summary.trim().ifBlank { "Run finished" }
+        val preview = result.summary.trim().ifBlank { "运行已结束" }
         val compactPreview = preview.replace('\n', ' ').take(180)
         val intent = Intent(context, MainActivity::class.java)
             .putExtra(AgentService.EXTRA_SESSION_ID, result.sessionId)
@@ -120,7 +120,7 @@ object RunResultNotifications {
         )
         return Notification.Builder(context, AgentService.RESULTS_CHANNEL_ID)
             .setContentTitle(
-                result.notificationTitle ?: if (result.ok) "Run finished" else "Run needs attention",
+                result.notificationTitle ?: if (result.ok) "运行已结束" else "运行需要处理",
             )
             .setContentText(compactPreview)
             .setSubText(result.title)
@@ -213,24 +213,24 @@ class AgentService : Service() {
         nm.createNotificationChannel(
             NotificationChannel(
                 CHANNEL_ID,
-                "Agent runs",
+                "代理运行",
                 NotificationManager.IMPORTANCE_LOW,
-            ).apply { description = "Live progress while the coding agent is working" },
+            ).apply { description = "编码代理工作时显示实时进度" },
         )
         nm.createNotificationChannel(
             NotificationChannel(
                 RESULTS_CHANNEL_ID,
-                "Run results",
+                "运行结果",
                 NotificationManager.IMPORTANCE_DEFAULT,
-            ).apply { description = "Notified when a background agent run finishes" },
+            ).apply { description = "后台代理运行结束时通知" },
         )
         nm.createNotificationChannel(
             NotificationChannel(
                 ALERT_CHANNEL_ID,
-                "Action needed",
+                "需要操作",
                 NotificationManager.IMPORTANCE_HIGH,
             ).apply {
-                description = "Agent prompts you can answer right from the notification"
+                description = "可直接在通知中回答代理的请求"
                 lockscreenVisibility = Notification.VISIBILITY_PUBLIC
             },
         )
@@ -259,7 +259,7 @@ class AgentService : Service() {
             .setShowWhen(false)
             .addAction(
                 Notification.Action.Builder(
-                    null as Icon?, "Stop", stopPendingIntent(),
+                    null as Icon?, "停止", stopPendingIntent(),
                 ).build(),
             )
             .build()
@@ -316,9 +316,9 @@ class AgentService : Service() {
             .setSmallIcon(R.drawable.ic_launcher_foreground)
             .setContentTitle(
                 when (p.kind) {
-                    PendingPrompt.Kind.APPROVAL -> "Approval needed"
-                    PendingPrompt.Kind.QUESTION -> "Agent asks"
-                    PendingPrompt.Kind.ENVIRONMENT -> "Linux environment"
+                    PendingPrompt.Kind.APPROVAL -> "需要审批"
+                    PendingPrompt.Kind.QUESTION -> "代理提问"
+                    PendingPrompt.Kind.ENVIRONMENT -> "Linux 环境"
                 },
             )
             .setContentText("${p.sessionTitle}: ${p.headline}")
@@ -329,14 +329,14 @@ class AgentService : Service() {
 
         when (p.kind) {
             PendingPrompt.Kind.APPROVAL -> {
-                builder.addAction(button(ACTION_DENY, "Deny", p.sessionId))
-                builder.addAction(button(ACTION_APPROVE, "Approve", p.sessionId))
-                builder.addAction(button(ACTION_APPROVE_ALWAYS, "Always allow", p.sessionId))
+                builder.addAction(button(ACTION_DENY, "拒绝", p.sessionId))
+                builder.addAction(button(ACTION_APPROVE, "批准", p.sessionId))
+                builder.addAction(button(ACTION_APPROVE_ALWAYS, "始终允许", p.sessionId))
             }
 
             PendingPrompt.Kind.ENVIRONMENT -> {
-                builder.addAction(button(ACTION_ENV_SKIP, "Skip", p.sessionId))
-                builder.addAction(button(ACTION_ENV_INSTALL, "Install", p.sessionId))
+                builder.addAction(button(ACTION_ENV_SKIP, "跳过", p.sessionId))
+                builder.addAction(button(ACTION_ENV_INSTALL, "安装", p.sessionId))
             }
 
             PendingPrompt.Kind.QUESTION -> {
@@ -351,10 +351,10 @@ class AgentService : Service() {
                     )
                 }
                 val remoteInput = RemoteInput.Builder(NotificationActionReceiver.KEY_REPLY_TEXT)
-                    .setLabel("Your answer")
+                    .setLabel("你的回答")
                     .build()
                 val replyAction = Notification.Action.Builder(
-                    null as Icon?, "Reply…",
+                    null as Icon?, "回复…",
                     answerPendingIntent(p.sessionId, MAX_OPTION_BUTTONS, null),
                 ).addRemoteInput(remoteInput).build()
                 builder.addAction(replyAction)

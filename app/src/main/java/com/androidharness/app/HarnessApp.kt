@@ -30,6 +30,10 @@ import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicReference
 
 class HarnessApp : Application() {
+    override fun attachBaseContext(base: android.content.Context) {
+        super.attachBaseContext(chineseContext(base))
+    }
+
     lateinit var container: AppContainer
         private set
 

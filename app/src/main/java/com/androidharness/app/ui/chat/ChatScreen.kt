@@ -275,7 +275,7 @@ private fun ChatScreenContent(
     if (showScheduledList) androidx.compose.material3.ModalBottomSheet(
         onDismissRequest = { showScheduledList = false },
         sheetState = androidx.compose.material3.rememberModalBottomSheetState(skipPartiallyExpanded = true)) {
-        Text("Scheduled messages", style = MaterialTheme.typography.titleLarge, modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp))
+        Text("定时消息", style = MaterialTheme.typography.titleLarge, modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp))
         androidx.compose.foundation.lazy.LazyColumn(Modifier.fillMaxWidth().heightIn(max = 420.dp),
             contentPadding = androidx.compose.foundation.layout.PaddingValues(bottom = 24.dp)) {
             items(chatSchedules.size) { index ->
@@ -331,20 +331,20 @@ private fun ChatScreenContent(
     if (state.pendingWorkspaceMcp != null) {
         AlertDialog(
             onDismissRequest = { viewModel.denyWorkspaceMcp() },
-            title = { Text("Allow workspace MCP servers?") },
+            title = { Text("允许工作区 MCP 服务器？") },
             text = {
                 val names = state.pendingWorkspaceMcp?.joinToString(", ").orEmpty()
                 Text(
-                    "This workspace ships a .harness/mcp.json that wants to connect: $names. " +
-                        "Its servers can run local commands and reach the network. " +
-                        "Only approve configs you trust.",
+                    "此工作区的 .harness/mcp.json 请求连接：$names。" +
+                        "这些服务器可以运行本地命令并访问网络。" +
+                        "请仅批准你信任的配置。",
                 )
             },
             confirmButton = {
-                Button(onClick = { viewModel.approveWorkspaceMcp() }) { Text("Approve") }
+                Button(onClick = { viewModel.approveWorkspaceMcp() }) { Text("批准") }
             },
             dismissButton = {
-                TextButton(onClick = { viewModel.denyWorkspaceMcp() }) { Text("Run without them") }
+                TextButton(onClick = { viewModel.denyWorkspaceMcp() }) { Text("不连接并运行") }
             },
         )
     }
@@ -352,11 +352,11 @@ private fun ChatScreenContent(
     if (state.showPlanningPromo) {
         AlertDialog(
             onDismissRequest = { viewModel.dismissPlanningPromo() },
-            title = { Text("Two models, one for planning, one for doing") },
+            title = { Text("双模型：一个规划，一个执行") },
             text = {
                 Text(
-                    "You can now configure two models separately: one for planning mode, " +
-                        "and one that takes over once you approve the plan and execution starts.",
+                    "现在可分别配置两个模型：一个用于规划模式，" +
+                        "另一个在你批准计划后接手执行。",
                 )
             },
             confirmButton = {
@@ -364,10 +364,10 @@ private fun ChatScreenContent(
                     viewModel.dismissPlanningPromo()
                     viewModel.container.pendingSettingsScroll.value = "planning"
                     onOpenSettings()
-                }) { Text("Configure") }
+                }) { Text("配置") }
             },
             dismissButton = {
-                TextButton(onClick = { viewModel.dismissPlanningPromo() }) { Text("Close") }
+                TextButton(onClick = { viewModel.dismissPlanningPromo() }) { Text("关闭") }
             },
         )
     }
@@ -375,20 +375,20 @@ private fun ChatScreenContent(
     if (state.showForkPromo) {
         AlertDialog(
             onDismissRequest = { viewModel.dismissForkPromo() },
-            title = { Text("Fork conversation from here") },
+            title = { Text("从此处分支聊天") },
             text = {
                 Text(
-                    "Forking branches this chat into a new session starting with this prompt and response. " +
-                        "The active agent still retains all background context and project details so you can steer down a new direction cleanly.",
+                    "将从此提示词和回复开始，创建此聊天的新分支。" +
+                        "代理会保留所有背景上下文和项目详情，方便你探索新的方向。",
                 )
             },
             confirmButton = {
                 Button(onClick = {
                     viewModel.confirmForkFromPromo { newSid -> onNavigateToSession(newSid) }
-                }) { Text("Fork chat") }
+                }) { Text("分支聊天") }
             },
             dismissButton = {
-                TextButton(onClick = { viewModel.dismissForkPromo() }) { Text("Cancel") }
+                TextButton(onClick = { viewModel.dismissForkPromo() }) { Text("取消") }
             },
         )
     }
@@ -396,11 +396,11 @@ private fun ChatScreenContent(
     if (state.showVoicePromo) {
         AlertDialog(
             onDismissRequest = { viewModel.dismissVoicePromo() },
-            title = { Text("Voice & speech input") },
+            title = { Text("语音输入") },
             text = {
                 Text(
-                    "You can transcribe speech with Groq Whisper (ultra fast and accurate cloud transcription with hold/swipe gestures) or use Android's inbuilt speech recognizer.\n\n" +
-                        "Configure Groq Whisper in Settings with your free Groq API key, or start using inbuilt speech immediately.",
+                    "你可以使用 Groq Whisper 转写语音（快速准确的云端转写，支持长按和滑动手势），也可使用 Android 内置语音识别。\n\n" +
+                        "在设置中使用免费的 Groq API 密钥配置 Groq Whisper，或立即使用内置语音识别。",
                 )
             },
             confirmButton = {
@@ -408,12 +408,12 @@ private fun ChatScreenContent(
                     viewModel.selectVoiceEngineFromPromo(AppSettings.VOICE_ENGINE_GROQ)
                     viewModel.container.pendingSettingsScroll.value = "voice"
                     onOpenSettings()
-                }) { Text("Configure Groq Whisper") }
+                }) { Text("配置 Groq Whisper") }
             },
             dismissButton = {
                 TextButton(onClick = {
                     viewModel.selectVoiceEngineFromPromo(AppSettings.VOICE_ENGINE_INBUILT)
-                }) { Text("Use inbuilt speech") }
+                }) { Text("使用内置语音识别") }
             },
         )
     }
@@ -446,7 +446,7 @@ private fun ChatScreenContent(
         if (searchMessageId == null || state.isLoadingMessages) return@LaunchedEffect
         if (!viewModel.revealMessage(searchMessageId)) {
             pinnedToBottom = true
-            snackbar.showSnackbar("This message is no longer in the chat.")
+            snackbar.showSnackbar("此消息已不在聊天中。")
             return@LaunchedEffect
         }
         val index = snapshotFlow { searchItemIndex.value }.filterNotNull().first()
@@ -484,10 +484,10 @@ private fun ChatScreenContent(
             onModelScopeChange = viewModel::setSameModelAcrossChats,
             modelScopeEnabled = state.modelSelectionReady && !state.modelSelectionBusy,
             fallbackSummary = when (state.taskControl.fallbackMode) {
-                com.androidharness.app.llm.FallbackMode.OFF -> "Off for this chat"
-                com.androidharness.app.llm.FallbackMode.CUSTOM -> "Custom chain · ${state.taskControl.fallbackOverride?.targets?.size ?: 0} models"
+                com.androidharness.app.llm.FallbackMode.OFF -> "对此聊天关闭"
+                com.androidharness.app.llm.FallbackMode.CUSTOM -> "自定义回退链 · ${state.taskControl.fallbackOverride?.targets?.size ?: 0} 个模型"
                 com.androidharness.app.llm.FallbackMode.DEFAULT -> if (state.fallbackDefaults.enabled)
-                    "Use default · ${state.fallbackDefaults.targets.size} models" else "Use default · No chain"
+                    "使用默认值 · ${state.fallbackDefaults.targets.size} 个模型" else "使用默认值 · 无回退链"
             },
             onEditFallbacks = { fallbackProviderId = currentProviderId; activeModelPickerTarget = null; showFallbacks = true },
             fallbackEditEnabled = !state.busy,
@@ -579,7 +579,7 @@ private fun ChatScreenContent(
     actionsMessage?.let { msg ->
         AlertDialog(
             onDismissRequest = { actionsMessage = null },
-            title = { Text("Your message") },
+            title = { Text("你的消息") },
             text = {
                 Text(
                     UserMessageContent.visibleText(msg.text).let { if (it.length > 200) it.take(200) + "…" else it },
@@ -593,18 +593,18 @@ private fun ChatScreenContent(
                     TextButton(onClick = {
                         clipboard.setText(AnnotatedString(UserMessageContent.visibleText(msg.text)))
                         actionsMessage = null
-                    }) { Text("Copy") }
+                    }) { Text("复制") }
                     TextButton(onClick = {
                         editingMessage = msg
                         actionsMessage = null
-                    }) { Text("Edit") }
+                    }) { Text("编辑") }
                     TextButton(
                         onClick = {
                             actionsMessage = null
                             confirmingEdit = msg to msg.text
                         },
                         enabled = !state.busy,
-                    ) { Text("Retry") }
+                    ) { Text("重试") }
                 }
             },
             dismissButton = {
@@ -612,8 +612,8 @@ private fun ChatScreenContent(
                     if (msg.turnId in state.turnsWithCheckpoints) TextButton(onClick = {
                         actionsMessage = null
                         confirmRewindTurn = msg.turnId
-                    }) { Text("Undo file changes") }
-                    TextButton(onClick = { actionsMessage = null }) { Text("Close") }
+                    }) { Text("撤销文件更改") }
+                    TextButton(onClick = { actionsMessage = null }) { Text("关闭") }
                 }
             },
         )
@@ -624,7 +624,7 @@ private fun ChatScreenContent(
         var text by remember(msg) { mutableStateOf(UserMessageContent.visibleText(msg.text)) }
         AlertDialog(
             onDismissRequest = { editingMessage = null },
-            title = { Text("Edit message") },
+            title = { Text("编辑消息") },
             text = {
                 OutlinedTextField(
                     value = text,
@@ -639,9 +639,9 @@ private fun ChatScreenContent(
                         confirmingEdit = msg to UserMessageContent.edit(text, msg.text)
                         editingMessage = null
                     }
-                }) { Text("Continue") }
+                }) { Text("继续") }
             },
-            dismissButton = { TextButton(onClick = { editingMessage = null }) { Text("Cancel") } },
+            dismissButton = { TextButton(onClick = { editingMessage = null }) { Text("取消") } },
         )
     }
 
@@ -649,21 +649,21 @@ private fun ChatScreenContent(
     confirmingEdit?.let { (msg, newText) ->
         AlertDialog(
             onDismissRequest = { confirmingEdit = null },
-            title = { Text(if (newText == msg.text) "Retry this message?" else "Edit this message?") },
+            title = { Text(if (newText == msg.text) "重试此消息？" else "编辑此消息？") },
             text = {
                 Text(
-                    "Everything after this message will be deleted, and any file changes made " +
-                        "after it will be undone: files are restored to how they were at that " +
-                        "point. The message is then resent once. This cannot be undone.",
+                    "此消息之后的所有内容将被删除，之后的文件更改" +
+                        "也会撤销，文件将恢复到当时的" +
+                        "状态。随后会重新发送此消息一次。此操作无法撤销。",
                 )
             },
             confirmButton = {
                 Button(onClick = {
                     viewModel.editAndResend(msg, newText)
                     confirmingEdit = null
-                }) { Text(if (newText == msg.text) "Retry" else "Edit & resend") }
+                }) { Text(if (newText == msg.text) "重试" else "编辑并重新发送") }
             },
-            dismissButton = { TextButton(onClick = { confirmingEdit = null }) { Text("Cancel") } },
+            dismissButton = { TextButton(onClick = { confirmingEdit = null }) { Text("取消") } },
         )
     }
 
@@ -677,19 +677,19 @@ private fun ChatScreenContent(
         }
         AlertDialog(
             onDismissRequest = { showUndoDialog = false },
-            title = { Text("Undo file changes") },
+            title = { Text("撤销文件更改") },
             text = {
                 if (loadingTurns) {
-                    Text("Loading checkpoints…")
+                    Text("正在加载检查点…")
                 } else if (turns.isEmpty()) {
-                    Text("No file changes to undo.")
+                    Text("没有可撤销的文件更改。")
                 } else {
                     Column(
                         verticalArrangement = Arrangement.spacedBy(10.dp),
                         modifier = Modifier.verticalScroll(rememberScrollState()),
                     ) {
                         Text(
-                            "Pick a checkpoint. Files return to their state before that turn, and the chat rolls back with them: the agent's messages from that point on are removed.",
+                            "请选择检查点。文件和聊天会一起回退到该轮之前的状态，该轮及之后的代理消息会被移除。",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
@@ -700,8 +700,8 @@ private fun ChatScreenContent(
                             ) {
                                 Column(Modifier.weight(1f)) {
                                     Text(
-                                        msg.text.lineSequence().firstOrNull()?.take(64)?.ifBlank { "(no text)" }
-                                            ?: "(no text)",
+                                        msg.text.lineSequence().firstOrNull()?.take(64)?.ifBlank { "（无文字）" }
+                                            ?: "（无文字）",
                                         style = MaterialTheme.typography.bodyMedium,
                                         maxLines = 2,
                                         overflow = TextOverflow.Ellipsis,
@@ -715,14 +715,14 @@ private fun ChatScreenContent(
                                 TextButton(onClick = {
                                     showUndoDialog = false
                                     confirmRewindTurn = tid
-                                }) { Text("Review…") }
+                                }) { Text("查看…") }
                             }
                         }
                     }
                 }
             },
             confirmButton = {
-                TextButton(onClick = { showUndoDialog = false }) { Text("Close") }
+                TextButton(onClick = { showUndoDialog = false }) { Text("关闭") }
             },
         )
     }
@@ -734,7 +734,7 @@ private fun ChatScreenContent(
         }
         AlertDialog(
             onDismissRequest = { confirmRewindTurn = null },
-            title = { Text("Undo to this checkpoint?") },
+            title = { Text("撤销到此检查点？") },
             text = {
                 when (val p = preview) {
                     null -> Row(
@@ -748,10 +748,10 @@ private fun ChatScreenContent(
                     ) {
                         Text(
                             buildString {
-                                append("${p.files.size} file(s) revert to their earlier state")
-                                if (p.turns > 1) append(" (this turn + ${p.turns - 1} later)")
+                                append("${p.files.size} 个文件恢复到之前状态")
+                                if (p.turns > 1) append("（此轮及之后 ${p.turns - 1} 轮）")
                                 if (p.messagesDeleted > 0) {
-                                    append(" · ${p.messagesDeleted} message(s) roll back")
+                                    append(" · 回退 ${p.messagesDeleted} 条消息")
                                 }
                             },
                             style = MaterialTheme.typography.bodySmall,
@@ -760,7 +760,7 @@ private fun ChatScreenContent(
                         Spacer(Modifier.height(6.dp))
                         if (p.files.isEmpty()) {
                             Text(
-                                "No tracked file changes in this window.",
+                                "此范围内没有已记录的文件更改。",
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
@@ -773,9 +773,9 @@ private fun ChatScreenContent(
                                 else -> com.androidharness.app.ui.theme.LocalStatusColors.current.warning
                             }
                             val note = when {
-                                stat.willBeDeleted -> "created by the agent · will be deleted"
-                                !stat.existsNow -> "missing on disk · will be restored"
-                                else -> "reverts to its earlier state"
+                                stat.willBeDeleted -> "由代理创建 · 将被删除"
+                                !stat.existsNow -> "磁盘上缺失 · 将被恢复"
+                                else -> "恢复到之前状态"
                             }
                             Column {
                                 Row(
@@ -824,7 +824,7 @@ private fun ChatScreenContent(
                         }
                         if (p.files.size > 12) {
                             Text(
-                                "+ ${p.files.size - 12} more file(s)",
+                                "另有 ${p.files.size - 12} 个文件",
                                 style = MaterialTheme.typography.labelSmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
@@ -844,10 +844,10 @@ private fun ChatScreenContent(
                             snackbar.showSnackbar(message)
                         }
                     },
-                ) { Text("Undo", color = MaterialTheme.colorScheme.error) }
+                ) { Text("撤销", color = MaterialTheme.colorScheme.error) }
             },
             dismissButton = {
-                TextButton(onClick = { confirmRewindTurn = null }) { Text("Cancel") }
+                TextButton(onClick = { confirmRewindTurn = null }) { Text("取消") }
             },
         )
     }
@@ -956,7 +956,7 @@ private fun ChatScreenContent(
             }?.turnId
             if (latestTurn != null) {
                 val res = snackbar.showSnackbar(
-                    "Files changed", actionLabel = "Undo", duration = SnackbarDuration.Short,
+                    "文件已更改", actionLabel = "撤销", duration = SnackbarDuration.Short,
                 )
                 if (res == SnackbarResult.ActionPerformed) confirmRewindTurn = latestTurn
             }
@@ -1030,16 +1030,16 @@ private fun ChatScreenContent(
                 workspaceName = currentProject?.name,
                 busy = state.busy,
                 pickerLabel = when {
-                    !state.modelSelectionReady -> "Loading model…"
-                    currentProvider == null && !state.sameModelAcrossChats -> "Choose a model for this chat"
-                    currentProvider == null -> "Add a provider to get started"
+                    !state.modelSelectionReady -> "正在加载模型…"
+                    currentProvider == null && !state.sameModelAcrossChats -> "为此聊天选择模型"
+                    currentProvider == null -> "添加服务商以开始使用"
                     state.dualPlanning && state.mode == AgentMode.PLAN ->
-                        "$currentModel (Plan)"
+                        "$currentModel（规划）"
                     state.dualPlanning && state.mode == AgentMode.ACT ->
-                        "$currentModel (Exec)"
+                        "$currentModel（执行）"
                     else -> currentModel ?: currentProvider.name
                 },
-                modelScopeLabel = if (state.sameModelAcrossChats) null else "This chat",
+                modelScopeLabel = if (state.sameModelAcrossChats) null else "此聊天",
                 mode = state.mode,
                 dualPlanning = state.dualPlanning,
                 thinkingLevel = thinking?.level ?: state.thinkingLevel,
@@ -1209,7 +1209,7 @@ private fun ChatScreenContent(
                                         pinnedToBottom = false
                                         viewModel.loadOlderMessages()
                                     }, enabled = !state.isLoadingOlderMessages, modifier = Modifier.fillMaxWidth()) {
-                                        Text(if (state.isLoadingOlderMessages) "Loading older messages…" else "Load older messages")
+                                        Text(if (state.isLoadingOlderMessages) "正在加载更早的消息…" else "加载更早的消息")
                                     }
                                 }
                             }
@@ -1237,7 +1237,7 @@ private fun ChatScreenContent(
                                     modifier = Modifier.fillMaxWidth(),
                                 ) {
                                     Column(Modifier.padding(12.dp)) {
-                                        Text("Search result", style = MaterialTheme.typography.labelMedium)
+                                        Text("搜索结果", style = MaterialTheme.typography.labelMedium)
                                         if (message.role == Role.TOOL || message.role == Role.SYSTEM) {
                                             Spacer(Modifier.height(8.dp))
                                             MarkdownText(message.text)
@@ -1255,7 +1255,7 @@ private fun ChatScreenContent(
                                     onRevise = { selected ->
                                         attachedResponseJson = null
                                         attachedConceptJson = ArtifactAttachment.from(selected).encode()
-                                        if (composerText.isBlank()) setComposerText("Revise this concept: ")
+                                        if (composerText.isBlank()) setComposerText("修改此概念：")
                                     },
                                 )
                             }
@@ -1272,8 +1272,8 @@ private fun ChatScreenContent(
                                         slashInvokedSkillName(UserMessageContent.visibleText(message.text))?.let { skillName ->
                                             SkillUsedBadge(skillName)
                                         }
-                                        ArtifactAttachment.fromPrompt(message.text)?.let { SkillUsedBadge("Concept · ${it.title}") }
-                                        ResponseAttachment.fromPrompt(message.text)?.let { SkillUsedBadge("Response · ${it.title}") }
+                                        ArtifactAttachment.fromPrompt(message.text)?.let { SkillUsedBadge("概念 · ${it.title}") }
+                                        ResponseAttachment.fromPrompt(message.text)?.let { SkillUsedBadge("回复 · ${it.title}") }
                                         UserBubble(
                                             visibleText,
                                             message.images,
@@ -1313,7 +1313,7 @@ private fun ChatScreenContent(
                                                     }
                                                 }
                                                 if (message.text.isNotBlank()) {
-                                                    Text("ANDROIDHARNESS", style = MaterialTheme.typography.labelSmall,
+                                                    Text("ANDROIDHARNESS 中文版", style = MaterialTheme.typography.labelSmall,
                                                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                                                         modifier = Modifier.padding(top = 4.dp, bottom = 8.dp))
                                                 }
@@ -1471,11 +1471,11 @@ private fun ChatScreenContent(
                             Role.TOOL -> Unit
                             Role.SYSTEM -> {
                                 if (message.text.startsWith("Compaction failed:") || message.text.startsWith("Compaction stopped.") ||
-                                    message.text.startsWith("Chat compacted, but")) {
+                                    message.text.startsWith("Chat compacted, but") || message.text.startsWith("压缩失败：") || message.text.startsWith("压缩已停止") || message.text.startsWith("聊天已压缩，但")) {
                                     indexedItem(key = "message-$messageKey-system", contentType = ChatListContentType.System) {
                                         CompactionResultCard(message.text,
                                             showRetry = state.messages.lastOrNull { m ->
-                                                m.role == Role.SYSTEM && (m.text.startsWith("Compaction failed:") || m.text.startsWith("Compaction stopped.") ||
+                                                m.role == Role.SYSTEM && (m.text.startsWith("Compaction failed:") || m.text.startsWith("Compaction stopped.") || m.text.startsWith("压缩失败：") || m.text.startsWith("压缩已停止") || m.text.startsWith("聊天已压缩，但") ||
                                                     m.text.startsWith(com.androidharness.app.agent.ContextHygiene.COMPACTION_NOTICE_PREFIX))
                                             }?.id == message.id,
                                             busy = state.busy, onRetry = { viewModel.send("/compact") })
@@ -1746,7 +1746,7 @@ private fun ChatScreenContent(
                     onClearSkill = { attachedSkill = null },
                     onSend = {
                         val payload = ResponseAttachment.attach(ArtifactAttachment.attach(SlashCommands.composeSend(attachedSkill,
-                            composerText.ifBlank { if (attachedConcept != null) "Revise this concept." else if (attachedResponse != null) "Help me with this response." else "" }), attachedConcept), attachedResponse)
+                            composerText.ifBlank { if (attachedConcept != null) "修改此概念。" else if (attachedResponse != null) "帮我理解此回复。" else "" }), attachedConcept), attachedResponse)
                         if (payload.isNotBlank() || state.fileAttachments.isNotEmpty()) {
                             // Keep the draft when a selection is still loading/saving or unavailable.
                             if (viewModel.send(payload)) {
@@ -1771,11 +1771,11 @@ private fun ChatScreenContent(
                         }
                     },
                     scheduleUnavailableReason = when {
-                        composerText.isBlank() -> "Write a message first"
-                        attachedConcept != null -> "Remove the concept attachment to schedule a message"
-                        attachedResponse != null -> "Remove the response context to schedule a message"
-                        attachedSkill != null || state.attachments.isNotEmpty() || state.fileAttachments.isNotEmpty() -> "Schedule a text message without attachments"
-                        currentProject == null -> "Choose a workspace first"
+                        composerText.isBlank() -> "请先填写消息"
+                        attachedConcept != null -> "请先移除概念附件，再定时发送消息"
+                        attachedResponse != null -> "请先移除回复上下文，再定时发送消息"
+                        attachedSkill != null || state.attachments.isNotEmpty() || state.fileAttachments.isNotEmpty() -> "请定时发送不含附件的文本消息"
+                        currentProject == null -> "请先选择工作区"
                         else -> null
                     },
                     onStop = viewModel::stop,
@@ -1858,7 +1858,7 @@ internal fun CopyIconButton(text: String) {
     }) {
         Icon(
             painterResource(if (copied) R.drawable.ic_chat_check_check else R.drawable.ic_chat_copy),
-            contentDescription = "Copy",
+            contentDescription = "复制",
             tint = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.size(17.dp),
         )
@@ -1876,13 +1876,13 @@ internal fun ResponseActions(onFork: () -> Unit, onUndo: (() -> Unit)?, details:
     var expanded by remember { mutableStateOf(false) }
     Box {
         IconButton(onClick = { expanded = true }) {
-            Icon(painterResource(R.drawable.ic_chat_ellipsis), "More response actions", Modifier.size(18.dp),
+            Icon(painterResource(R.drawable.ic_chat_ellipsis), "更多回复操作", Modifier.size(18.dp),
                 tint = MaterialTheme.colorScheme.onSurfaceVariant)
         }
         androidx.compose.material3.DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
-            androidx.compose.material3.DropdownMenuItem(text = { Text("Fork from this message") },
+            androidx.compose.material3.DropdownMenuItem(text = { Text("从此消息分支") },
                 onClick = { expanded = false; onFork() })
-            if (onUndo != null) androidx.compose.material3.DropdownMenuItem(text = { Text("Undo file changes from this turn") },
+            if (onUndo != null) androidx.compose.material3.DropdownMenuItem(text = { Text("撤销此轮的文件更改") },
                 onClick = { expanded = false; onUndo() })
             HorizontalDivider()
             details()
@@ -1891,7 +1891,7 @@ internal fun ResponseActions(onFork: () -> Unit, onUndo: (() -> Unit)?, details:
 }
 
 /**
- * Collapsible "Edited files" summary for a finished turn: the header carries
+ * Collapsible "已编辑文件" summary for a finished turn: the header carries
  * the total "+N −M", expanding lists every edited file (merged across all
  * edits in the turn) vertically, each row tapping through to the editor.
  */
@@ -1932,7 +1932,7 @@ private fun FileEditsCard(
             ) {
                 Icon(painterResource(R.drawable.ic_chat_file_code_2), null, Modifier.size(18.dp), tint = scheme.onSurfaceVariant)
                 Text(
-                    if (merged.size == 1) merged.first().first.substringAfterLast('/') else "${merged.size} edited files",
+                    if (merged.size == 1) merged.first().first.substringAfterLast('/') else "${merged.size} 个已编辑文件",
                     maxLines = 1, overflow = TextOverflow.Ellipsis,
                     style = MaterialTheme.typography.labelMedium,
                     modifier = Modifier.weight(1f),
@@ -1940,7 +1940,7 @@ private fun FileEditsCard(
                 DiffStatText(merged.sumOf { it.second.first }, merged.sumOf { it.second.second })
                 Icon(
                     Icons.Filled.KeyboardArrowDown,
-                    contentDescription = if (expanded) "Collapse edited files" else "Expand edited files",
+                    contentDescription = if (expanded) "收起已编辑文件" else "展开已编辑文件",
                     tint = scheme.onSurfaceVariant,
                     modifier = Modifier
                         .size(20.dp)
@@ -1986,7 +1986,7 @@ private fun FileEditsCard(
                                 }
                             }
                             DiffStatText(added, removed)
-                            TextButton(onClick = { onOpenFile(path, null) }) { Text("Open") }
+                            TextButton(onClick = { onOpenFile(path, null) }) { Text("打开") }
                         }
                     }
                 }
@@ -2078,7 +2078,7 @@ private fun ScrollToBottomFab(
             ) {
                 Icon(
                     Icons.Filled.KeyboardArrowDown,
-                    contentDescription = "Scroll to latest",
+                    contentDescription = "滚动到最新消息",
                     tint = if (unread) MaterialTheme.colorScheme.primary
                     else MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.size(22.dp),
@@ -2128,34 +2128,34 @@ private fun CostDialog(
     }
     AlertDialog(
         onDismissRequest = onDismiss,
-        confirmButton = { TextButton(onClick = onDismiss) { Text("Close") } },
-        title = { Text("Session cost") },
+        confirmButton = { TextButton(onClick = onDismiss) { Text("关闭") } },
+        title = { Text("聊天费用") },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                Text("Input: ${formatTokenCount(state.usage.totalInput)}")
-                Text("Output: ${formatTokenCount(state.usage.totalOutput)}")
+                Text("输入：${formatTokenCount(state.usage.totalInput)}")
+                Text("输出：${formatTokenCount(state.usage.totalOutput)}")
                 val hitRateStr = when {
-                    state.usage.requests == 0L && state.busy -> "Calculating…"
+                    state.usage.requests == 0L && state.busy -> "正在计算…"
                     state.usage.totalInput > 0 -> "${"%.1f".format(state.usage.avgCacheHitRate * 100)}%"
                     else -> "0.0%"
                 }
-                Text("Overall cache hit rate: $hitRateStr")
+                Text("总体缓存命中率：$hitRateStr")
                 Text(
-                    "Hit rate updates after each completed turn",
+                    "每轮完成后更新命中率",
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     style = MaterialTheme.typography.bodySmall,
                 )
                 if (state.usage.totalCacheWrite > 0) {
                     Text(
-                        "Cache writes: ${formatTokenCount(state.usage.totalCacheWrite)}",
+                        "缓存写入：${formatTokenCount(state.usage.totalCacheWrite)}",
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         style = MaterialTheme.typography.bodySmall,
                     )
                 }
                 if (cost != null) {
-                    Text("Estimated cost: \$${"%.4f".format(cost)}")
+                    Text("预计费用：\$${"%.4f".format(cost)}")
                 } else {
-                    Text("Cost estimate unknown for this model", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text("此模型的预计费用未知", color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
         },
@@ -2219,7 +2219,7 @@ private fun ChatLoadingSkeleton(modifier: Modifier = Modifier) {
                         color = scheme.primary,
                     )
                     Text(
-                        "Loading chat…",
+                        "正在加载聊天…",
                         style = MaterialTheme.typography.labelMedium,
                         color = scheme.onSurface,
                     )

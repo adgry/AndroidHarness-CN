@@ -27,21 +27,21 @@ internal fun ProjectDeletionDialog(
     LaunchedEffect(project.id) {
         try { preview = container.projectDeletion.preview(project.id) }
         catch (e: CancellationException) { throw e }
-        catch (e: Exception) { error = e.message ?: "Could not review this project." }
+        catch (e: Exception) { error = e.message ?: "无法检查此项目。" }
     }
     AlertDialog(
         onDismissRequest = { if (!deleting) onDismiss() },
-        title = { Text("Delete project?") },
+        title = { Text("删除项目？") },
         text = {
             Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 Text(project.name, style = MaterialTheme.typography.titleSmall)
                 val review = preview
-                if (review == null && error == null) Text("Checking project…")
+                if (review == null && error == null) Text("正在检查项目…")
                 if (review != null) {
-                    val chats = "${review.chatIds.size} saved ${if (review.chatIds.size == 1) "chat" else "chats"}"
-                    val automations = "${review.automationIds.size} ${if (review.automationIds.size == 1) "automation" else "automations"}"
-                    Text("Removes this project, $chats and $automations from the app. Conversation history and undo history for these chats will be deleted. This cannot be undone.")
-                    Text("Your folder and files stay on disk.", style = MaterialTheme.typography.bodyMedium)
+                    val chats = "${review.chatIds.size} 个已保存聊天"
+                    val automations = "${review.automationIds.size} 个自动化"
+                    Text("将从应用中移除此项目、$chats 和 $automations。这些聊天的消息记录和撤销历史也会删除，此操作无法撤销。")
+                    Text("磁盘上的文件夹和文件会保留。", style = MaterialTheme.typography.bodyMedium)
                     review.blocker?.let { Text(it, color = MaterialTheme.colorScheme.error) }
                 }
                 error?.let { Text(it, color = MaterialTheme.colorScheme.error) }
@@ -57,12 +57,12 @@ internal fun ProjectDeletionDialog(
                     scope.launch {
                         try { container.projectDeletion.delete(review); onDeleted(review.chatIds) }
                         catch (e: CancellationException) { throw e }
-                        catch (e: Exception) { error = e.message ?: "Could not delete this project." }
+                        catch (e: Exception) { error = e.message ?: "无法删除此项目。" }
                         finally { deleting = false }
                     }
                 },
-            ) { Text(if (deleting) "Deleting…" else "Delete project") }
+            ) { Text(if (deleting) "正在删除…" else "删除项目") }
         },
-        dismissButton = { TextButton(enabled = !deleting, onClick = onDismiss) { Text("Keep project") } },
+        dismissButton = { TextButton(enabled = !deleting, onClick = onDismiss) { Text("保留项目") } },
     )
 }

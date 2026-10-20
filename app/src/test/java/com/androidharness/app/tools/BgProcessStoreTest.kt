@@ -13,8 +13,14 @@ import java.io.File
 class BgProcessStoreTest {
 
     @Test fun `background monitor records success explicit failure exec and syntax error`() {
+        // Shells differ here: macOS /bin/sh returns 1 for eval parse errors,
+        // while dash/Android sh return 2. Record the host shell's real status.
+        val syntaxProcess = ProcessBuilder("/bin/sh", "-c", "eval 'if then'").redirectErrorStream(true).start()
+        syntaxProcess.inputStream.bufferedReader().use { it.readText() }
+        val syntaxExit = syntaxProcess.waitFor()
+        assertTrue(syntaxExit != 0)
         val cases = listOf("echo hello; echo error >&2; exit 3" to 3,
-            "echo done" to 0, "exec /bin/sh -c 'exit 7'" to 7, "if then" to 2)
+            "echo done" to 0, "exec /bin/sh -c 'exit 7'" to 7, "if then" to syntaxExit)
         for ((command, expected) in cases) {
             val status = File(tmp.root, "job '${expected}.exit")
             val process = ProcessBuilder("/bin/sh", "-c", com.androidharness.app.data.backgroundCommand(command, status.path))

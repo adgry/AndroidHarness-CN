@@ -10,7 +10,7 @@ import kotlinx.coroutines.flow.StateFlow
 internal data class AutomationConnection(val connected: Boolean = false, val unmetered: Boolean = false) {
     fun allows(task: AutomationTask): Boolean = connected && (!task.unmeteredOnly || unmetered)
     fun waitingMessage(task: AutomationTask): String =
-        if (task.unmeteredOnly) "Waiting for unmetered internet" else "Waiting for internet"
+        if (task.unmeteredOnly) "等待不限流量网络" else "等待网络连接"
 }
 
 /** Application-owned observer. Recheck the default network, including VPN changes. */

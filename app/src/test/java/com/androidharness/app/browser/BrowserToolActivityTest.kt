@@ -12,13 +12,13 @@ class BrowserToolActivityTest {
 
     @Test fun `status uses real tool state and never treats missing results as success`() {
         val call = ToolCallData("nav", "browser_navigate", """{"url":"https://example.test/install"}""")
-        assertEquals("Not completed", BrowserToolActivity.from(call, null, false).status)
-        assertEquals("Needs approval", BrowserToolActivity.from(call, null, true, awaitingApproval = true).status)
-        assertEquals("Open page", BrowserToolActivity.from(call, null, true, awaitingApproval = true).action)
-        assertEquals("In progress", BrowserToolActivity.from(call, null, true).status)
-        assertEquals("Completed", BrowserToolActivity.from(call, result(call.id, "URL: https://example.test/install"), true).status)
-        assertEquals("Failed", BrowserToolActivity.from(call, result(call.id, "Navigation failed", true), true).status)
-        assertEquals("Waiting", BrowserToolActivity.from(call.copy(name = "browser_wait_for"), null, true).status)
+        assertEquals("未完成", BrowserToolActivity.from(call, null, false).status)
+        assertEquals("需要批准", BrowserToolActivity.from(call, null, true, awaitingApproval = true).status)
+        assertEquals("打开页面", BrowserToolActivity.from(call, null, true, awaitingApproval = true).action)
+        assertEquals("进行中", BrowserToolActivity.from(call, null, true).status)
+        assertEquals("已完成", BrowserToolActivity.from(call, result(call.id, "URL: https://example.test/install"), true).status)
+        assertEquals("失败", BrowserToolActivity.from(call, result(call.id, "Navigation failed", true), true).status)
+        assertEquals("等待", BrowserToolActivity.from(call.copy(name = "browser_wait_for"), null, true).status)
     }
 
     @Test fun `saved targets retain redirects and subsequent navigation independently`() {
@@ -41,16 +41,16 @@ class BrowserToolActivityTest {
         val call = ToolCallData("type", "browser_type", """{"text":"private-value","selector":"#password"}""")
         val activity = BrowserToolActivity.from(call, null, true, "https://account:secret@example.test/path?token=hidden")
         assertEquals("example.test", activity.site)
-        assertEquals("Typing into a field…", activity.action)
+        assertEquals("正在输入内容…", activity.action)
         assertFalse(activity.site.contains("secret"))
         assertFalse(activity.action.contains("private-value"))
     }
 
     @Test fun `malformed arguments and local pages have readable fallbacks`() {
         val call = ToolCallData("local", "browser_navigate", "broken")
-        assertEquals("Browser page", BrowserToolActivity.from(call, null, true).site)
-        assertEquals("Workspace page", BrowserToolActivity.from(call, null, true, "index.html").site)
-        assertEquals("Workspace page", BrowserToolActivity.from(call, result("local", "URL: https://harness.workspace/ws/index.html"), false).site)
+        assertEquals("浏览器页面", BrowserToolActivity.from(call, null, true).site)
+        assertEquals("工作区页面", BrowserToolActivity.from(call, null, true, "index.html").site)
+        assertEquals("工作区页面", BrowserToolActivity.from(call, result("local", "URL: https://harness.workspace/ws/index.html"), false).site)
         assertTrue(BrowserToolActivity.isBrowserTool("browser_screenshot"))
         assertFalse(BrowserToolActivity.isBrowserTool("read_file"))
     }

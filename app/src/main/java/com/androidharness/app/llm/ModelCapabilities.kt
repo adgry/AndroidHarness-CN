@@ -5,11 +5,11 @@ data class ModelCapabilities(val thinking: Capability, val tools: Capability, va
     enum class Source { PROVIDER, DIRECTORY, CUSTOM, FAMILY, UNKNOWN }
     data class Capability(val supported: Boolean?, val source: Source) {
         val description: String get() = when (source) {
-            Source.PROVIDER -> if (supported == true) "Reported by this provider" else "Reported as unsupported by this provider"
-            Source.DIRECTORY -> if (supported == true) "Listed in the model directory; this connection has not confirmed it" else "Listed as unsupported in the model directory"
-            Source.CUSTOM -> if (supported == true) "Set by you for this custom model" else "Marked as unsupported for this custom model"
-            Source.FAMILY -> "Unconfirmed model-family hint"
-            Source.UNKNOWN -> "Not reported"
+            Source.PROVIDER -> if (supported == true) "此服务商报告支持" else "此服务商报告不支持"
+            Source.DIRECTORY -> if (supported == true) "模型目录列出支持，此连接尚未确认" else "模型目录列出不支持"
+            Source.CUSTOM -> if (supported == true) "由你为此自定义模型设定" else "此自定义模型已标记为不支持"
+            Source.FAMILY -> "未经确认的模型系列推测"
+            Source.UNKNOWN -> "未报告"
         }
     }
     companion object {

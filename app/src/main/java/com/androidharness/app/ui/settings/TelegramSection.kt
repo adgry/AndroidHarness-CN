@@ -62,7 +62,7 @@ import kotlinx.coroutines.launch
     val sessions by container.sessions.sessions.collectAsStateWithLifecycle(initialValue = emptyList())
     val models by remember(setup.sessionId) { container.chatModels.observe(setup.sessionId) }.collectAsStateWithLifecycle(initialValue = null)
     TelegramSettingsContent(manager, projects.map { TelegramChoiceItem(it.id, it.name) },
-        sessions.filter { it.projectId == setup.projectId }.map { TelegramChoiceItem(it.id, it.title.ifBlank { "Untitled chat" }) }, models,
+        sessions.filter { it.projectId == setup.projectId }.map { TelegramChoiceItem(it.id, it.title.ifBlank { "未命名聊天" }) }, models,
         onOpenChat = { setup.sessionId?.let { container.pendingSessionId.tryEmit(it) } },
         onPermissions = { container.pendingSettingsScroll.value = "agent" })
 }
@@ -96,78 +96,78 @@ import kotlinx.coroutines.launch
         scope.launch {
             try { block(); message = success }
             catch (e: CancellationException) { throw e }
-            catch (e: Exception) { failed = true; message = com.androidharness.app.tools.SecretRedactor.redact(e.message ?: "Could not finish this action. Please retry.") }
+            catch (e: Exception) { failed = true; message = com.androidharness.app.tools.SecretRedactor.redact(e.message ?: "无法完成此操作，请重试。") }
             finally { busy = false }
         }
     }
     fun openBot(username: String, code: String? = null) {
         val link = "https://t.me/$username" + (code?.let { "?start=pair_$it" } ?: "")
         try { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(link)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) }
-        catch (_: Exception) { failed = true; message = "Open @$username in Telegram." }
+        catch (_: Exception) { failed = true; message = "请在 Telegram 中打开 @$username。" }
     }
     val notificationPermission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) {
-        action("Telegram enabled.") { manager.enable() }
+        action("已启用 Telegram。") { manager.enable() }
     }
     fun enable() {
         if (Build.VERSION.SDK_INT >= 33 && ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED)
             notificationPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
-        else action("Telegram enabled.") { manager.enable() }
+        else action("已启用 Telegram。") { manager.enable() }
     }
     TelegramPanel {
         val canEnable = setup.ownerId != null && !busy && pairing.challenge == null && manager.store.loadError == null
         val status = when {
-            serviceError != null || manager.store.loadError != null -> "Needs attention"
-            pairing.challenge != null -> "Pairing"
+            serviceError != null || manager.store.loadError != null -> "需要处理"
+            pairing.challenge != null -> "配对中"
             setup.enabled -> runtime.label
-            else -> "Off"
+            else -> "关闭"
         }
         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
-            Row(Modifier.weight(1f).semantics { contentDescription = "Enable Telegram" }
+            Row(Modifier.weight(1f).semantics { contentDescription = "启用 Telegram" }
                 .toggleable(value = setup.enabled, enabled = canEnable, role = Role.Switch,
-                    onValueChange = { checked -> if (checked) enable() else action("Telegram paused.") { manager.pause() } }),
+                    onValueChange = { checked -> if (checked) enable() else action("已暂停 Telegram。") { manager.pause() } }),
                 verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 Box(Modifier.size(38.dp).background(MaterialTheme.colorScheme.primaryContainer, RoundedCornerShape(12.dp)),
                     contentAlignment = Alignment.Center) {
                     Icon(Icons.AutoMirrored.Outlined.Send, null, tint = MaterialTheme.colorScheme.onPrimaryContainer, modifier = Modifier.size(22.dp))
                 }
                 Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
-                    Text("Remote control", style = MaterialTheme.typography.titleSmall)
+                    Text("远程控制", style = MaterialTheme.typography.titleSmall)
                     Text(status, style = MaterialTheme.typography.labelMedium,
                         color = if (serviceError != null || manager.store.loadError != null) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary)
                 }
                 Switch(checked = setup.enabled, enabled = canEnable, onCheckedChange = null)
             }
             Box {
-                IconButton(onClick = { moreMenu = true }) { Icon(Icons.Outlined.MoreVert, "More options") }
+                IconButton(onClick = { moreMenu = true }) { Icon(Icons.Outlined.MoreVert, "更多选项") }
                 DropdownMenu(moreMenu, { moreMenu = false }) {
                     if (setup.botUsername != null) {
-                        DropdownMenuItem(text = { Text("Change token") }, enabled = !busy && canConfigure,
+                        DropdownMenuItem(text = { Text("更换令牌") }, enabled = !busy && canConfigure,
                             onClick = { moreMenu = false; token = ""; visible = false; tokenDialog = true })
-                        DropdownMenuItem(text = { Text(if (setup.ownerId == null) "Pair account" else "Pair again") },
+                        DropdownMenuItem(text = { Text(if (setup.ownerId == null) "配对账号" else "重新配对") },
                             enabled = !busy && canConfigure && pairing.challenge == null,
-                            onClick = { moreMenu = false; action("Pairing started.") { manager.beginPairing() } })
+                            onClick = { moreMenu = false; action("已开始配对。") { manager.beginPairing() } })
                     }
-                    DropdownMenuItem(text = { Text("Send test message") }, enabled = setup.ownerId != null && !busy,
-                        onClick = { moreMenu = false; action("Test message sent.") { manager.sendConnectionTest() } })
-                    DropdownMenuItem(text = { Text("Stop task") }, enabled = setup.sessionId != null && !busy,
-                        onClick = { moreMenu = false; action("Task stopped.") { manager.stopTasks() } })
-                    DropdownMenuItem(text = { Text("Battery settings") }, onClick = {
+                    DropdownMenuItem(text = { Text("发送测试消息") }, enabled = setup.ownerId != null && !busy,
+                        onClick = { moreMenu = false; action("测试消息已发送。") { manager.sendConnectionTest() } })
+                    DropdownMenuItem(text = { Text("停止任务") }, enabled = setup.sessionId != null && !busy,
+                        onClick = { moreMenu = false; action("任务已停止。") { manager.stopTasks() } })
+                    DropdownMenuItem(text = { Text("电池设置") }, onClick = {
                         moreMenu = false
                         context.startActivity(Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
                     })
-                    if (setup.ownerId != null) DropdownMenuItem(text = { Text("Unpair account") }, enabled = !busy,
-                        onClick = { moreMenu = false; action("Account unpaired.") { manager.unpair() } })
-                    if (setup.botUsername != null) DropdownMenuItem(text = { Text("Disconnect bot", color = MaterialTheme.colorScheme.error) }, enabled = !busy,
+                    if (setup.ownerId != null) DropdownMenuItem(text = { Text("取消账号配对") }, enabled = !busy,
+                        onClick = { moreMenu = false; action("已取消账号配对。") { manager.unpair() } })
+                    if (setup.botUsername != null) DropdownMenuItem(text = { Text("断开机器人", color = MaterialTheme.colorScheme.error) }, enabled = !busy,
                         onClick = { moreMenu = false; disconnectDialog = true })
                 }
             }
         }
-        Text("Chat and edit your projects from Telegram.", style = MaterialTheme.typography.bodySmall,
+        Text("通过 Telegram 聊天和编辑项目。", style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant)
         if (setup.ownerId != null) {
             FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                Button(onClick = { setup.botUsername?.let { openBot(it) } }, enabled = !busy) { Text("Open bot") }
-                if (!canConfigure) OutlinedButton(enabled = !busy, onClick = { action("Task stopped.") { manager.stopTasks() } }) { Text("Stop task") }
+                Button(onClick = { setup.botUsername?.let { openBot(it) } }, enabled = !busy) { Text("打开机器人") }
+                if (!canConfigure) OutlinedButton(enabled = !busy, onClick = { action("任务已停止。") { manager.stopTasks() } }) { Text("停止任务") }
             }
         }
         if (busy) AppLinearProgressIndicator(Modifier.fillMaxWidth())
@@ -177,26 +177,26 @@ import kotlinx.coroutines.launch
         if (!failed) message?.let { Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.primary) }
         runtime.action?.let { Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.primary) }
     }
-    TelegramGroup("Connection", Icons.Outlined.AccountCircle) {
-        TelegramDetail("Bot", setup.botUsername?.let { "@$it" } ?: "Not connected", setup.botUsername != null)
+    TelegramGroup("连接", Icons.Outlined.AccountCircle) {
+        TelegramDetail("机器人", setup.botUsername?.let { "@$it" } ?: "未连接", setup.botUsername != null)
         HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = .4f))
-        TelegramDetail("Account", setup.ownerName?.let { "$it · Paired" } ?: "Not paired", setup.ownerId != null)
+        TelegramDetail("账号", setup.ownerName?.let { "$it · 已配对" } ?: "未配对", setup.ownerId != null)
         if (setup.botUsername == null) {
             FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                Button(enabled = !busy, onClick = { token = ""; visible = false; tokenDialog = true }) { Text("Connect bot") }
-                TextButton(enabled = !busy, onClick = { openBot("BotFather") }) { Text("Create bot") }
+                Button(enabled = !busy, onClick = { token = ""; visible = false; tokenDialog = true }) { Text("连接机器人") }
+                TextButton(enabled = !busy, onClick = { openBot("BotFather") }) { Text("创建机器人") }
             }
         } else if (setup.ownerId == null) {
             Button(enabled = !busy && canConfigure && pairing.challenge == null,
-                onClick = { action("Pairing started.") { manager.beginPairing() } }) { Text("Pair account") }
+                onClick = { action("已开始配对。") { manager.beginPairing() } }) { Text("配对账号") }
         }
     }
-    TelegramGroup("Workspace", Icons.Outlined.FolderOpen) {
-        TelegramChoice("Project", projects.firstOrNull { it.id == setup.projectId }?.label ?: "Choose project", projects, !busy && canConfigure && projects.isNotEmpty()) { id -> action("Project selected.") { manager.selectDestination(id, null) } }
-        TelegramChoice("Chat", chats.firstOrNull { it.id == setup.sessionId }?.label ?: "New Telegram chat", listOf(TelegramChoiceItem("", "New Telegram chat")) + chats, !busy && canConfigure && setup.projectId != null) { id -> action("Chat selected.") { manager.selectDestination(requireNotNull(setup.projectId), id.ifBlank { null }) } }
+    TelegramGroup("工作区", Icons.Outlined.FolderOpen) {
+        TelegramChoice("项目", projects.firstOrNull { it.id == setup.projectId }?.label ?: "选择项目", projects, !busy && canConfigure && projects.isNotEmpty()) { id -> action("已选择项目。") { manager.selectDestination(id, null) } }
+        TelegramChoice("聊天", chats.firstOrNull { it.id == setup.sessionId }?.label ?: "新建 Telegram 聊天", listOf(TelegramChoiceItem("", "新建 Telegram 聊天")) + chats, !busy && canConfigure && setup.projectId != null) { id -> action("已选择聊天。") { manager.selectDestination(requireNotNull(setup.projectId), id.ifBlank { null }) } }
         FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            OutlinedButton(enabled = setup.sessionId != null && !busy, onClick = onOpenChat) { Text("Open chat") }
-            TextButton(enabled = setup.projectId != null && !busy && canConfigure, onClick = { action("New chat ready.") { manager.newChat() } }) { Text("New chat") }
+            OutlinedButton(enabled = setup.sessionId != null && !busy, onClick = onOpenChat) { Text("打开聊天") }
+            TextButton(enabled = setup.projectId != null && !busy && canConfigure, onClick = { action("新聊天已就绪。") { manager.newChat() } }) { Text("新建聊天") }
         }
     }
     val activeChoice = if (modelState?.settings?.planningModelsEnabled == true) {
@@ -216,28 +216,28 @@ import kotlinx.coroutines.launch
         val id = providerChoice ?: return@LaunchedEffect
         loadingModels = true; modelError = null
         try { modelChoices = manager.bridge.models(id) }
-        catch (e: CancellationException) { throw e } catch (e: Exception) { modelError = e.message ?: "Could not refresh models. Please retry." }
+        catch (e: CancellationException) { throw e } catch (e: Exception) { modelError = e.message ?: "无法刷新模型，请重试。" }
         finally { loadingModels = false }
     }
-    TelegramGroup("Agent", Icons.Outlined.Tune) {
-        if (modelState?.settings?.sameModelAcrossChats == true) Text("Shared across chats", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        TelegramChoice("Provider", providers.firstOrNull { it.id == providerChoice }?.label ?: "Choose provider", providers, !busy && canConfigure && setup.sessionId != null) { providerChoice = it }
+    TelegramGroup("代理", Icons.Outlined.Tune) {
+        if (modelState?.settings?.sameModelAcrossChats == true) Text("在聊天间共享", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        TelegramChoice("提供商", providers.firstOrNull { it.id == providerChoice }?.label ?: "选择提供商", providers, !busy && canConfigure && setup.sessionId != null) { providerChoice = it }
         val selectedModel = if (providerChoice == activeChoice?.providerId) activeChoice?.model else null
-        TelegramChoice("Model", selectedModel ?: "Choose model", modelChoices, !busy && !loadingModels && canConfigure && setup.sessionId != null) { id -> action("Model selected.") { manager.selectModel(requireNotNull(providerChoice), id) } }
+        TelegramChoice("模型", selectedModel ?: "选择模型", modelChoices, !busy && !loadingModels && canConfigure && setup.sessionId != null) { id -> action("已选择模型。") { manager.selectModel(requireNotNull(providerChoice), id) } }
         if (loadingModels) AppLinearProgressIndicator(Modifier.fillMaxWidth())
         modelError?.let { Text(it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall) }
-        TextButton(enabled = !loadingModels && !busy, onClick = { refreshModels++ }) { Text("Refresh models") }
+        TextButton(enabled = !loadingModels && !busy, onClick = { refreshModels++ }) { Text("刷新模型") }
         FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            FilterChip(selected = setup.mode == "PLAN", enabled = !busy && canConfigure && setup.ownerId != null, onClick = { action("Plan mode selected.") { manager.setMode("PLAN") } }, label = { Text("Plan") })
-            FilterChip(selected = setup.mode == "ACT", enabled = !busy && canConfigure && setup.ownerId != null, onClick = { action("Act mode selected.") { manager.setMode("ACT") } }, label = { Text("Act") })
+            FilterChip(selected = setup.mode == "PLAN", enabled = !busy && canConfigure && setup.ownerId != null, onClick = { action("已选择规划模式。") { manager.setMode("PLAN") } }, label = { Text("规划") })
+            FilterChip(selected = setup.mode == "ACT", enabled = !busy && canConfigure && setup.ownerId != null, onClick = { action("已选择执行模式。") { manager.setMode("ACT") } }, label = { Text("执行") })
         }
         HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = .4f))
         Row(Modifier.fillMaxWidth().clickable(role = Role.Button, onClick = onPermissions).padding(vertical = 8.dp),
             verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
             Icon(Icons.Outlined.Security, null, modifier = Modifier.size(20.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
             Column(Modifier.weight(1f)) {
-                Text("Permissions", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                Text(modelState?.settings?.permissionMode?.label ?: "App default", style = MaterialTheme.typography.bodyMedium)
+                Text("权限", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(modelState?.settings?.permissionMode?.label ?: "应用默认值", style = MaterialTheme.typography.bodyMedium)
             }
             Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
         }
@@ -245,69 +245,69 @@ import kotlinx.coroutines.launch
     TextButton(onClick = { helpDialog = true }) {
         Icon(Icons.AutoMirrored.Outlined.HelpOutline, null, modifier = Modifier.size(18.dp))
         Spacer(Modifier.width(8.dp))
-        Text("Help & commands")
+        Text("帮助与命令")
     }
     val requests = saved.requests.filter { it.retryable && it.sessionId != null && it.callback == null }.asReversed()
     val deliveries = saved.deliveries.filter { it.status in listOf(TelegramDeliveryStatus.FAILED, TelegramDeliveryStatus.UNCERTAIN) }.asReversed()
-    if (requests.isNotEmpty() || deliveries.isNotEmpty()) TelegramGroup("Saved work", Icons.Outlined.Tune) {
+    if (requests.isNotEmpty() || deliveries.isNotEmpty()) TelegramGroup("已保存任务", Icons.Outlined.Tune) {
         (if (showAllSaved) requests else requests.take(5)).forEach { request ->
-            Text("Request #${request.id}", style = MaterialTheme.typography.titleSmall)
+            Text("请求 #${request.id}", style = MaterialTheme.typography.titleSmall)
             Text(request.text.take(160), style = MaterialTheme.typography.bodySmall)
-            Text(request.error ?: "Interrupted", color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
-            TextButton(enabled = !busy, onClick = { action("Task queued.") { manager.retry(request.id) } }) { Text("Retry task") }
+            Text(request.error ?: "已中断", color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
+            TextButton(enabled = !busy, onClick = { action("任务已加入队列。") { manager.retry(request.id) } }) { Text("重试任务") }
             HorizontalDivider()
         }
         (if (showAllSaved) deliveries else deliveries.take(5)).forEach { delivery ->
             Text(delivery.text.take(160), style = MaterialTheme.typography.bodySmall)
-            Text(delivery.error ?: "Reply delivery failed. Check Telegram before resending.", color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
-            TextButton(enabled = !busy, onClick = { action("Reply queued.") { manager.resend(delivery.key) } }) { Text("Resend reply") }
+            Text(delivery.error ?: "回复发送失败。重新发送前请检查 Telegram。", color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
+            TextButton(enabled = !busy, onClick = { action("回复已加入队列。") { manager.resend(delivery.key) } }) { Text("重新发送回复") }
             HorizontalDivider()
         }
-        if (requests.size > 5 || deliveries.size > 5) TextButton(onClick = { showAllSaved = !showAllSaved }) { Text(if (showAllSaved) "Show fewer" else "Show all saved work") }
+        if (requests.size > 5 || deliveries.size > 5) TextButton(onClick = { showAllSaved = !showAllSaved }) { Text(if (showAllSaved) "收起" else "显示所有已保存任务") }
     }
-    if (tokenDialog) AlertDialog(onDismissRequest = { if (!busy) { tokenDialog = false; token = "" } }, title = { Text("Connect your bot") }, text = {
+    if (tokenDialog) AlertDialog(onDismissRequest = { if (!busy) { tokenDialog = false; token = "" } }, title = { Text("连接你的机器人") }, text = {
         SecureDialogEffect()
         Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            Text("Paste the token from BotFather.", style = MaterialTheme.typography.bodySmall)
-            OutlinedTextField(token, { token = it }, singleLine = true, label = { Text("Bot token") }, visualTransformation = if (visible) VisualTransformation.None else PasswordVisualTransformation(), trailingIcon = {
-                IconButton(onClick = { visible = !visible }) { Icon(if (visible) Icons.Outlined.VisibilityOff else Icons.Outlined.Visibility, if (visible) "Hide bot token" else "Show bot token") }
+            Text("粘贴从 BotFather 获取的令牌。", style = MaterialTheme.typography.bodySmall)
+            OutlinedTextField(token, { token = it }, singleLine = true, label = { Text("机器人令牌") }, visualTransformation = if (visible) VisualTransformation.None else PasswordVisualTransformation(), trailingIcon = {
+                IconButton(onClick = { visible = !visible }) { Icon(if (visible) Icons.Outlined.VisibilityOff else Icons.Outlined.Visibility, if (visible) "隐藏机器人令牌" else "显示机器人令牌") }
             }, modifier = Modifier.fillMaxWidth())
             if (busy) AppLinearProgressIndicator(Modifier.fillMaxWidth())
             if (failed) message?.let { Text(it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall) }
         }
-    }, confirmButton = { TextButton(enabled = !busy && token.isNotBlank(), onClick = { action("Bot verified.") { manager.connect(token); tokenDialog = false; token = "" } }) { Text("Verify bot") } }, dismissButton = { TextButton(enabled = !busy, onClick = { tokenDialog = false; token = "" }) { Text("Cancel") } })
+    }, confirmButton = { TextButton(enabled = !busy && token.isNotBlank(), onClick = { action("机器人已验证。") { manager.connect(token); tokenDialog = false; token = "" } }) { Text("验证机器人") } }, dismissButton = { TextButton(enabled = !busy, onClick = { tokenDialog = false; token = "" }) { Text("取消") } })
     val challenge = pairing.challenge
     if (challenge != null && pairing.candidate == null) {
         var remaining by remember(challenge) { mutableLongStateOf((challenge.expiresAt - System.currentTimeMillis()).coerceAtLeast(0)) }
         LaunchedEffect(challenge) { while (remaining > 0) { delay(1_000); remaining = (challenge.expiresAt - System.currentTimeMillis()).coerceAtLeast(0) } }
-        AlertDialog(onDismissRequest = { manager.cancelPairing() }, title = { Text("Pair your account") }, text = {
+        AlertDialog(onDismissRequest = { manager.cancelPairing() }, title = { Text("配对你的账号") }, text = {
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                Text("Open @${setup.botUsername} and tap Start, or copy this code.")
+                Text("打开 @${setup.botUsername} 并点击 Start，或复制此代码。")
                 Text("/pair ${challenge.code}", style = MaterialTheme.typography.titleMedium)
-                Text("Expires in ${remaining / 60_000}:${((remaining / 1_000) % 60).toString().padStart(2, '0')}", style = MaterialTheme.typography.labelSmall)
-                TextButton(onClick = { (context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager).setPrimaryClip(ClipData.newPlainText("Telegram pairing", "/pair ${challenge.code}")) }) { Text("Copy code") }
+                Text("剩余有效期 ${remaining / 60_000}:${((remaining / 1_000) % 60).toString().padStart(2, '0')}", style = MaterialTheme.typography.labelSmall)
+                TextButton(onClick = { (context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager).setPrimaryClip(ClipData.newPlainText("Telegram 配对", "/pair ${challenge.code}")) }) { Text("复制代码") }
             }
-        }, confirmButton = { TextButton(onClick = { setup.botUsername?.let { openBot(it, challenge.code) } }) { Text("Open bot and pair") } }, dismissButton = { TextButton(onClick = { manager.cancelPairing() }) { Text("Cancel") } })
+        }, confirmButton = { TextButton(onClick = { setup.botUsername?.let { openBot(it, challenge.code) } }) { Text("打开机器人并配对") } }, dismissButton = { TextButton(onClick = { manager.cancelPairing() }) { Text("取消") } })
     }
-    pairing.candidate?.let { candidate -> AlertDialog(onDismissRequest = { manager.cancelPairing() }, title = { Text("Pair this account?") }, text = {
-        Text("${candidate.account.name}\nUser ID ${candidate.account.userId}\n\nAllow this account to control your chats?")
-    }, confirmButton = { TextButton(enabled = !busy, onClick = { action("Account paired.") { manager.confirmPairing() } }) { Text("Pair account") } }, dismissButton = { TextButton(onClick = { manager.cancelPairing() }) { Text("Cancel") } }) }
-    if (disconnectDialog) AlertDialog(onDismissRequest = { disconnectDialog = false }, title = { Text("Disconnect bot?") }, text = { Text("Stop Telegram and keep your chats and files?") },
-        confirmButton = { TextButton(enabled = !busy, onClick = { disconnectDialog = false; action("Bot disconnected.") { manager.disconnect() } }) { Text("Disconnect") } }, dismissButton = { TextButton(onClick = { disconnectDialog = false }) { Text("Cancel") } })
-    if (helpDialog) AlertDialog(onDismissRequest = { helpDialog = false }, title = { Text("Telegram commands") }, text = {
+    pairing.candidate?.let { candidate -> AlertDialog(onDismissRequest = { manager.cancelPairing() }, title = { Text("配对此账号？") }, text = {
+        Text("${candidate.account.name}\n用户 ID ${candidate.account.userId}\n\n允许此账号控制你的聊天？")
+    }, confirmButton = { TextButton(enabled = !busy, onClick = { action("账号已配对。") { manager.confirmPairing() } }) { Text("配对账号") } }, dismissButton = { TextButton(onClick = { manager.cancelPairing() }) { Text("取消") } }) }
+    if (disconnectDialog) AlertDialog(onDismissRequest = { disconnectDialog = false }, title = { Text("断开机器人？") }, text = { Text("停止 Telegram 并保留聊天和文件？") },
+        confirmButton = { TextButton(enabled = !busy, onClick = { disconnectDialog = false; action("机器人已断开。") { manager.disconnect() } }) { Text("断开连接") } }, dismissButton = { TextButton(onClick = { disconnectDialog = false }) { Text("取消") } })
+    if (helpDialog) AlertDialog(onDismissRequest = { helpDialog = false }, title = { Text("Telegram 命令") }, text = {
         Column(Modifier.heightIn(max = 420.dp).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Text("Send a message to chat, then use buttons to approve tools or answer questions.", style = MaterialTheme.typography.bodySmall)
-            listOf("/projects" to "Projects", "/chats" to "Chats", "/new" to "New chat", "/model" to "Model",
-                "/mode plan" to "Plan", "/mode act" to "Act", "/status" to "Status", "/stop" to "Stop task",
-                "/retry" to "Retry / resume", "/pause" to "Pause Telegram").forEach { (command, title) ->
+            Text("发送消息开始聊天，然后使用按钮批准工具操作或回答问题。", style = MaterialTheme.typography.bodySmall)
+            listOf("/projects" to "项目", "/chats" to "聊天", "/new" to "新建聊天", "/model" to "模型",
+                "/mode plan" to "规划", "/mode act" to "执行", "/status" to "状态", "/stop" to "停止任务",
+                "/retry" to "重试 / 恢复", "/pause" to "暂停 Telegram").forEach { (command, title) ->
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     Text(command, Modifier.weight(1f), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.primary)
                     Text(title, Modifier.weight(1f), style = MaterialTheme.typography.bodyMedium)
                 }
             }
-            Text("Keep your phone online; the notification has Pause and Stop controls.", style = MaterialTheme.typography.bodySmall)
+            Text("请保持手机联网；通知中提供暂停和停止按钮。", style = MaterialTheme.typography.bodySmall)
         }
-    }, confirmButton = { TextButton(onClick = { helpDialog = false }) { Text("Done") } })
+    }, confirmButton = { TextButton(onClick = { helpDialog = false }) { Text("完成") } })
 }
 
 @Composable private fun TelegramPanel(content: @Composable ColumnScope.() -> Unit) = SettingsPanel(Modifier.fillMaxWidth()) {

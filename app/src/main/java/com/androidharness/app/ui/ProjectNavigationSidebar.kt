@@ -121,20 +121,20 @@ internal fun ProjectNavigationSidebar(
     @Composable fun Footer() {
         Column(Modifier.fillMaxWidth().onSizeChanged { footerHeight = with(density) { it.height.toDp() } }
             .padding(horizontal = 10.dp, vertical = 8.dp)) {
-            SidebarNavRow("Tools", Icons.Outlined.Widgets, expanded = toolsOpen, onClick = { toolsOpen = !toolsOpen })
+            SidebarNavRow("工具", Icons.Outlined.Widgets, expanded = toolsOpen, onClick = { toolsOpen = !toolsOpen })
             if (toolsOpen) Column(Modifier.padding(start = 16.dp)) {
-                SidebarNavRow("Terminal", Icons.Outlined.Terminal, currentRoute?.startsWith("terminal") == true, onClick = onTerminal)
-                SidebarNavRow("Build & test", Icons.Outlined.Build, currentRoute?.startsWith("build-test") == true, onClick = onBuild)
-                SidebarNavRow("Scheduled tasks", Icons.Outlined.Schedule, currentRoute == "automation", onClick = onAutomation)
+                SidebarNavRow("终端", Icons.Outlined.Terminal, currentRoute?.startsWith("terminal") == true, onClick = onTerminal)
+                SidebarNavRow("构建与测试", Icons.Outlined.Build, currentRoute?.startsWith("build-test") == true, onClick = onBuild)
+                SidebarNavRow("定时任务", Icons.Outlined.Schedule, currentRoute == "automation", onClick = onAutomation)
                 SidebarNavRow(workspaceLabel, Icons.Outlined.FolderOpen, subtitle = workspaceSummary, onClick = onWorkspaces)
                 changesSummary?.let { SidebarNavRow(it, Icons.Outlined.Difference, onClick = onChanges) }
             }
-            SidebarNavRow("Providers", Icons.Outlined.Hub, currentRoute == "providers", onClick = onProviders)
-            SidebarNavRow("Settings", Icons.Outlined.Settings, currentRoute == "settings", onClick = onSettings)
+            SidebarNavRow("服务商", Icons.Outlined.Hub, currentRoute == "providers", onClick = onProviders)
+            SidebarNavRow("设置", Icons.Outlined.Settings, currentRoute == "settings", onClick = onSettings)
         }
     }
     // The drawer's opening focus request should land here, not in chat search.
-    Surface(color = scheme.surface, modifier = Modifier.fillMaxSize().focusable().semantics { contentDescription = "Project and chat sidebar" }) {
+    Surface(color = scheme.surface, modifier = Modifier.fillMaxSize().focusable().semantics { contentDescription = "项目与聊天侧边栏" }) {
         BoxWithConstraints(Modifier.fillMaxSize()) {
             val short = maxHeight < 440.dp
             val narrow = maxWidth < 280.dp
@@ -142,21 +142,21 @@ internal fun ProjectNavigationSidebar(
                 Column {
                     Row(Modifier.fillMaxWidth().heightIn(min = 56.dp).padding(start = 18.dp, end = 8.dp),
                         verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(9.dp)) {
-                        HarnessMark(26.dp, Modifier.semantics { contentDescription = "AndroidHarness icon" })
-                        Text("AndroidHarness", Modifier.weight(1f), style = MaterialTheme.typography.titleSmall,
+                        HarnessMark(26.dp, Modifier.semantics { contentDescription = "AndroidHarness 图标" })
+                        Text("AndroidHarness 中文版", Modifier.weight(1f), style = MaterialTheme.typography.titleSmall,
                             fontWeight = FontWeight.Medium, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                        IconButton(onClick = onCollapse) { Icon(Icons.AutoMirrored.Outlined.MenuOpen, "Collapse sidebar", Modifier.size(19.dp)) }
+                        IconButton(onClick = onCollapse) { Icon(Icons.AutoMirrored.Outlined.MenuOpen, "收起侧边栏", Modifier.size(19.dp)) }
                     }
                     Button(onClick = onNewChat, enabled = projectCreationEnabled, shape = RoundedCornerShape(11.dp),
                         modifier = Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 4.dp).heightIn(min = 44.dp)) {
                         Icon(Icons.Outlined.EditNote, null, Modifier.size(19.dp)); Spacer(Modifier.width(8.dp))
-                        Text("New chat", style = MaterialTheme.typography.labelLarge)
+                        Text("新聊天", style = MaterialTheme.typography.labelLarge)
                     }
                     BasicTextField(query, onQueryChange, singleLine = true, textStyle = MaterialTheme.typography.bodyMedium.copy(color = scheme.onSurface),
                         cursorBrush = SolidColor(scheme.primary), keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
                         keyboardActions = KeyboardActions(onSearch = { keyboard?.hide() }),
                         modifier = Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 6.dp)
-                            .semantics { contentDescription = "Search chats and messages" },
+                            .semantics { contentDescription = "搜索聊天和消息" },
                         decorationBox = { field ->
                             Row(Modifier.fillMaxWidth().heightIn(min = 48.dp).background(scheme.surfaceContainerHigh, RoundedCornerShape(10.dp))
                                 .padding(start = 12.dp, end = if (query.isBlank()) 12.dp else 0.dp, top = 4.dp, bottom = 4.dp),
@@ -164,19 +164,19 @@ internal fun ProjectNavigationSidebar(
                                 Icon(Icons.Outlined.Search, null, Modifier.size(18.dp), tint = scheme.onSurfaceVariant)
                                 Spacer(Modifier.width(8.dp))
                                 Box(Modifier.weight(1f)) {
-                                    if (query.isEmpty()) Text(if (narrow) "Search chats" else "Search chats and messages",
+                                    if (query.isEmpty()) Text(if (narrow) "搜索聊天" else "搜索聊天和消息",
                                         style = MaterialTheme.typography.bodySmall, color = scheme.onSurfaceVariant, maxLines = 1)
                                     field()
                                 }
                                 if (query.isNotEmpty()) IconButton(onClick = { onQueryChange("") }) {
-                                    Icon(Icons.Outlined.Close, "Clear search", Modifier.size(17.dp))
+                                    Icon(Icons.Outlined.Close, "清除搜索", Modifier.size(17.dp))
                                 }
                             }
                         })
                     Row(Modifier.fillMaxWidth().padding(start = 14.dp, end = 8.dp, top = 2.dp, bottom = 4.dp),
                         verticalAlignment = Alignment.CenterVertically) {
                         Row(Modifier.weight(1f).background(scheme.surfaceContainer, RoundedCornerShape(12.dp)).padding(3.dp)) {
-                            listOf(false to "Chats", true to "Projects").forEach { (projectTab, label) ->
+                            listOf(false to "聊天", true to "项目").forEach { (projectTab, label) ->
                                 val selectedTab = projectsView == projectTab
                                 val tabColor by animateColorAsState(
                                     if (selectedTab) scheme.secondaryContainer else scheme.surfaceContainer,
@@ -198,14 +198,14 @@ internal fun ProjectNavigationSidebar(
                         }
                         IconButton(onClick = { onQueryChange(""); showArchived = !showArchived }) {
                             Icon(if (showArchived) Icons.AutoMirrored.Outlined.ArrowBack else Icons.Outlined.Archive,
-                                if (showArchived) "Back to active ${if (projectsView) "projects" else "chats"}" else "Show archived ${if (projectsView) "projects" else "chats"}",
+                                if (showArchived) "返回未归档${if (projectsView) "项目" else "聊天"}" else "显示已归档${if (projectsView) "项目" else "聊天"}",
                                 Modifier.size(19.dp), tint = if (showArchived) scheme.primary else scheme.onSurfaceVariant)
                         }
                     }
                     if (query.isNotBlank()) TextButton(onClick = onFuzzyChange,
-                        modifier = Modifier.padding(horizontal = 14.dp).semantics { stateDescription = if (fuzzy) "Contains text" else "Match words" }) {
+                        modifier = Modifier.padding(horizontal = 14.dp).semantics { stateDescription = if (fuzzy) "包含文字" else "匹配词语" }) {
                         Icon(Icons.Outlined.Tune, null, Modifier.size(15.dp)); Spacer(Modifier.width(6.dp))
-                        Text(if (fuzzy) "Contains text" else "Match words", style = MaterialTheme.typography.labelSmall)
+                        Text(if (fuzzy) "包含文字" else "匹配词语", style = MaterialTheme.typography.labelSmall)
                     }
                 }
             }
@@ -215,25 +215,25 @@ internal fun ProjectNavigationSidebar(
                     if (short) item(key = "sidebar-header") { Header() }
                     if (query.isNotBlank()) {
                         if (matching.isNotEmpty()) {
-                            item { SidebarSectionHeader("Chats", true, null) }
+                            item { SidebarSectionHeader("聊天", true, null) }
                             items(matching, key = { "search:${it.id}" }) { Chat(it, showProject = true) }
                         }
                         if (messageHits.isNotEmpty()) {
-                            item { SidebarSectionHeader("Messages", true, null) }
+                            item { SidebarSectionHeader("消息", true, null) }
                             items(messageHits, key = { "message:${it.messageId}" }) { hit ->
                                 MessageHitRow(hit, query, fuzzy) { keyboard?.hide(); onMessage(hit) }
                             }
                         }
                         if (matching.isEmpty() && messageHits.isEmpty()) item {
-                            Text("No chats found. Try another title or message.", Modifier.padding(20.dp),
+                            Text("未找到聊天，请尝试其他标题或消息。", Modifier.padding(20.dp),
                                 style = MaterialTheme.typography.bodySmall, color = scheme.onSurfaceVariant)
                         }
                     } else if (projectsView) {
                         item {
                             Row(Modifier.fillMaxWidth().padding(start = 20.dp, end = 8.dp), verticalAlignment = Alignment.CenterVertically) {
-                                Text(if (showArchived) "Archived projects" else "Your projects", Modifier.weight(1f),
+                                Text(if (showArchived) "已归档项目" else "你的项目", Modifier.weight(1f),
                                     style = MaterialTheme.typography.labelSmall, color = scheme.onSurfaceVariant)
-                                TextButton(onClick = onProjects) { Text("Manage projects", style = MaterialTheme.typography.labelSmall) }
+                                TextButton(onClick = onProjects) { Text("管理项目", style = MaterialTheme.typography.labelSmall) }
                             }
                         }
                         val visibleProjects = projects.filter { (it.id in projectArchives) == showArchived }
@@ -241,9 +241,9 @@ internal fun ProjectNavigationSidebar(
                         visibleProjects.forEachIndexed { index, project ->
                             val chats = sessions.filter { it.projectId == project.id && it.id !in archived }
                                 .sortedBy { if (it.id in pinned) 0 else 1 }
-                            if (!showArchived && project.id in projectPins && index == 0) item { SidebarSectionHeader("Pinned", true, null) }
+                            if (!showArchived && project.id in projectPins && index == 0) item { SidebarSectionHeader("已置顶", true, null) }
                             if (!showArchived && project.id !in projectPins && index > 0 && visibleProjects[index - 1].id in projectPins)
-                                item { SidebarSectionHeader("All projects", true, null) }
+                                item { SidebarSectionHeader("所有项目", true, null) }
                             item(key = "project:${project.id}") {
                                 SidebarProjectRow(project, project.id in expanded, project.id in projectPins, project.id in projectArchives,
                                     project.id == currentProject, chats.size,
@@ -254,33 +254,33 @@ internal fun ProjectNavigationSidebar(
                             if (project.id in expanded) {
                                 items(chats, key = { "project-chat:${it.id}" }) { Chat(it, indented = true) }
                                 if (chats.isEmpty()) item(key = "empty:${project.id}") {
-                                    Text("No chats yet", Modifier.padding(start = 54.dp, top = 4.dp, bottom = 12.dp),
+                                    Text("暂无聊天", Modifier.padding(start = 54.dp, top = 4.dp, bottom = 12.dp),
                                         style = MaterialTheme.typography.labelSmall, color = scheme.onSurfaceVariant)
                                 }
                             }
                         }
                         if (visibleProjects.isEmpty()) item {
-                            Text(if (showArchived) "No archived projects" else "Add a project to organize its chats and workspace.",
+                            Text(if (showArchived) "暂无已归档项目" else "添加项目，整理其中的聊天和工作区。",
                                 Modifier.padding(20.dp), style = MaterialTheme.typography.bodySmall, color = scheme.onSurfaceVariant)
                         }
                     } else if (showArchived) {
-                        item { SidebarSectionHeader("Archived chats", true, null) }
+                        item { SidebarSectionHeader("已归档聊天", true, null) }
                         items(grouped.archived, key = { "archive:${it.id}" }) { Chat(it, showProject = true) }
                         if (grouped.archived.isEmpty()) item {
-                            Text("No archived chats", Modifier.padding(20.dp), style = MaterialTheme.typography.bodySmall, color = scheme.onSurfaceVariant)
+                            Text("暂无已归档聊天", Modifier.padding(20.dp), style = MaterialTheme.typography.bodySmall, color = scheme.onSurfaceVariant)
                         }
                     } else {
                         if (grouped.pinned.isNotEmpty()) {
-                            item { SidebarSectionHeader("Pinned", true, null) }
+                            item { SidebarSectionHeader("已置顶", true, null) }
                             items(grouped.pinned, key = { "pinned:${it.id}" }) { Chat(it, showProject = true) }
                         }
                         val recent = sessions.filter { it.id !in pinned && it.id !in archived }
                         if (recent.isNotEmpty()) {
-                            item { SidebarSectionHeader("Recent chats", true, null) }
+                            item { SidebarSectionHeader("最近聊天", true, null) }
                             items(recent, key = { "chat:${it.id}" }) { Chat(it, showProject = true) }
                         }
                         if (recent.isEmpty() && grouped.pinned.isEmpty()) item {
-                            Text("Your conversations will appear here.", Modifier.padding(20.dp),
+                            Text("你的聊天会显示在这里。", Modifier.padding(20.dp),
                                 style = MaterialTheme.typography.bodySmall, color = scheme.onSurfaceVariant)
                         }
                     }
@@ -305,7 +305,7 @@ private fun SidebarProjectRow(project: ProjectEntity, expanded: Boolean, pinned:
         verticalAlignment = Alignment.CenterVertically) {
         Row(Modifier.weight(1f).clip(RoundedCornerShape(10.dp)).secondaryClick { menu = true }
             .combinedClickable(onClick = onExpand, onLongClick = { menu = true })
-            .semantics { contentDescription = "${if (expanded) "Collapse" else "Expand"} ${project.name}"; stateDescription = if (expanded) "Expanded" else "Collapsed" }
+            .semantics { contentDescription = "${if (expanded) "收起" else "展开"} ${project.name}"; stateDescription = if (expanded) "已展开" else "已收起" }
             .heightIn(min = 48.dp).padding(start = 8.dp, end = 4.dp),
             verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(7.dp)) {
             Icon(if (expanded) Icons.Outlined.KeyboardArrowDown else Icons.AutoMirrored.Outlined.KeyboardArrowRight,
@@ -319,20 +319,20 @@ private fun SidebarProjectRow(project: ProjectEntity, expanded: Boolean, pinned:
             Text(count.toString(), style = MaterialTheme.typography.labelSmall, color = scheme.onSurfaceVariant)
         }
         Box {
-            IconButton(onClick = { menu = true }) { Icon(Icons.Outlined.MoreHoriz, "Actions for project ${project.name}", Modifier.size(18.dp), tint = scheme.onSurfaceVariant) }
+            IconButton(onClick = { menu = true }) { Icon(Icons.Outlined.MoreHoriz, "项目 ${project.name} 的操作", Modifier.size(18.dp), tint = scheme.onSurfaceVariant) }
             DropdownMenu(menu, { menu = false }) {
-                if (!archived) DropdownMenuItem(text = { Text("New chat") }, leadingIcon = { Icon(Icons.Outlined.Add, null) },
-                    enabled = creationEnabled, modifier = Modifier.semantics { contentDescription = "New chat in ${project.name}" },
+                if (!archived) DropdownMenuItem(text = { Text("新聊天") }, leadingIcon = { Icon(Icons.Outlined.Add, null) },
+                    enabled = creationEnabled, modifier = Modifier.semantics { contentDescription = "在 ${project.name} 中新建聊天" },
                     onClick = { menu = false; onNewChat() })
-                listOf(Triple(SidebarProjectAction.OPEN, "Open project", Icons.Outlined.FolderOpen),
-                    Triple(SidebarProjectAction.RENAME, "Rename project", Icons.Outlined.Edit),
-                    Triple(SidebarProjectAction.PIN, if (pinned) "Unpin project" else "Pin project", Icons.Outlined.PushPin),
-                    Triple(SidebarProjectAction.ARCHIVE, if (archived) "Restore project" else "Archive project", Icons.Outlined.Archive)).forEach { (action, label, icon) ->
+                listOf(Triple(SidebarProjectAction.OPEN, "打开项目", Icons.Outlined.FolderOpen),
+                    Triple(SidebarProjectAction.RENAME, "重命名项目", Icons.Outlined.Edit),
+                    Triple(SidebarProjectAction.PIN, if (pinned) "取消置顶项目" else "置顶项目", Icons.Outlined.PushPin),
+                    Triple(SidebarProjectAction.ARCHIVE, if (archived) "恢复项目" else "归档项目", Icons.Outlined.Archive)).forEach { (action, label, icon) ->
                     DropdownMenuItem(text = { Text(label) }, leadingIcon = { Icon(icon, null) }, onClick = { menu = false; onAction(action) })
                 }
                 if (project.kind != com.androidharness.app.workspace.WorkspaceManager.KIND_APP) {
                     HorizontalDivider()
-                    DropdownMenuItem(text = { Text("Delete project", color = scheme.error) },
+                    DropdownMenuItem(text = { Text("删除项目", color = scheme.error) },
                         leadingIcon = { Icon(Icons.Outlined.DeleteOutline, null, tint = scheme.error) },
                         onClick = { menu = false; onAction(SidebarProjectAction.DELETE) })
                 }
@@ -346,7 +346,7 @@ private fun SidebarSectionHeader(label: String, expanded: Boolean, onClick: (() 
     val contents: @Composable () -> Unit = {
         Row(Modifier.fillMaxWidth().heightIn(min = if (onClick == null) 32.dp else 44.dp).padding(start = 20.dp, end = 18.dp),
             verticalAlignment = Alignment.CenterVertically) {
-            if (label == "Pinned") {
+            if (label == "已置顶") {
                 Icon(Icons.Outlined.PushPin, null, Modifier.size(13.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
                 Spacer(Modifier.width(6.dp))
             }
@@ -356,7 +356,7 @@ private fun SidebarSectionHeader(label: String, expanded: Boolean, onClick: (() 
         }
     }
     if (onClick == null) contents() else Surface(onClick = onClick, color = MaterialTheme.colorScheme.surface,
-        modifier = Modifier.semantics { contentDescription = "$label chats"; stateDescription = if (expanded) "Expanded" else "Collapsed" }) { contents() }
+        modifier = Modifier.semantics { contentDescription = "$label 聊天"; stateDescription = if (expanded) "已展开" else "已收起" }) { contents() }
 }
 
 @Composable
@@ -365,7 +365,7 @@ private fun SidebarNavRow(label: String, icon: ImageVector, selected: Boolean = 
     val scheme = MaterialTheme.colorScheme
     Surface(onClick = onClick, color = if (selected) scheme.surfaceContainerHigh else scheme.surface,
         shape = RoundedCornerShape(9.dp), modifier = Modifier.fillMaxWidth().semantics {
-            this.selected = selected; expanded?.let { stateDescription = if (it) "Expanded" else "Collapsed" }
+            this.selected = selected; expanded?.let { stateDescription = if (it) "已展开" else "已收起" }
         }) {
         Row(Modifier.heightIn(min = 44.dp).padding(horizontal = 10.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -399,8 +399,8 @@ private fun SidebarChatRow(chat: SessionEntity, selected: Boolean, pinned: Boole
                     if (event.key == Key.Menu || event.key == Key.F10 && event.isShiftPressed) {
                         if (event.type == KeyEventType.KeyUp) onActions(); true
                     } else false
-                }.combinedClickable(onClick = onClick, onLongClick = onActions, onLongClickLabel = "Chat actions")
-                .semantics { this.selected = selected; contentDescription = "Open ${chat.title}" }
+                }.combinedClickable(onClick = onClick, onLongClick = onActions, onLongClickLabel = "聊天操作")
+                .semantics { this.selected = selected; contentDescription = "打开 ${chat.title}" }
                 .heightIn(min = 56.dp).padding(start = 10.dp, end = 2.dp, top = 8.dp, bottom = 8.dp), verticalAlignment = Alignment.CenterVertically) {
                 Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
                     Text(chat.title, style = MaterialTheme.typography.bodyMedium, fontWeight = if (selected) FontWeight.Medium else FontWeight.Normal,
@@ -409,25 +409,25 @@ private fun SidebarChatRow(chat: SessionEntity, selected: Boolean, pinned: Boole
                         val color = when (activity) { SidebarActivity.WORKING -> statusColors.success; SidebarActivity.NEEDS_YOU -> statusColors.warning; null -> scheme.onSurfaceVariant }
                         if (activity == SidebarActivity.WORKING) Box(Modifier.size(6.dp).background(color, CircleShape))
                         if (activity == SidebarActivity.NEEDS_YOU) Icon(Icons.AutoMirrored.Outlined.HelpOutline, null, Modifier.size(13.dp), tint = color)
-                        Text(listOfNotNull(when (activity) { SidebarActivity.WORKING -> "Working"; SidebarActivity.NEEDS_YOU -> "Needs you"; null -> projectName },
-                            if (archived) "Archived" else null,
+                        Text(listOfNotNull(when (activity) { SidebarActivity.WORKING -> "正在处理"; SidebarActivity.NEEDS_YOU -> "需要你处理"; null -> projectName },
+                            if (archived) "已归档" else null,
                             if (activity == null) formatRelativeTime(chat.updatedAt) else null).joinToString(" · "),
                             style = MaterialTheme.typography.labelSmall, color = color, maxLines = 2, overflow = TextOverflow.Ellipsis)
                     }
                 }
-                if (pinned) Icon(Icons.Outlined.PushPin, "Pinned", Modifier.size(13.dp), tint = scheme.onSurfaceVariant)
-                if (selected) Icon(Icons.Outlined.Check, "Current chat", Modifier.size(15.dp), tint = scheme.primary)
+                if (pinned) Icon(Icons.Outlined.PushPin, "已置顶", Modifier.size(13.dp), tint = scheme.onSurfaceVariant)
+                if (selected) Icon(Icons.Outlined.Check, "当前聊天", Modifier.size(15.dp), tint = scheme.primary)
             }
             Box {
                 IconButton(onClick = { menu = true }, modifier = Modifier.pointerHoverIcon(PointerIcon.Hand)) {
-                    Icon(Icons.Outlined.MoreHoriz, "Actions for ${chat.title}", Modifier.size(18.dp), tint = scheme.onSurfaceVariant)
+                    Icon(Icons.Outlined.MoreHoriz, "${chat.title} 的操作", Modifier.size(18.dp), tint = scheme.onSurfaceVariant)
                 }
                 DropdownMenu(menu, { menu = false }) {
-                    listOf(Triple(SidebarChatAction.RENAME, "Rename", Icons.Outlined.Edit),
-                        Triple(SidebarChatAction.PIN, if (pinned) "Unpin" else "Pin", Icons.Outlined.PushPin),
-                        Triple(SidebarChatAction.DETAILS, "Chat details", Icons.Outlined.Info),
-                        Triple(SidebarChatAction.ARCHIVE, if (archived) "Unarchive" else "Archive", Icons.Outlined.Archive),
-                        Triple(SidebarChatAction.DELETE, "Delete", Icons.Outlined.DeleteOutline)).forEach { (action, label, icon) ->
+                    listOf(Triple(SidebarChatAction.RENAME, "重命名", Icons.Outlined.Edit),
+                        Triple(SidebarChatAction.PIN, if (pinned) "取消置顶" else "置顶", Icons.Outlined.PushPin),
+                        Triple(SidebarChatAction.DETAILS, "聊天详情", Icons.Outlined.Info),
+                        Triple(SidebarChatAction.ARCHIVE, if (archived) "取消归档" else "归档", Icons.Outlined.Archive),
+                        Triple(SidebarChatAction.DELETE, "删除", Icons.Outlined.DeleteOutline)).forEach { (action, label, icon) ->
                         DropdownMenuItem(text = { Text(label, color = if (action == SidebarChatAction.DELETE) scheme.error else scheme.onSurface) },
                             leadingIcon = { Icon(icon, null, tint = if (action == SidebarChatAction.DELETE) scheme.error else scheme.onSurfaceVariant) },
                             onClick = { menu = false; onAction(action) })

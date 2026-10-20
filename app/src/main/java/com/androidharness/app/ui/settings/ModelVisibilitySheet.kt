@@ -62,43 +62,43 @@ fun ModelVisibilitySheet(
             LazyColumn(Modifier.weight(1f).padding(horizontal = 16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 item {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text("Manage models", style = MaterialTheme.typography.titleLarge, modifier = Modifier.weight(1f))
-                        IconButton(onClick = onDismiss) { Icon(Icons.Filled.Close, "Close model management") }
+                        Text("管理模型", style = MaterialTheme.typography.titleLarge, modifier = Modifier.weight(1f))
+                        IconButton(onClick = onDismiss) { Icon(Icons.Filled.Close, "关闭模型管理") }
                     }
-                    Text("Choose what appears in your chat picker.", style = MaterialTheme.typography.bodySmall,
+                    Text("选择聊天模型选择器中显示的模型。", style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant)
                     LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         items(providers, key = { it.id }) { p ->
                             FilterChip(selected = p.id == provider?.id, onClick = { providerId = p.id; query = "" }, label = { Text(p.name) })
                         }
                     }
-                    OutlinedTextField(query, { query = it }, singleLine = true, label = { Text("Search this provider") },
+                    OutlinedTextField(query, { query = it }, singleLine = true, label = { Text("搜索此提供商") },
                         leadingIcon = { Icon(Icons.Outlined.Search, null) }, modifier = Modifier.fillMaxWidth())
                     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                        Text("${available.count { it.id in selected }}/${available.size} selected", style = MaterialTheme.typography.labelMedium,
+                        Text("已选择 ${available.count { it.id in selected }}/${available.size}", style = MaterialTheme.typography.labelMedium,
                             modifier = Modifier.weight(1f))
                         val checked = results.isNotEmpty() && results.all { it.id in selected }
                         TextButton(enabled = results.isNotEmpty(), onClick = {
                             val ids = results.map { it.id }.toSet()
                             update(if (checked) selected - ids else selected + ids)
-                        }) { Text("${if (checked) "Clear" else "Select"} results (${results.size})") }
+                        }) { Text("${if (checked) "清空" else "选择"}搜索结果（${results.size}）") }
                     }
                     if (provider != null) TextButton(enabled = !refreshing, onClick = {
                         scope.launch {
                             refreshing = true
                             try { error = onRefreshCatalog(provider.id) }
                             catch (e: kotlinx.coroutines.CancellationException) { throw e }
-                            catch (_: Exception) { error = "Could not refresh models. Try again." }
+                            catch (_: Exception) { error = "无法刷新模型，请重试。" }
                             finally { refreshing = false }
                         }
-                    }) { Text(if (refreshing) "Refreshing…" else "Refresh models") }
+                    }) { Text(if (refreshing) "正在刷新…" else "刷新模型") }
                     error?.let { Text(it, color = MaterialTheme.colorScheme.error) }
                 }
                 items(results, key = { "${provider?.id}:${it.id}" }) { entry ->
                     Row(Modifier.fillMaxWidth().heightIn(min = 64.dp)
                         .toggleable(entry.id in selected, role = Role.Checkbox, onValueChange = { checked ->
                             update(if (checked) selected + entry.id else selected - entry.id)
-                        }).semantics { contentDescription = "Show ${entry.displayName ?: entry.id} in quick selection" }
+                        }).semantics { contentDescription = "在快捷选择中显示 ${entry.displayName ?: entry.id}" }
                         .padding(horizontal = 8.dp, vertical = 6.dp), verticalAlignment = Alignment.CenterVertically) {
                         Checkbox(entry.id in selected, onCheckedChange = null)
                         Spacer(Modifier.width(12.dp))
@@ -111,10 +111,10 @@ fun ModelVisibilitySheet(
                         ModelReasoningIcon(entry, provider?.type)
                     }
                 }
-                if (results.isEmpty()) item { Text("No matching models", modifier = Modifier.padding(vertical = 24.dp)) }
+                if (results.isEmpty()) item { Text("没有匹配的模型", modifier = Modifier.padding(vertical = 24.dp)) }
             }
             Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                Text("Existing chats keep their model. New catalog entries stay hidden after you customize a list.",
+                Text("现有聊天保留所选模型。自定义列表后，目录中的新增模型默认隐藏。",
                     style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 Button(onClick = {
                     provider?.takeIf { it.id !in draftIds }?.let { visibility.save(it.id, selected) }
@@ -122,7 +122,7 @@ fun ModelVisibilitySheet(
                         if (providers.any { it.id == id }) visibility.save(id, draftValues[i].toSet())
                     }
                     onDismiss()
-                }, modifier = Modifier.fillMaxWidth()) { Text("Save selection") }
+                }, modifier = Modifier.fillMaxWidth()) { Text("保存选择") }
             }
         }
     }

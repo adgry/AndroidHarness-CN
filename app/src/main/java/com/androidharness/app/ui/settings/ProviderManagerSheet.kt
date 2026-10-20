@@ -56,7 +56,7 @@ fun ProviderManagerSheet(
         headers: List<com.androidharness.app.llm.ProviderHeader>,
     ) -> Unit,
     catalogs: Map<String, List<ModelEntry>> = emptyMap(),
-    onRefreshCatalog: suspend (String) -> String? = { "Open model selection to refresh this provider." },
+    onRefreshCatalog: suspend (String) -> String? = { "打开模型选择以刷新此提供商。" },
     addProviderInitially: Boolean = false,
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
@@ -90,20 +90,20 @@ fun ProviderManagerSheet(
                     ) {
                         item {
                             Row(verticalAlignment = Alignment.CenterVertically) {
-                                Text("Providers", style = MaterialTheme.typography.titleMediumEmphasized, modifier = Modifier.weight(1f))
+                                Text("提供商", style = MaterialTheme.typography.titleMediumEmphasized, modifier = Modifier.weight(1f))
                                 TextButton(enabled = !selection.busy, onClick = {
                                     if (selection.selecting) selection.done() else selection.selecting = true
-                                }) { Text(if (selection.selecting) "Done" else "Select providers") }
-                                IconButton(onClick = onDismiss) { Icon(Icons.Filled.Close, contentDescription = "Close") }
+                                }) { Text(if (selection.selecting) "完成" else "选择提供商") }
+                                IconButton(onClick = onDismiss) { Icon(Icons.Filled.Close, contentDescription = "关闭") }
                             }
-                            Text("Disabled providers stay searchable. Existing chats keep their model.",
+                            Text("已停用的提供商仍可搜索。现有聊天保留所选模型。",
                                 style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                             FilledTonalButton(onClick = { editing = null; showForm = true }, modifier = Modifier.fillMaxWidth()) {
-                                Text("Add provider")
+                                Text("添加提供商")
                             }
-                            OutlinedTextField(value = query, onValueChange = { query = it }, label = { Text("Search providers") },
+                            OutlinedTextField(value = query, onValueChange = { query = it }, label = { Text("搜索提供商") },
                                 singleLine = true, modifier = Modifier.fillMaxWidth())
-                            FilterChip(selected = showDisabled, onClick = { showDisabled = !showDisabled }, label = { Text("Show disabled") })
+                            FilterChip(selected = showDisabled, onClick = { showDisabled = !showDisabled }, label = { Text("显示已停用") })
                         }
                         itemsIndexed(visible, key = { _, p -> p.id }) { index, provider ->
                             ProviderListCard(provider, provider.id == activeProviderId, index > 0, index < visible.lastIndex,
@@ -127,7 +127,7 @@ fun ProviderManagerSheet(
                                 onLongPress = { if (!selection.busy) selection.start(provider.id) })
                         }
                         if (visible.isEmpty()) item {
-                            Text("No matching providers. Try searching or show disabled providers.",
+                            Text("没有匹配的提供商。请换个关键词，或显示已停用的提供商。",
                                 modifier = Modifier.padding(vertical = 20.dp))
                         }
                         item {
@@ -140,10 +140,10 @@ fun ProviderManagerSheet(
                                         catalogBusy = true
                                         try {
                                             catalogStatus = ModelsDev.refresh(context, force = true)
-                                                ?: "Catalog updated"
+                                                ?: "目录已更新"
                                         } finally { catalogBusy = false }
                                     }
-                                }, enabled = !catalogBusy) { Text(if (catalogBusy) "Updating catalog…" else "Update model catalog") }
+                                }, enabled = !catalogBusy) { Text(if (catalogBusy) "正在更新目录…" else "更新模型目录") }
                                 catalogStatus?.let { Text(it, style = MaterialTheme.typography.labelSmall) }
                             }
                         }

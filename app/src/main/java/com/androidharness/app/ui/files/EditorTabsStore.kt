@@ -57,7 +57,7 @@ internal class EditorTabsStore(private val root: File, private val scope: Corout
             val snapshot = withContext(Dispatchers.IO) {
                 val file = File(root, "$key.json")
                 if (!file.exists()) EditorTabsSnapshot() else {
-                    check(file.length() < 256_000) { "Saved editor tabs could not be read." }
+                    check(file.length() < 256_000) { "无法读取已保存的编辑器标签页。" }
                     json.decodeFromString<EditorTabsSnapshot>(file.readText())
                 }
             }

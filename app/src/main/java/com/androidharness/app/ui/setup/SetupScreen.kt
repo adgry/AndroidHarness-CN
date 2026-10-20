@@ -127,16 +127,16 @@ fun SetupScreen(
             ) {
                 HarnessMark(size = 44.dp)
                 Spacer(Modifier.size(2.dp))
-                Text("Welcome to AndroidHarness", style = MaterialTheme.typography.headlineSmall)
+                Text("欢迎使用 AndroidHarness", style = MaterialTheme.typography.headlineSmall)
                 Text(
-                    "Grant storage access to start coding. Notifications and other tools are optional.",
+                    "授予存储访问权限即可开始编写代码。通知和其他工具均为可选。",
                     style = MaterialTheme.typography.bodyMedium,
                     color = scheme.onSurfaceVariant,
                 )
 
                 Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                     Text(
-                        "$completed of 5 complete",
+                        "已完成 $completed / 5 项",
                         style = MaterialTheme.typography.labelMediumEmphasized,
                         color = scheme.onSurfaceVariant,
                     )
@@ -150,23 +150,23 @@ fun SetupScreen(
                 // -- 1. Storage access (required) --------------------------
                 SetupStep(
                     icon = { Icon(Icons.Outlined.SdStorage, null, Modifier.size(16.dp), scheme.onSurfaceVariant) },
-                    title = "Storage access",
-                    status = if (storageGranted) "Device storage access granted"
-                             else "Required: allow access to device files and folders",
+                    title = "存储访问",
+                    status = if (storageGranted) "已授予设备存储访问权限"
+                             else "必需：允许访问设备文件和文件夹",
                     complete = storageGranted,
                     optional = false,
                 ) {
                     if (!storageGranted) {
-                        Button(onClick = storageAccess.request) { Text("Grant") }
+                        Button(onClick = storageAccess.request) { Text("授权") }
                     }
                 }
 
                 // -- 2. Notifications (optional) ---------------------------
                 SetupStep(
                     icon = { Icon(Icons.Outlined.Notifications, null, Modifier.size(16.dp), scheme.onSurfaceVariant) },
-                    title = "Notifications",
-                    status = if (notifGranted) "Runs report progress and approvals" 
-                             else "Progress and approvals outside the app",
+                    title = "通知",
+                    status = if (notifGranted) "运行进度和审批请求将通过通知提醒"
+                             else "在应用外接收进度和审批请求",
                     complete = notifGranted,
                     optional = true,
                 ) {
@@ -175,7 +175,7 @@ fun SetupScreen(
                             if (android.os.Build.VERSION.SDK_INT >= 33) {
                                 notifLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
                             } else notifGranted = true
-                        }) { Text("Allow") }
+                        }) { Text("允许") }
                     }
                 }
 
@@ -184,22 +184,22 @@ fun SetupScreen(
                     icon = { Icon(Icons.Outlined.Shield, null, Modifier.size(16.dp), scheme.onSurfaceVariant) },
                     title = "Shizuku",
                     status = when (shizukuState) {
-                        ShizukuState.NOT_INSTALLED -> "Optional: full shell toolchain & background servers"
-                        ShizukuState.NOT_RUNNING -> "Open the Shizuku app and start it"
-                        ShizukuState.RUNNING_NO_PERMISSION -> "Grant access to unlock ADB-level commands"
+                        ShizukuState.NOT_INSTALLED -> "可选：完整 shell 工具链和后台服务器"
+                        ShizukuState.NOT_RUNNING -> "打开 Shizuku 应用并启动服务"
+                        ShizukuState.RUNNING_NO_PERMISSION -> "授予权限以使用 ADB 级别的命令"
                         ShizukuState.GRANTED ->
                             if (serviceState.isReady)
-                                "Connected: privileged shell ready"
-                            else "Granted: waiting for user service…"
+                                "已连接：特权 shell 就绪"
+                            else "已授权：正在等待用户服务…"
                     },
                     complete = shizukuDone,
                     optional = true,
                 ) {
                     when (shizukuState) {
                         ShizukuState.RUNNING_NO_PERMISSION ->
-                            Button(onClick = { container.shizuku.requestPermission() }) { Text("Grant") }
+                            Button(onClick = { container.shizuku.requestPermission() }) { Text("授权") }
                         ShizukuState.NOT_INSTALLED, ShizukuState.NOT_RUNNING ->
-                            OutlinedButton(onClick = { container.shizuku.refresh() }) { Text("Refresh") }
+                            OutlinedButton(onClick = { container.shizuku.refresh() }) { Text("刷新") }
                         ShizukuState.GRANTED -> {}
                     }
                 }
@@ -207,12 +207,12 @@ fun SetupScreen(
                 // -- 4. Linux environment (optional) -----------------------
                 SetupStep(
                     icon = { Icon(Icons.Outlined.Terminal, null, Modifier.size(16.dp), scheme.onSurfaceVariant) },
-                    title = "Linux environment",
+                    title = "Linux 环境",
                     status = when (val s = envState) {
-                        EnvState.Ready -> "Ready: bash, git, python, node and npm for real commands"
+                        EnvState.Ready -> "就绪：可使用 bash、git、python、node 和 npm 运行命令"
                         is EnvState.Downloading, is EnvState.Installing, EnvState.Preparing -> ""
                         is EnvState.Failed -> s.message.take(80)
-                        EnvState.NotInstalled -> "Optional: bash, git, python, pip, node, npm for real commands"
+                        EnvState.NotInstalled -> "可选：安装 bash、git、python、pip、node、npm 以运行命令"
                     },
                     complete = envDone,
                     optional = true,
@@ -223,7 +223,7 @@ fun SetupScreen(
                         EnvState.NotInstalled, is EnvState.Failed ->
                             OutlinedButton(onClick = {
                                 scope.launch { container.linuxEnv.install(container.linuxEnv.fullPackages) }
-                            }) { Text(if (envState is EnvState.Failed) "Retry" else "Install") }
+                            }) { Text(if (envState is EnvState.Failed) "重试" else "安装") }
                         else -> {}
                     }
                 }
@@ -233,9 +233,9 @@ fun SetupScreen(
                     icon = {
                         Icon(Icons.Outlined.BatteryChargingFull, null, Modifier.size(16.dp), scheme.onSurfaceVariant)
                     },
-                    title = "Battery optimization",
-                    status = if (batteryExempt) "Exempted: long runs survive screen-off"
-                             else "Optional: keeps long runs alive on aggressive OEMs",
+                    title = "电池优化",
+                    status = if (batteryExempt) "已豁免：熄屏后长时间任务仍可运行"
+                             else "可选：避免设备厂商的后台限制中断长时间任务",
                     complete = batteryExempt,
                     optional = true,
                 ) {
@@ -243,7 +243,7 @@ fun SetupScreen(
                         OutlinedButton(onClick = {
                             SystemGrants.requestBatteryExemption(context)
                             batteryExempt = SystemGrants.isIgnoringBatteryOptimizations(context)
-                        }) { Text("Fix") }
+                        }) { Text("调整") }
                     }
                 }
             }
@@ -257,12 +257,12 @@ fun SetupScreen(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Text(
-                    if (storageGranted) "Ready to begin" else "Allow storage access to begin",
+                    if (storageGranted) "准备就绪" else "授予存储访问权限后即可开始",
                     style = MaterialTheme.typography.bodySmall,
                     color = if (storageGranted) success else scheme.onSurfaceVariant,
                     modifier = Modifier.weight(1f).padding(end = 12.dp),
                 )
-                Button(onClick = ::finish, enabled = storageGranted) { Text("Start harness") }
+                Button(onClick = ::finish, enabled = storageGranted) { Text("开始使用") }
             }
         }
     }
@@ -303,7 +303,7 @@ private fun SetupStep(
                     Text(title, style = MaterialTheme.typography.titleSmallEmphasized)
                     if (optional) {
                         Text(
-                            "Optional",
+                            "可选",
                             style = MaterialTheme.typography.labelSmall,
                             color = scheme.onSurfaceVariant,
                             maxLines = 1,
@@ -325,7 +325,7 @@ private fun SetupStep(
             if (complete) {
                 Icon(
                     Icons.Filled.CheckCircle,
-                    contentDescription = "Done",
+                    contentDescription = "完成",
                     tint = success,
                     modifier = Modifier.size(18.dp),
                 )

@@ -38,7 +38,7 @@ class ThinkingSpecsTest {
         for (level in ThinkingLevel.entries) {
             val result = ThinkingSpecs.resolve(c, level)
             assertTrue(result.level in result.spec.levels)
-            assertEquals(result.level.label, result.label)
+            assertEquals(result.level.displayLabel, result.label)
         }
         assertEquals("max", ThinkingSpecs.resolve(c, ThinkingLevel.MAX).effort)
         assertEquals("max", ThinkingSpecs.resolve(c, ThinkingLevel.ULTRA).effort)
@@ -54,7 +54,7 @@ class ThinkingSpecsTest {
         val router = config("deepseek/deepseek-v4-flash", url = "https://openrouter.ai/api/v1")
         assertEquals("xhigh", ThinkingSpecs.resolve(router, ThinkingLevel.MAX).effort)
         assertEquals(ThinkingLevel.XHIGH, ThinkingSpecs.resolve(router, ThinkingLevel.MAX).level)
-        assertTrue(ThinkingSpecs.resolve(router, ThinkingLevel.MAX).detail.contains("Using X-High"))
+        assertTrue(ThinkingSpecs.resolve(router, ThinkingLevel.MAX).detail.contains("使用 超高"))
         val kilo = router.copy(baseUrl = "https://api.kilo.ai/api/gateway")
         assertEquals("max", ThinkingSpecs.routerReasoning(kilo, ThinkingLevel.MAX)?.effort)
     }
@@ -83,7 +83,7 @@ class ThinkingSpecsTest {
     @Test fun `unknown and automatic models have no artificial ladder`() {
         for (model in listOf("some-custom-model", "deepseek-r1", "grok-4-fast", "qwen-custom")) {
             val c = config(model, url = "https://custom.example/v1")
-            assertEquals("Thinking", ThinkingSpecs.resolve(c, ThinkingLevel.MAX).label)
+            assertEquals("思考", ThinkingSpecs.resolve(c, ThinkingLevel.MAX).label)
             assertTrue(ThinkingSpecs.forProvider(c).levels.isEmpty())
             assertNull(ThinkingSpecs.resolve(c, ThinkingLevel.MAX).effort)
         }
@@ -94,14 +94,14 @@ class ThinkingSpecsTest {
         ModelsDev.replaceForTesting(mapOf("openrouter" to mapOf("z-ai/glm" to entry(toggle = true))))
         val c = config("z-ai/glm", url = "https://openrouter.ai/api/v1")
         val selected = ThinkingSpecs.resolve(c, ThinkingLevel.MAX)
-        assertEquals("On", selected.label)
+        assertEquals("开启", selected.label)
         assertEquals(listOf(ThinkingLevel.OFF, ThinkingLevel.HIGH), selected.spec.levels)
-        assertEquals("On", selected.optionLabel(ThinkingLevel.HIGH))
+        assertEquals("开启", selected.optionLabel(ThinkingLevel.HIGH))
         assertEquals(true, ThinkingSpecs.routerReasoning(c, ThinkingLevel.MAX)?.enabled)
         assertEquals(false, ThinkingSpecs.routerReasoning(c, ThinkingLevel.OFF)?.enabled)
         assertNull(ThinkingSpecs.routerReasoning(c, ThinkingLevel.MAX)?.effort)
         val local = config("local:model", url = "local://model")
-        assertEquals("On", ThinkingSpecs.resolve(local, ThinkingLevel.ULTRA).label)
+        assertEquals("开启", ThinkingSpecs.resolve(local, ThinkingLevel.ULTRA).label)
     }
 
     @Test fun `nonreasoning metadata disables controls and all parameters`() {
@@ -152,8 +152,8 @@ class ThinkingSpecsTest {
     }
 
     @Test fun `routed aliases do not claim adjustable effort`() {
-        assertEquals("Thinking", ThinkingSpecs.resolve(HarnessProvider.config, ThinkingLevel.MAX).label)
-        assertEquals("Thinking", ThinkingSpecs.resolve(config("kilo-auto/frontier", url = HarnessProvider.KILO_BASE_URL), ThinkingLevel.MAX).label)
+        assertEquals("思考", ThinkingSpecs.resolve(HarnessProvider.config, ThinkingLevel.MAX).label)
+        assertEquals("思考", ThinkingSpecs.resolve(config("kilo-auto/frontier", url = HarnessProvider.KILO_BASE_URL), ThinkingLevel.MAX).label)
     }
 
     @Test fun `resolution is monotonic and belongs to the displayed vocabulary`() {
@@ -181,7 +181,7 @@ class ThinkingSpecsTest {
         for (level in max.spec.levels.filter { it != ThinkingLevel.OFF })
             assertTrue(ThinkingSpecs.resolve(c, level).budget!! in 4_096..16_384)
         // A bare compat endpoint does not implement Anthropic's native budget field.
-        assertEquals("On", ThinkingSpecs.resolve(c.copy(type = ProviderType.OPENAI_COMPAT), ThinkingLevel.MAX).label)
+        assertEquals("开启", ThinkingSpecs.resolve(c.copy(type = ProviderType.OPENAI_COMPAT), ThinkingLevel.MAX).label)
     }
 
     @Test fun `provider host matching is exact and gateway aliases have catalog keys`() {

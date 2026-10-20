@@ -87,14 +87,14 @@ internal fun ThinkingBlock(
                     Spacer(Modifier.width(8.dp))
                 }
                 Text(
-                    if (live) "Thinking…" else "Thinking",
+                    if (live) "正在思考…" else "思考",
                     style = MaterialTheme.typography.labelMedium,
                     color = scheme.onSurfaceVariant,
                     modifier = Modifier.weight(1f),
                 )
                 Icon(
                     Icons.Filled.KeyboardArrowDown,
-                    contentDescription = if (expanded) "Collapse" else "Expand",
+                    contentDescription = if (expanded) "收起" else "展开",
                     modifier = Modifier
                         .size(18.dp)
                         .graphicsLayer { rotationZ = rotation.value },

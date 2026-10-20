@@ -39,13 +39,13 @@ class TurnPerformanceTest {
             ChatMessage(Role.ASSISTANT, outputTokens = 520),
             ChatMessage(Role.ASSISTANT),
         )))
-        assertEquals("2m 13s", turnPerformanceLabel(133_000, null))
+        assertEquals("2 分 13 秒", turnPerformanceLabel(133_000, null))
     }
 
     @Test
     fun `footer formats duration beside measured speed`() {
-        assertEquals("2m 13s · 52 tk/s request", turnPerformanceLabel(133_000, TurnSpeed(52.1, null, false)))
-        assertEquals("0s · 52 tk/s · first 0.5s", turnPerformanceLabel(0, TurnSpeed(52.0, 500, true)))
+        assertEquals("2 分 13 秒 · 52 Token/秒 请求", turnPerformanceLabel(133_000, TurnSpeed(52.1, null, false)))
+        assertEquals("0 秒 · 52 Token/秒 · 首字 0.5 秒", turnPerformanceLabel(0, TurnSpeed(52.0, 500, true)))
         assertEquals("", turnPerformanceLabel(null, TurnSpeed(Double.NaN, null, true)))
     }
 }

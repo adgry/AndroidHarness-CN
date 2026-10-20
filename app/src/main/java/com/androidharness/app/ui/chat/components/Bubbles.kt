@@ -90,7 +90,7 @@ internal fun UserBubble(
                     images.forEach { img ->
                         AttachmentChip(
                             name = img.name,
-                            detail = "Image",
+                            detail = "图片",
                             icon = Icons.Outlined.Image,
                         )
                     }
@@ -180,7 +180,7 @@ internal fun AssistantText(
                 DotLoading()
                 Spacer(Modifier.width(10.dp))
                 Text(
-                    "Working on it…",
+                    "正在处理…",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -305,7 +305,7 @@ internal fun RewindButton(
         IconButton(onClick = onRewind) {
             Icon(
                 Icons.Outlined.History,
-                contentDescription = "Rewind",
+                contentDescription = "回退",
                 modifier = Modifier.size(17.dp),
                 tint = MaterialTheme.colorScheme.onSurfaceVariant,
             )

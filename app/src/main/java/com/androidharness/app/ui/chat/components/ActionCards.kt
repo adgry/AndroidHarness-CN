@@ -111,15 +111,15 @@ internal fun ApprovalCard(
     val isPkg = approval.call.name == "pkg_install"
     val scheme = MaterialTheme.colorScheme
     ActionCard(
-        title = if (isPkg) "Install Linux package?" else "Approve this action?",
+        title = if (isPkg) "安装 Linux 软件包？" else "批准此操作？",
         icon = if (isPkg) Icons.Outlined.Inventory2 else Icons.Outlined.Shield,
         iconTint = if (isPkg) scheme.tertiary else scheme.primary,
         actions = {
-            TextButton(onClick = onDeny) { Text(if (isPkg) "Decline" else "Deny") }
+            TextButton(onClick = onDeny) { Text(if (isPkg) "拒绝" else "拒绝") }
             if (!isPkg) {
-                FilledTonalButton(onClick = { onApprove(true) }) { Text("Always") }
+                FilledTonalButton(onClick = { onApprove(true) }) { Text("始终允许") }
             }
-            Button(onClick = { onApprove(false) }) { Text("Allow") }
+            Button(onClick = { onApprove(false) }) { Text("允许") }
         },
     ) {
         if (isPkg) {
@@ -143,7 +143,7 @@ internal fun ApprovalCard(
                     )
                     Spacer(Modifier.width(8.dp))
                     Text(
-                        "Warning: The agent is about to download and install packages on your device. Confirm before proceeding.",
+                        "注意：代理即将在你的设备上下载并安装软件包，请确认后继续。",
                         style = MaterialTheme.typography.labelSmall,
                         color = scheme.onErrorContainer,
                     )
@@ -180,9 +180,9 @@ internal fun PlanApprovalCard(
     var expanded by remember(plan) { mutableStateOf(false) }
     val longPlan = plan.length > 2_000
     ActionCard(
-        title = "Plan ready to run",
+        title = "计划已准备好执行",
         actions = {
-            TextButton(onClick = onDiscard) { Text("Discard") }
+            TextButton(onClick = onDiscard) { Text("放弃") }
             Button(onClick = onApprove) {
                 Icon(
                     Icons.AutoMirrored.Filled.Send,
@@ -190,7 +190,7 @@ internal fun PlanApprovalCard(
                     modifier = Modifier.size(16.dp),
                 )
                 Spacer(Modifier.width(6.dp))
-                Text("Approve & execute")
+                Text("批准并执行")
             }
         },
     ) {
@@ -206,7 +206,7 @@ internal fun PlanApprovalCard(
             }
         }
         if (longPlan) TextButton(onClick = { expanded = !expanded }) {
-            Text(if (expanded) "Show less" else "Show full plan")
+            Text(if (expanded) "收起" else "显示完整计划")
         }
     }
 }
@@ -225,49 +225,49 @@ internal fun EnvironmentInstallCard(
     val progressState = if (installStarted && envState.packageProgress() == null && envState !is EnvState.Failed) EnvState.Preparing else envState
     ActionCard(
         title = if (installing) {
-            if (repair) "Repairing Linux environment" else "Installing Linux environment"
+            if (repair) "正在修复 Linux 环境" else "正在安装 Linux 环境"
         } else if (repair) {
-            "Linux environment needs repair"
+            "Linux 环境需要修复"
         } else {
-            "Linux environment needed"
+            "需要 Linux 环境"
         },
         icon = Icons.Outlined.Terminal,
         actions = {
             if (!installing) {
-                TextButton(onClick = onSkip) { Text("Skip") }
-                Button(onClick = onInstall) { Text(if (repair) "Repair" else "Install now") }
+                TextButton(onClick = onSkip) { Text("跳过") }
+                Button(onClick = onInstall) { Text(if (repair) "修复" else "立即安装") }
             }
         },
     ) {
         if (repair) {
             Text(
-                "\"${request.missingTool}\" is missing from the installed Linux environment " +
-                    "(the command failed with \"not found\").",
+                "已安装的 Linux 环境中缺少“${request.missingTool}”" +
+                    "（命令提示“not found”而失败）。",
                 style = MaterialTheme.typography.bodySmall,
                 color = scheme.onSurfaceVariant,
             )
             Text(
-                "Wanted to run: ${request.command.take(80)}",
+                "要运行的命令：${request.command.take(80)}",
                 style = MaterialTheme.typography.bodySmall,
                 color = scheme.onSurfaceVariant,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
             )
             Text(
-                "Repair reinstalls the toolchain, then the agent re-runs the command.",
+                "修复将重新安装工具链，然后代理会重新运行命令。",
                 style = MaterialTheme.typography.labelMedium,
                 color = scheme.primary,
             )
         } else {
             Text(
-                "The agent wants to run: ${request.command.take(80)}",
+                "代理要运行：${request.command.take(80)}",
                 style = MaterialTheme.typography.bodySmall,
                 color = scheme.onSurfaceVariant,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
             )
             Text(
-                "Required: ${request.hints.joinToString(" · ")}",
+                "需要：${request.hints.joinToString(" · ")}",
                 style = MaterialTheme.typography.labelMedium,
                 color = scheme.primary,
             )
@@ -280,7 +280,7 @@ internal fun EnvironmentInstallCard(
             is EnvState.Failed -> {
                 Spacer(Modifier.height(10.dp))
                 Text(
-                    "Install failed: ${progressState.message}",
+                    "安装失败：${progressState.message}",
                     style = MaterialTheme.typography.labelMedium,
                     color = scheme.error,
                 )

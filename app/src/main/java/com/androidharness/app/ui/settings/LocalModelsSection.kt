@@ -63,12 +63,12 @@ internal fun LocalModelsSection(container: AppContainer) {
     var showAll by rememberSaveable(format, search, onlyAbliterated) { mutableStateOf(false) }
     fun importFiles(uri: android.net.Uri, kind: LocalModelFormat) {
         importJob = scope.launch {
-            importProgress = "Checking model files"
+            importProgress = "正在检查模型文件"
             try {
                 val model = manager.importFromFiles(uri, kind) { importProgress = it }
-                message = "${model.title} imported. Tap Use in chat to select it."
+                message = "已导入 ${model.title}。点击“用于聊天”以选择。"
             } catch (e: CancellationException) { throw e }
-            catch (e: Exception) { message = e.message ?: "Could not import model." }
+            catch (e: Exception) { message = e.message ?: "无法导入模型。" }
             finally { importProgress = null; importJob = null }
         }
     }
@@ -106,11 +106,11 @@ internal fun LocalModelsSection(container: AppContainer) {
             Icon(Icons.Default.Memory, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(22.dp))
             Spacer(Modifier.width(12.dp))
             Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
-                Text("On this phone", style = MaterialTheme.typography.titleSmall)
-                Text("${size(device.availableRam)} RAM free · ${size(device.freeStorage)} storage free",
+                Text("此手机上", style = MaterialTheme.typography.titleSmall)
+                Text("可用内存 ${size(device.availableRam)} · 可用存储 ${size(device.freeStorage)}",
                     style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
-            IconButton(onClick = { deviceDialog = true }) { Icon(Icons.Default.Info, "Device and local model information") }
+            IconButton(onClick = { deviceDialog = true }) { Icon(Icons.Default.Info, "设备与本地模型信息") }
         }
     }
     manager.catalogError?.let { Text(it, color = MaterialTheme.colorScheme.error) }
@@ -119,28 +119,28 @@ internal fun LocalModelsSection(container: AppContainer) {
             Row(Modifier.fillMaxWidth().toggleable(value = settings.localModelAgentContext, role = Role.Switch,
                 onValueChange = { enabled -> scope.launch { container.settings.setLocalModelAgentContext(enabled) } }),
                 verticalAlignment = Alignment.CenterVertically) {
-                Text("System instructions and tools", modifier = Modifier.weight(1f), style = MaterialTheme.typography.titleSmall)
+                Text("系统指令与工具", modifier = Modifier.weight(1f), style = MaterialTheme.typography.titleSmall)
                 Spacer(Modifier.width(12.dp))
                 Switch(checked = settings.localModelAgentContext, onCheckedChange = null)
             }
-            Text("Off by default. Local models receive only your chat messages. Turn on to let them use Harness instructions and tools to work on your project.",
+            Text("默认关闭。本地模型仅接收聊天消息。开启后可使用 Harness 指令和工具处理项目。",
                 style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            Text("Enabling this adds a lot of input, uses more memory and processing power, and can take several minutes before a reply starts. Changes apply to the next reply.",
+            Text("开启后输入量会明显增加，并消耗更多内存和算力，可能需要几分钟才开始回复。更改从下次回复生效。",
                 style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }
     message?.let { text ->
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(text, modifier = Modifier.weight(1f), style = MaterialTheme.typography.bodySmall)
-            IconButton(onClick = { message = null }) { Icon(Icons.Default.Close, "Dismiss message") }
+            IconButton(onClick = { message = null }) { Icon(Icons.Default.Close, "关闭消息") }
         }
     }
-    Text("Your models", style = MaterialTheme.typography.titleMedium)
+    Text("你的模型", style = MaterialTheme.typography.titleMedium)
     if (savedModels.isEmpty()) {
         SettingsPanel(Modifier.fillMaxWidth()) {
             Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                Text("No models added yet", style = MaterialTheme.typography.titleSmall)
-                Text("Download a GGUF below or import your own model to get started.",
+                Text("尚未添加模型", style = MaterialTheme.typography.titleSmall)
+                Text("从下方下载 GGUF，或导入自己的模型即可开始。",
                     style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
@@ -148,7 +148,7 @@ internal fun LocalModelsSection(container: AppContainer) {
     savedModels.forEach { model ->
         val selected = settings.activeProviderId == LocalModelCatalog.PROVIDER_PREFIX + model.id
         LocalModelCard(model, contexts[model.id] ?: model.defaultContext, device, selected = selected, installed = true,
-            status = statuses[model.id]?.takeUnless { it == "Ready" || it == "Installed" },
+            status = statuses[model.id]?.takeUnless(::isIdleLocalModelStatus),
             working = running == model.id, enabled = busy == null,
             onPrimary = {
                 scope.launch {
@@ -157,7 +157,7 @@ internal fun LocalModelsSection(container: AppContainer) {
                         manager.confirmResources(model)
                         container.settings.setActiveModel(null)
                         container.settings.setActiveProvider(LocalModelCatalog.PROVIDER_PREFIX + model.id)
-                        message = "${model.title} is selected for chat."
+                        message = "已选择 ${model.title} 用于聊天。"
                     } catch (e: CancellationException) { throw e }
                     catch (e: Exception) { message = e.message }
                     finally { busy = null }
@@ -167,7 +167,7 @@ internal fun LocalModelsSection(container: AppContainer) {
             onRemove = { removing = model }, onStop = { manager.stop(model.id) })
     }
     if (transfers.isNotEmpty()) {
-        Text("Downloads", style = MaterialTheme.typography.titleMedium)
+        Text("下载", style = MaterialTheme.typography.titleMedium)
         transfers.forEach { model ->
             LocalModelCard(model, contexts[model.id] ?: model.defaultContext, device,
                 transfer = activeWork(model), status = statuses[model.id], enabled = busy == null,
@@ -179,11 +179,11 @@ internal fun LocalModelsSection(container: AppContainer) {
             Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text(text, style = MaterialTheme.typography.bodyMedium)
                 AppLinearProgressIndicator(Modifier.fillMaxWidth())
-                TextButton(onClick = { importProgress = "Cancelling import…"; importJob?.cancel() }) { Text("Cancel import") }
+                TextButton(onClick = { importProgress = "正在取消导入…"; importJob?.cancel() }) { Text("取消导入") }
             }
         }
     }
-    Text("Add a model", style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(top = 8.dp))
+    Text("添加模型", style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(top = 8.dp))
     TabRow(selectedTabIndex = format.ordinal) {
         LocalModelFormat.entries.forEach { option ->
             Tab(selected = format == option, onClick = { format = option }, text = {
@@ -191,27 +191,27 @@ internal fun LocalModelsSection(container: AppContainer) {
             })
         }
     }
-    Text(if (format == LocalModelFormat.GGUF) "Choose a download, paste a link, or open a GGUF from your files."
-        else "Import from a link or choose a folder with weights, config.json and tokenizer.json. Conversion happens on your phone.",
+    Text(if (format == LocalModelFormat.GGUF) "选择下载、粘贴链接，或从文件中打开 GGUF。"
+        else "通过链接导入，或选择包含权重、config.json 和 tokenizer.json 的文件夹。转换在手机上完成。",
         style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         OutlinedButton(onClick = { customDialog = true }, enabled = importJob == null, modifier = Modifier.weight(1f)) {
-            Icon(Icons.Default.Link, null, modifier = Modifier.size(18.dp)); Spacer(Modifier.width(6.dp)); Text("From link")
+            Icon(Icons.Default.Link, null, modifier = Modifier.size(18.dp)); Spacer(Modifier.width(6.dp)); Text("通过链接")
         }
         OutlinedButton(onClick = { if (format == LocalModelFormat.GGUF) filePicker.launch(arrayOf("*/*")) else folderPicker.launch(null) },
             enabled = importJob == null, modifier = Modifier.weight(1f)) {
             Icon(Icons.Default.FolderOpen, null, modifier = Modifier.size(18.dp)); Spacer(Modifier.width(6.dp))
-            Text(if (format == LocalModelFormat.GGUF) "Import file" else "Import folder")
+            Text(if (format == LocalModelFormat.GGUF) "导入文件" else "导入文件夹")
         }
     }
-    Text("Recommendations", style = MaterialTheme.typography.titleSmall)
-    OutlinedTextField(search, { search = it }, placeholder = { Text("Search models") }, singleLine = true,
+    Text("推荐模型", style = MaterialTheme.typography.titleSmall)
+    OutlinedTextField(search, { search = it }, placeholder = { Text("搜索模型") }, singleLine = true,
         leadingIcon = { Icon(Icons.Default.Search, null) }, trailingIcon = {
-            if (search.isNotEmpty()) IconButton(onClick = { search = "" }) { Icon(Icons.Default.Close, "Clear model search") }
+            if (search.isNotEmpty()) IconButton(onClick = { search = "" }) { Icon(Icons.Default.Close, "清空模型搜索") }
         }, modifier = Modifier.fillMaxWidth())
     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        FilterChip(selected = !onlyAbliterated, onClick = { onlyAbliterated = false }, label = { Text("All") })
-        FilterChip(selected = onlyAbliterated, onClick = { onlyAbliterated = true }, label = { Text("Abliterated") })
+        FilterChip(selected = !onlyAbliterated, onClick = { onlyAbliterated = false }, label = { Text("全部") })
+        FilterChip(selected = onlyAbliterated, onClick = { onlyAbliterated = true }, label = { Text("减少拒答") })
     }
     val recommendations = catalog.filter { model ->
         model.format == format && !model.localFile && model.id !in installed && activeWork(model) == null &&
@@ -219,7 +219,7 @@ internal fun LocalModelsSection(container: AppContainer) {
                 "${model.title} ${model.description} ${model.repository}".contains(term, ignoreCase = true)
             }
     }
-    if (recommendations.isEmpty()) Text("No matching models. Try another search or import your own.", style = MaterialTheme.typography.bodySmall)
+    if (recommendations.isEmpty()) Text("没有匹配的模型。请换个关键词，或导入自己的模型。", style = MaterialTheme.typography.bodySmall)
     (if (showAll) recommendations else recommendations.take(6)).forEach { model ->
         val latest = work.filter { "model:${model.id}" in it.tags }.maxByOrNull { it.generation }
         val failure = latest?.takeIf { it.state == WorkInfo.State.FAILED }?.outputData?.getString("error")
@@ -227,12 +227,12 @@ internal fun LocalModelsSection(container: AppContainer) {
             enabled = busy == null, onPrimary = { download = model }, onDetails = { details = model })
     }
     if (!showAll && recommendations.size > 6) TextButton(onClick = { showAll = true }, modifier = Modifier.fillMaxWidth()) {
-        Text("Show all ${recommendations.size} models")
+        Text("显示全部 ${recommendations.size} 个模型")
     }
-    if (onlyAbliterated) Text("Community variants with reduced refusals. Quality and tool calling vary by model.",
+    if (onlyAbliterated) Text("减少拒答的社区变体。模型质量和工具调用能力各不相同。",
         style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
     if (format == LocalModelFormat.SAFETENSORS) {
-        Text("Supports dense Qwen 2/2.5, Qwen 3 and Llama 3 models with BPE tokenizers. Imports need extra storage. For other models, use GGUF.",
+        Text("支持采用 BPE 分词器的稠密 Qwen 2/2.5、Qwen 3 和 Llama 3 模型。导入需要额外存储空间。其他模型请使用 GGUF。",
             style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
     if (deviceDialog) LocalDeviceDialog(device) { deviceDialog = false }
@@ -242,11 +242,11 @@ internal fun LocalModelsSection(container: AppContainer) {
         val downloadLimits = LocalModelLimits(context = model.defaultContext, input = (model.defaultContext * 3 / 4).coerceAtLeast(1),
             output = (model.defaultContext / 4).coerceAtLeast(1), threads = device.cores.coerceIn(1, 4))
         val warnings = localModelWarnings(model, device, downloadLimits, downloading = true)
-        AlertDialog(onDismissRequest = { if (busy == null) download = null }, title = { Text("Download model") },
+        AlertDialog(onDismissRequest = { if (busy == null) download = null }, title = { Text("下载模型") },
             text = { Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 Text(model.title, style = MaterialTheme.typography.titleSmall)
-                Text("${size(model.downloadBytes)} · ${model.url.substringAfter("https://").substringBefore('/')}\nLicense: ${model.license}")
-                if (model.format == LocalModelFormat.SAFETENSORS) Text("The model will be converted on your phone before you can use it.")
+                Text("${size(model.downloadBytes)} · ${model.url.substringAfter("https://").substringBefore('/')}\n许可证：${model.license}")
+                if (model.format == LocalModelFormat.SAFETENSORS) Text("使用前将在手机上转换模型。")
                 warnings.forEach { Text(it, color = MaterialTheme.colorScheme.error) }
             } }, confirmButton = { TextButton(enabled = busy == null, onClick = {
                 busy = model.id
@@ -259,16 +259,16 @@ internal fun LocalModelsSection(container: AppContainer) {
                     catch (e: Exception) { message = e.message; download = null }
                     finally { busy = null }
                 }
-            }) { Text(if (warnings.isEmpty()) "Download" else "Continue") } },
-            dismissButton = { TextButton(enabled = busy == null, onClick = { download = null }) { Text("Cancel") } })
+            }) { Text(if (warnings.isEmpty()) "下载" else "继续") } },
+            dismissButton = { TextButton(enabled = busy == null, onClick = { download = null }) { Text("取消") } })
     }
     if (customDialog) CustomModelDialog(manager, format, onDismiss = { customDialog = false },
         onDownload = { customDialog = false; download = it })
     removing?.let { model ->
-        AlertDialog(onDismissRequest = { removing = null }, title = { Text("Remove model?") },
-            text = { Text("Remove ${model.title} and its saved settings from this phone? Your chats will stay. You can download the model again later.") },
-            confirmButton = { TextButton(onClick = { removing = null; removeNow(model) }) { Text("Remove", color = MaterialTheme.colorScheme.error) } },
-            dismissButton = { TextButton(onClick = { removing = null }) { Text("Keep") } })
+        AlertDialog(onDismissRequest = { removing = null }, title = { Text("移除模型？") },
+            text = { Text("从此手机移除 ${model.title} 及其设置？聊天会保留，以后可再次下载模型。") },
+            confirmButton = { TextButton(onClick = { removing = null; removeNow(model) }) { Text("移除", color = MaterialTheme.colorScheme.error) } },
+            dismissButton = { TextButton(onClick = { removing = null }) { Text("保留") } })
     }
     editing?.let { model -> LocalLimitsDialog(model, manager, onDismiss = { editing = null }) }
 }
@@ -286,18 +286,18 @@ private fun LocalModelCard(model: LocalModelSpec, context: Int, device: LocalDev
             Row(verticalAlignment = Alignment.Top) {
                 Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     Text(model.title, style = MaterialTheme.typography.titleSmall)
-                    Text("${size(if (installed) model.bytes else model.downloadBytes)} · ${if (model.format == LocalModelFormat.GGUF) "GGUF" else "Safetensors import"}",
+                    Text("${size(if (installed) model.bytes else model.downloadBytes)} · ${if (model.format == LocalModelFormat.GGUF) "GGUF" else "Safetensors 导入"}",
                         style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
                 Box {
                     IconButton(onClick = { menu = true }, modifier = Modifier.size(48.dp)) {
-                        Icon(Icons.Default.MoreVert, "Options for ${model.title}")
+                        Icon(Icons.Default.MoreVert, "${model.title} 的选项")
                     }
                     DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
-                        DropdownMenuItem(text = { Text("Model details") }, onClick = { menu = false; onDetails() })
-                        onImageSupport?.let { action -> DropdownMenuItem(text = { Text("Image support") },
+                        DropdownMenuItem(text = { Text("模型详情") }, onClick = { menu = false; onDetails() })
+                        onImageSupport?.let { action -> DropdownMenuItem(text = { Text("图像支持") },
                             enabled = enabled, onClick = { menu = false; action() }) }
-                        onRemove?.let { action -> DropdownMenuItem(text = { Text("Remove model", color = MaterialTheme.colorScheme.error) },
+                        onRemove?.let { action -> DropdownMenuItem(text = { Text("移除模型", color = MaterialTheme.colorScheme.error) },
                             enabled = enabled, onClick = { menu = false; action() }) }
                     }
                 }
@@ -306,32 +306,32 @@ private fun LocalModelCard(model: LocalModelSpec, context: Int, device: LocalDev
                 Text(model.description, style = MaterialTheme.typography.bodySmall)
             }
             FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                if (selected) LocalModelBadge("Selected", positive = true)
-                if (model.abliterated) LocalModelBadge("Abliterated")
-                if (installed && model.projector != null) LocalModelBadge("Vision file added", positive = true)
-                Text("Estimated RAM ${size(model.estimatedMemory(context))}", style = MaterialTheme.typography.bodySmall,
+                if (selected) LocalModelBadge("已选择", positive = true)
+                if (model.abliterated) LocalModelBadge("减少拒答")
+                if (installed && model.projector != null) LocalModelBadge("已添加视觉文件", positive = true)
+                Text("预估内存 ${size(model.estimatedMemory(context))}", style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(vertical = 4.dp))
-                if (!device.canLoad(model, context)) LocalModelBadge("May exceed available RAM")
+                if (!device.canLoad(model, context)) LocalModelBadge("可能超出可用内存")
             }
             status?.let { Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant) }
             if (transfer != null) {
                 val received = transfer.progress.getLong("received", 0)
                 val total = transfer.progress.getLong("total", 0)
-                val converting = status?.contains("convert", ignoreCase = true) == true || status?.contains("quantiz", ignoreCase = true) == true
+                val converting = isLocalModelConversionStatus(status)
                 if (total > 0 && !converting) {
                     AppLinearProgressIndicator(progress = { (received.toFloat() / total).coerceIn(0f, 1f) }, modifier = Modifier.fillMaxWidth())
-                    Text("${size(received)} of ${size(total)} downloaded", style = MaterialTheme.typography.bodySmall)
+                    Text("已下载 ${size(received)} / ${size(total)}", style = MaterialTheme.typography.bodySmall)
                 } else AppLinearProgressIndicator(Modifier.fillMaxWidth())
             }
             FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 if (!selected || !installed) Button(onClick = onPrimary, enabled = enabled) {
-                    Text(if (transfer != null) "Cancel download" else if (installed) "Use in chat" else "Download")
+                    Text(if (transfer != null) "取消下载" else if (installed) "用于聊天" else "下载")
                 }
                 onSettings?.let { action -> OutlinedButton(onClick = action, enabled = enabled) {
                     Icon(Icons.Default.Tune, null, modifier = Modifier.size(18.dp))
-                    Spacer(Modifier.width(6.dp)); Text("Settings")
+                    Spacer(Modifier.width(6.dp)); Text("设置")
                 } }
-                if (working) onStop?.let { action -> OutlinedButton(onClick = action) { Text("Stop") } }
+                if (working) onStop?.let { action -> OutlinedButton(onClick = action) { Text("停止") } }
             }
         }
     }
@@ -349,34 +349,34 @@ private fun LocalModelBadge(text: String, positive: Boolean = false) {
 @Composable
 private fun LocalDeviceDialog(device: LocalDeviceProfile, onDismiss: () -> Unit) {
     val uri = LocalUriHandler.current
-    AlertDialog(onDismissRequest = onDismiss, title = { Text("About local models") }, text = {
+    AlertDialog(onDismissRequest = onDismiss, title = { Text("关于本地模型") }, text = {
         Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Text("Models run on your phone without an API key. Agent tools follow your existing permissions; some tools may use the internet.")
-            Text("${size(device.totalRam)} total RAM\n${size(device.availableRam)} available RAM\n${size(device.freeStorage)} free storage\n${device.cores} CPU cores · ${device.abi}")
-            if (!device.supported) Text("This device has no compatible local engine.", color = MaterialTheme.colorScheme.error)
-            Text("Memory estimates are a guide. You can continue past warnings. Larger models and longer conversations may be slower or cause Android to close the app.")
-            Text("Image input needs a vision model and its matching vision file. Tool calling depends on the model.")
-            Text("Interrupted downloads restart. Models are unloaded after each reply.")
-            TextButton(onClick = { uri.openUri("https://github.com/ggml-org/llama.cpp") }) { Text("llama.cpp · MIT license") }
+            Text("模型在手机上运行，无需 API 密钥。代理工具遵循现有权限设置，部分工具可能联网。")
+            Text("总内存 ${size(device.totalRam)}\n可用内存 ${size(device.availableRam)}\n可用存储 ${size(device.freeStorage)}\n${device.cores} 个 CPU 核心 · ${device.abi}")
+            if (!device.supported) Text("此设备没有兼容的本地引擎。", color = MaterialTheme.colorScheme.error)
+            Text("内存预估仅供参考，你可以忽略警告继续。更大的模型和更长的对话可能导致速度下降，或使 Android 关闭应用。")
+            Text("图像输入需要视觉模型和配套视觉文件。工具调用取决于模型能力。")
+            Text("中断的下载会重新开始。每次回复后会卸载内存中的模型。")
+            TextButton(onClick = { uri.openUri("https://github.com/ggml-org/llama.cpp") }) { Text("llama.cpp · MIT 许可证") }
         }
-    }, confirmButton = { TextButton(onClick = onDismiss) { Text("Done") } })
+    }, confirmButton = { TextButton(onClick = onDismiss) { Text("完成") } })
 }
 
 @Composable
 private fun LocalModelDetailsDialog(model: LocalModelSpec, context: Int, onDismiss: () -> Unit) {
     val uri = LocalUriHandler.current
-    AlertDialog(onDismissRequest = onDismiss, title = { Text("Model details") }, text = {
+    AlertDialog(onDismissRequest = onDismiss, title = { Text("模型详情") }, text = {
         Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(10.dp)) {
             Text(model.title, style = MaterialTheme.typography.titleSmall)
-            Text("${size(if (model.localFile) model.bytes else model.downloadBytes)} ${if (model.localFile) "on this phone" else "download"}\n${size(model.estimatedMemory(context))} estimated RAM\n$context conversation tokens\nLicense: ${model.license}")
+            Text("${size(if (model.localFile) model.bytes else model.downloadBytes)} ${if (model.localFile) "在此手机上" else "下载"}\n${size(model.estimatedMemory(context))} 预估内存\n对话容量 $context 词元\n许可证：${model.license}")
             Text(model.filename, style = MaterialTheme.typography.bodySmall)
             if (model.description.isNotBlank()) Text(model.description, style = MaterialTheme.typography.bodySmall)
-            Text(if (model.localFile) "Copied from your files. Your original files were kept."
-                else if (model.sha256.isNotBlank()) "The download is verified against the source checksum."
-                else "File size and model headers are checked. Source checksums are verified when available.", style = MaterialTheme.typography.bodySmall)
-            if (!model.localFile) TextButton(onClick = { uri.openUri(model.modelPage) }) { Text("Open model page") }
+            Text(if (model.localFile) "已从你的文件复制，原始文件已保留。"
+                else if (model.sha256.isNotBlank()) "下载内容会根据来源校验和进行验证。"
+                else "检查文件大小和模型头信息，来源提供校验和时也会验证。", style = MaterialTheme.typography.bodySmall)
+            if (!model.localFile) TextButton(onClick = { uri.openUri(model.modelPage) }) { Text("打开模型页面") }
         }
-    }, confirmButton = { TextButton(onClick = onDismiss) { Text("Done") } })
+    }, confirmButton = { TextButton(onClick = onDismiss) { Text("完成") } })
 }
 
 @Composable
@@ -392,20 +392,20 @@ private fun LocalLimitsDialog(model: LocalModelSpec, manager: LocalModelManager,
     var error by remember { mutableStateOf<String?>(null) }
     var saving by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
-    AlertDialog(onDismissRequest = { if (!saving) onDismiss() }, title = { Text("Model settings") }, text = {
+    AlertDialog(onDismissRequest = { if (!saving) onDismiss() }, title = { Text("模型设置") }, text = {
         Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Text(model.title, style = MaterialTheme.typography.titleSmall)
-            Text("Tokens are pieces of text. Larger values use more memory. Changes apply to the next reply.", style = MaterialTheme.typography.bodySmall)
-            LocalNumberField("Conversation size", context, "tokens", "Space for instructions, chat history and the reply.", !saving) { context = it }
-            LocalNumberField("Reply length", output, "tokens", "Maximum length of one reply.", !saving) { output = it }
-            Text("Estimated RAM ${size(model.estimatedMemory(context.toIntOrNull()?.coerceAtLeast(1) ?: limits.context))}", style = MaterialTheme.typography.bodySmall)
+            Text("词元是文本片段。数值越大，内存用量越高。更改从下次回复生效。", style = MaterialTheme.typography.bodySmall)
+            LocalNumberField("对话大小", context, "词元", "用于指令、聊天历史和回复的空间。", !saving) { context = it }
+            LocalNumberField("回复长度", output, "词元", "单次回复的最大长度。", !saving) { output = it }
+            Text("预估内存 ${size(model.estimatedMemory(context.toIntOrNull()?.coerceAtLeast(1) ?: limits.context))}", style = MaterialTheme.typography.bodySmall)
             TextButton(onClick = { advanced = !advanced }, enabled = !saving) {
-                Text(if (advanced) "Hide advanced settings" else "Advanced settings")
+                Text(if (advanced) "收起高级设置" else "高级设置")
                 Spacer(Modifier.width(6.dp)); Icon(if (advanced) Icons.Default.ExpandLess else Icons.Default.ExpandMore, null)
             }
             if (advanced) {
-                LocalNumberField("Input budget", input, "tokens", "Includes instructions and chat history. You can continue past this estimate.", !saving) { input = it }
-                LocalNumberField("Processing threads", threads, "threads", "More threads can increase heat and may not improve speed.", !saving) { threads = it }
+                LocalNumberField("输入预算", input, "词元", "包括指令和聊天历史。超出此预估值时仍可继续。", !saving) { input = it }
+                LocalNumberField("处理线程数", threads, "线程", "更多线程可能增加发热，且不一定提高速度。", !saving) { threads = it }
             }
             TextButton(enabled = !saving, onClick = {
                 context = model.defaultContext.toString()
@@ -413,7 +413,7 @@ private fun LocalLimitsDialog(model: LocalModelSpec, manager: LocalModelManager,
                 output = (model.defaultContext / 4).coerceAtLeast(1).toString()
                 threads = manager.device().cores.coerceIn(1, 4).toString()
                 error = null
-            }) { Text("Reset to defaults") }
+            }) { Text("恢复默认值") }
             error?.let { Text(it, color = MaterialTheme.colorScheme.error) }
         }
     }, confirmButton = { TextButton(enabled = !saving, onClick = {
@@ -427,7 +427,7 @@ private fun LocalLimitsDialog(model: LocalModelSpec, manager: LocalModelManager,
             catch (e: Exception) { error = e.message }
             finally { saving = false }
         }
-    }) { Text("Save") } }, dismissButton = { TextButton(enabled = !saving, onClick = onDismiss) { Text("Cancel") } })
+    }) { Text("保存") } }, dismissButton = { TextButton(enabled = !saving, onClick = onDismiss) { Text("取消") } })
 }
 
 @Composable
@@ -454,16 +454,16 @@ internal fun CustomModelLinkDialog(resolve: suspend (String) -> List<LocalModelS
     var error by remember { mutableStateOf<String?>(null) }
     var loading by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
-    AlertDialog(onDismissRequest = onDismiss, title = { Text(if (format == LocalModelFormat.GGUF) "Add GGUF" else "Import safetensors") }, text = {
+    AlertDialog(onDismissRequest = onDismiss, title = { Text(if (format == LocalModelFormat.GGUF) "添加 GGUF" else "导入 safetensors") }, text = {
         Column(Modifier.heightIn(max = 440.dp).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Text(if (format == LocalModelFormat.GGUF) "Paste a Hugging Face page or a direct GGUF download link."
-                else "Paste a Hugging Face model page. The files will be downloaded and converted on your phone.", style = MaterialTheme.typography.bodySmall)
+            Text(if (format == LocalModelFormat.GGUF) "粘贴 Hugging Face 页面或 GGUF 直接下载链接。"
+                else "粘贴 Hugging Face 模型页面。文件将在手机上下载并转换。", style = MaterialTheme.typography.bodySmall)
             OutlinedTextField(link, { link = it; candidates = emptyList(); error = null },
-                label = { Text("Model link") }, enabled = !loading, maxLines = 3, modifier = Modifier.fillMaxWidth(),
+                label = { Text("模型链接") }, enabled = !loading, maxLines = 3, modifier = Modifier.fillMaxWidth(),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri))
-            if (loading) { AppLinearProgressIndicator(Modifier.fillMaxWidth()); Text("Checking model files…", style = MaterialTheme.typography.bodySmall) }
+            if (loading) { AppLinearProgressIndicator(Modifier.fillMaxWidth()); Text("正在检查模型文件…", style = MaterialTheme.typography.bodySmall) }
             error?.let { Text(it, color = MaterialTheme.colorScheme.error) }
-            if (candidates.isNotEmpty()) Text("Choose a file", style = MaterialTheme.typography.titleSmall)
+            if (candidates.isNotEmpty()) Text("选择文件", style = MaterialTheme.typography.titleSmall)
             candidates.forEach { model ->
                 Surface(shape = MaterialTheme.shapes.medium, color = MaterialTheme.colorScheme.surfaceContainerHigh) {
                     Column(Modifier.fillMaxWidth().padding(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
@@ -475,10 +475,10 @@ internal fun CustomModelLinkDialog(resolve: suspend (String) -> List<LocalModelS
                                 scope.launch {
                                     try { onDownload(inspect(model)) }
                                     catch (e: CancellationException) { throw e }
-                                    catch (e: Exception) { error = e.message ?: "Could not check model." }
+                                    catch (e: Exception) { error = e.message ?: "无法检查模型。" }
                                     finally { loading = false }
                                 }
-                            }) { Text("Choose file") }
+                            }) { Text("选择文件") }
                         }
                     }
                 }
@@ -489,10 +489,10 @@ internal fun CustomModelLinkDialog(resolve: suspend (String) -> List<LocalModelS
         scope.launch {
             try {
                 candidates = resolve(link)
-                if (candidates.isEmpty()) error = "No supported model files were found at this link."
+                if (candidates.isEmpty()) error = "此链接中没有找到支持的模型文件。"
             } catch (e: CancellationException) { throw e }
-            catch (e: Exception) { error = e.message ?: "Could not find model files." }
+            catch (e: Exception) { error = e.message ?: "无法查找模型文件。" }
             finally { loading = false }
         }
-    }) { Text("Find model files") } }, dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } })
+    }) { Text("查找模型文件") } }, dismissButton = { TextButton(onClick = onDismiss) { Text("取消") } })
 }

@@ -53,7 +53,7 @@ class PackageInstallProgressDeviceTest {
             withTimeout(5000) { entered.await() }
             assertNull(state.value.pendingEnvironment)
             assertSame(request, state.value.installingEnvironment)
-            assertEquals("Installing Linux environment", manager.actionText(state.value))
+            assertEquals("正在安装 Linux 环境", manager.actionText(state.value))
             assertFalse(request.response.isCompleted)
             assertFalse(manager.respondToRemoteEnvironment("install-progress-fixture", "fixture-turn", "install-call", true))
             release.complete(Unit)

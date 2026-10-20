@@ -102,7 +102,7 @@ class ProviderRepository(
             }
 
         localModels.configs(installed).forEach { config ->
-            catalogMap[config.id] = listOf(ModelEntry(config.model, reasoning = false, note = "On-device text chat"))
+            catalogMap[config.id] = listOf(ModelEntry(config.model, reasoning = false, note = "设备端文字聊天"))
         }
         catalogMap.keys.filter { com.androidharness.app.chatgpt.ChatGptProtocol.isProvider(it) }.forEach { catalogMap.remove(it) }
         accounts.accounts.filter { it.connected }.forEach { catalogMap[it.providerId] = it.models }
@@ -114,7 +114,7 @@ class ProviderRepository(
 
     suspend fun refreshCatalog(providerId: String, automatic: Boolean = false): String? =
         catalogRefreshLocks.getOrPut(providerId) { Mutex() }.withLock {
-            val provider = current().firstOrNull { it.id == providerId } ?: return@withLock "Provider unavailable"
+            val provider = current().firstOrNull { it.id == providerId } ?: return@withLock "服务商不可用"
             if (com.androidharness.app.local.LocalModelCatalog.isLocal(providerId)) return@withLock null
             val connection = provider.copy(name = "", model = "", enabled = true)
             val now = System.nanoTime()
@@ -131,9 +131,9 @@ class ProviderRepository(
             }
             when (result) {
                 is ModelCatalog.Result.Models -> {
-                    if (result.models.isEmpty()) return@withLock "No model capabilities reported"
+                    if (result.models.isEmpty()) return@withLock "未返回模型能力信息"
                     val currentConnection = current().firstOrNull { it.id == providerId }?.copy(name = "", model = "", enabled = true)
-                    if (currentConnection != connection) return@withLock "Provider connection changed. Try again."
+                    if (currentConnection != connection) return@withLock "服务商连接已更改，请重试。"
                     saveCatalog(providerId, result.models)
                     null
                 }
@@ -145,14 +145,14 @@ class ProviderRepository(
         fun sameConnection(provider: ProviderConfig?) = provider?.let {
             it.type == config.type && it.baseUrl.trimEnd('/') == config.baseUrl.trimEnd('/') && it.headers == config.headers
         } == true
-        check(sameConnection(current().firstOrNull { it.id == config.id })) { "Provider connection changed. Reopen thinking settings." }
-        check(!com.androidharness.app.llm.ReasoningDefaults.isLocal(config)) { "This model uses native on/off control." }
+        check(sameConnection(current().firstOrNull { it.id == config.id })) { "服务商连接已更改，请重新打开思考设置。" }
+        check(!com.androidharness.app.llm.ReasoningDefaults.isLocal(config)) { "此模型使用原生的开关控制。" }
         refreshCatalog(config.id)?.let { error(it) } // Explicit check always bypasses the automatic refresh cache.
-        check(sameConnection(current().firstOrNull { it.id == config.id })) { "Provider connection changed. Reopen thinking settings." }
+        check(sameConnection(current().firstOrNull { it.id == config.id })) { "服务商连接已更改，请重新打开思考设置。" }
         val entry = catalog(config.id).firstOrNull { it.id == config.model }
-        check(entry?.reasoningEfforts != null) { "This provider does not report reasoning levels for this model. Keep your levels or edit them manually." }
+        check(entry?.reasoningEfforts != null) { "此服务商未返回该模型的推理级别。请保留现有级别或手动编辑。" }
         val levels = com.androidharness.app.agent.ThinkingSpecs.forProvider(config, entry).reportedLevels
-        check(!levels.isNullOrEmpty()) { "No adjustable reasoning levels reported for this model." }
+        check(!levels.isNullOrEmpty()) { "此模型未返回可调整的推理级别。" }
         return levels
     }
 
@@ -170,7 +170,7 @@ class ProviderRepository(
             if (headers.any { it.enabled }) {
                 val current = current().firstOrNull { it.id == config.id }
                 check(current?.baseUrl == config.baseUrl && current.type == config.type) {
-                    "This provider connection changed. Choose its model again before resuming."
+                    "此服务商连接已更改，请重新选择模型后再继续。"
                 }
             }
             return config.copy(headers = headers)

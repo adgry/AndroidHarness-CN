@@ -45,9 +45,9 @@ internal fun ProviderListCard(
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Row(Modifier.weight(1f).heightIn(min = 56.dp)
                     .combinedClickable(onClick = { if (selectionMode) onToggleSelection() else if (provider.enabled) onSelect() },
-                        onLongClick = onLongPress, onLongClickLabel = "Select provider")
+                        onLongClick = onLongPress, onLongClickLabel = "选择提供商")
                     .semantics {
-                        contentDescription = if (selectionMode) "Select provider ${provider.name}" else "Select ${provider.name}"
+                        contentDescription = if (selectionMode) "选择提供商 ${provider.name}" else "选择 ${provider.name}"
                         if (selectionMode) {
                             role = Role.Checkbox
                             toggleableState = if (selected) ToggleableState.On else ToggleableState.Off
@@ -60,27 +60,27 @@ internal fun ProviderListCard(
                     Column(Modifier.weight(1f)) {
                         Text(provider.name, style = MaterialTheme.typography.titleSmallEmphasized, maxLines = 2, overflow = TextOverflow.Ellipsis)
                         Text(listOfNotNull(when {
-                            provider.id == com.androidharness.app.llm.HarnessProvider.ID -> "Built-in"
+                            provider.id == com.androidharness.app.llm.HarnessProvider.ID -> "内置"
                             com.androidharness.app.chatgpt.ChatGptProtocol.isProvider(provider.id) -> "ChatGPT"
-                            com.androidharness.app.local.LocalModelCatalog.isLocal(provider.id) -> "On-device"
+                            com.androidharness.app.local.LocalModelCatalog.isLocal(provider.id) -> "本机"
                             provider.type == ProviderType.ANTHROPIC -> "Anthropic API"
                             provider.type == ProviderType.GEMINI -> "Gemini API"
                             else -> "API"
-                        }, catalogSize?.let { "${selectedModelCount ?: it}/$it models" },
-                            if (!provider.enabled) "Disabled" else if (active) "Active" else null).joinToString(" · "),
+                        }, catalogSize?.let { "${selectedModelCount ?: it}/$it 个模型" },
+                            if (!provider.enabled) "已停用" else if (active) "使用中" else null).joinToString(" · "),
                             style = MaterialTheme.typography.labelSmall, color = scheme.onSurfaceVariant,
                             maxLines = 2, overflow = TextOverflow.Ellipsis)
                     }
                 }
                 if (!selectionMode) Box {
-                    IconButton(onClick = { menu = true }) { Icon(Icons.Filled.MoreVert, "Actions for ${provider.name}") }
+                    IconButton(onClick = { menu = true }) { Icon(Icons.Filled.MoreVert, "${provider.name} 的操作") }
                     DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
-                        DropdownMenuItem(text = { Text("Select") }, onClick = { menu = false; onLongPress() })
-                        DropdownMenuItem(text = { Text("Move up") }, enabled = canMoveUp, onClick = { menu = false; onMove(-1) })
-                        DropdownMenuItem(text = { Text("Move down") }, enabled = canMoveDown, onClick = { menu = false; onMove(1) })
+                        DropdownMenuItem(text = { Text("选择") }, onClick = { menu = false; onLongPress() })
+                        DropdownMenuItem(text = { Text("上移") }, enabled = canMoveUp, onClick = { menu = false; onMove(-1) })
+                        DropdownMenuItem(text = { Text("下移") }, enabled = canMoveDown, onClick = { menu = false; onMove(1) })
                         if (editable) {
-                            DropdownMenuItem(text = { Text("Edit") }, onClick = { menu = false; onEdit() })
-                            DropdownMenuItem(text = { Text("Delete", color = scheme.error) }, onClick = { menu = false; onDelete() })
+                            DropdownMenuItem(text = { Text("编辑") }, onClick = { menu = false; onEdit() })
+                            DropdownMenuItem(text = { Text("删除", color = scheme.error) }, onClick = { menu = false; onDelete() })
                         }
                     }
                 }
@@ -88,13 +88,13 @@ internal fun ProviderListCard(
             if (!selectionMode) FlowRow(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                 Row(Modifier.heightIn(min = 48.dp)
                     .toggleable(provider.enabled, role = Role.Switch, onValueChange = onEnabledChange)
-                    .semantics { contentDescription = "Enable ${provider.name}" }, verticalAlignment = Alignment.CenterVertically) {
+                    .semantics { contentDescription = "启用 ${provider.name}" }, verticalAlignment = Alignment.CenterVertically) {
                     Switch(provider.enabled, onCheckedChange = null)
                     Spacer(Modifier.width(6.dp))
-                    Text(if (provider.enabled) "Enabled" else "Disabled", style = MaterialTheme.typography.labelMedium)
+                    Text(if (provider.enabled) "已启用" else "已停用", style = MaterialTheme.typography.labelMedium)
                 }
-                if (!provider.enabled) TextButton(onClick = onSelect) { Text("Enable & use") }
-                onBrowseModels?.let { browse -> TextButton(onClick = browse) { Text("Manage models") } }
+                if (!provider.enabled) TextButton(onClick = onSelect) { Text("启用并使用") }
+                onBrowseModels?.let { browse -> TextButton(onClick = browse) { Text("管理模型") } }
             }
         }
     }

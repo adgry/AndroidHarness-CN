@@ -18,16 +18,16 @@ object ProviderHeaders {
         "host", "content-type", "content-length", "connection", "transfer-encoding", "upgrade", "trailer")
 
     fun error(headers: List<ProviderHeader>): String? {
-        if (headers.size > MAX_HEADERS) return "Use at most $MAX_HEADERS custom headers."
+        if (headers.size > MAX_HEADERS) return "最多可添加 $MAX_HEADERS 个自定义请求头。"
         val names = mutableSetOf<String>()
         headers.forEach { header ->
             val name = header.name.trim()
-            if (name.length !in 1..256 || !token.matches(name)) return "Enter a valid header name."
+            if (name.length !in 1..256 || !token.matches(name)) return "请输入有效的请求头名称。"
             val lower = name.lowercase(Locale.ROOT)
-            if (lower in managed) return "Authentication and connection headers are managed by the app."
-            if (!names.add(lower)) return "Each header name must be unique."
+            if (lower in managed) return "身份验证和连接请求头由应用管理。"
+            if (!names.add(lower)) return "请求头名称不能重复。"
             if (header.value.length > 8192 || header.value.any { it != '\t' && it !in ' '..'~' }) {
-                return "Header values must be a single line of HTTP text (up to 8192 characters)."
+                return "请求头值必须为单行 HTTP 文本，最多 8192 个字符。"
             }
         }
         return null

@@ -155,7 +155,7 @@ class WorkspaceManager(
         // migrate: first access creates the app workspace project
         val project = existing.firstOrNull() ?: ProjectEntity(
             id = UUID.randomUUID().toString(),
-            name = "App workspace",
+            name = "应用工作区",
             kind = KIND_APP,
             uri = null,
             lastUsedAt = System.currentTimeMillis(),
@@ -331,29 +331,29 @@ class WorkspaceManager(
         val shellCapable: Boolean
         when (project.kind) {
             KIND_SSH -> {
-                kindLabel = "SSH workspace"
-                kindSub = "Files, terminal and Git on the connected host"
+                kindLabel = "SSH 工作区"
+                kindSub = "在连接的主机上使用文件、终端与 Git"
                 shellCapable = true
             }
             KIND_APP -> {
-                kindLabel = "App workspace"
-                kindSub = "Private app folder: shell always works, safest option"
+                kindLabel = "应用工作区"
+                kindSub = "应用私有文件夹：可直接使用 Shell，最安全的选项"
                 shellCapable = true
             }
             KIND_SHELL -> {
-                kindLabel = "Device folder"
-                kindSub = "Real path: full shell, needs storage access or Shizuku"
+                kindLabel = "设备文件夹"
+                kindSub = "实际路径：完整 Shell，需要存储访问权限或 Shizuku"
                 shellCapable = true
             }
             else -> {
                 val real = project.uri?.let { writablePickedFolder(it.toUri()) }
                 if (real != null) {
-                    kindLabel = "Picked folder"
-                    kindSub = "Mapped to $real. File tools and shell share this tree."
+                    kindLabel = "已选择的文件夹"
+                    kindSub = "已映射到 $real，文件工具和 Shell 共用此目录树。"
                     shellCapable = true
                 } else {
-                    kindLabel = "Picked folder"
-                    kindSub = "Picker access: file tools only. Use the app workspace for shell commands."
+                    kindLabel = "已选择的文件夹"
+                    kindSub = "选择器访问：仅支持文件工具。运行 Shell 命令请使用应用工作区。"
                     shellCapable = false
                 }
             }

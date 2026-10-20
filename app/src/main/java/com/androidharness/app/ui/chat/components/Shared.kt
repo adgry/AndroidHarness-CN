@@ -145,7 +145,7 @@ internal fun ClickableOutput(
         }
         if (lines.size > 200) {
             Text(
-                "[${lines.size - 200} more lines]",
+                "[另有 ${lines.size - 200} 行]",
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )

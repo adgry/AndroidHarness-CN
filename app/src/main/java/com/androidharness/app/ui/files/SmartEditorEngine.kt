@@ -43,7 +43,7 @@ internal class SmartEditorEngine(private val context: Context) : AutoCloseable {
     }
 
     private fun start() {
-        check(!closed) { "The editor language service is closed. Reopen the editor to retry." }
+        check(!closed) { "编辑器语言服务已关闭，请重新打开编辑器后重试。" }
         failure?.let { error(it) }
         if (view != null) return
         val loader = WebViewAssetLoader.Builder().addPathHandler("/assets/", WebViewAssetLoader.AssetsPathHandler(context)).build()
@@ -82,10 +82,10 @@ internal class SmartEditorEngine(private val context: Context) : AutoCloseable {
                     return WebResourceResponse("text/plain", "utf-8", 403, "Blocked", emptyMap(), ByteArrayInputStream(ByteArray(0)))
                 }
                 override fun onReceivedError(view: WebView, request: WebResourceRequest, error: android.webkit.WebResourceError) {
-                    if (request.isForMainFrame) fail("The local language service could not start. Reopen the editor to retry.")
+                    if (request.isForMainFrame) fail("本地语言服务无法启动，请重新打开编辑器后重试。")
                 }
                 override fun onRenderProcessGone(view: WebView, detail: android.webkit.RenderProcessGoneDetail): Boolean {
-                    fail("The local language service stopped. Reopen the editor to retry.")
+                    fail("本地语言服务已停止，请重新打开编辑器后重试。")
                     return true
                 }
             }
@@ -123,12 +123,12 @@ internal class SmartEditorEngine(private val context: Context) : AutoCloseable {
         // Preserve caller cancellation; service timeouts should surface as an actionable UI error.
         currentCoroutineContext().ensureActive()
         close()
-        throw IllegalStateException("The local language service timed out. Reopen the editor to retry.", e)
+        throw IllegalStateException("本地语言服务超时，请重新打开编辑器后重试。", e)
     }
 
     override fun close() {
         closed = true
-        fail("The editor was closed.")
+        fail("编辑器已关闭。")
         view?.apply { removeJavascriptInterface("EditorBridge"); stopLoading(); destroy() }
         view = null
         previous = emptyMap()

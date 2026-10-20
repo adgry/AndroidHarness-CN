@@ -86,7 +86,7 @@ internal fun WorkspaceEditorScreen(
                 }
             }
             workspace = state
-        } catch (e: Exception) { if (e is CancellationException) throw e; failure = e.message ?: "Could not restore editor tabs." }
+        } catch (e: Exception) { if (e is CancellationException) throw e; failure = e.message ?: "无法恢复编辑器标签页。" }
     }
     val state = workspace
     DisposableEffect(state) { onDispose { state?.let(container.editorTabs::persist) } }
@@ -131,28 +131,28 @@ internal fun WorkspaceEditorScreen(
     }
     fun runCommand(action: (() -> Unit)?) { tools = null; action?.invoke() }
     val commands = listOf(
-        WorkspaceCommand("Save file", "Save the active document · Ctrl+S", Icons.Outlined.Save) { runCommand(actions.save) },
-        WorkspaceCommand("Find in current file", "Search inside the active editor", Icons.Outlined.FindInPage) { runCommand(actions.find) },
-        WorkspaceCommand("Go to line", "Jump to a line in the active document", Icons.Outlined.FormatListNumbered) { runCommand(actions.goToLine) },
-        WorkspaceCommand("Toggle word wrap", "Wrap long lines in the editor", Icons.Outlined.WrapText) { runCommand(actions.toggleWrap) },
+        WorkspaceCommand("保存文件", "保存当前文档 · Ctrl+S", Icons.Outlined.Save) { runCommand(actions.save) },
+        WorkspaceCommand("在当前文件中查找", "在当前编辑器内搜索", Icons.Outlined.FindInPage) { runCommand(actions.find) },
+        WorkspaceCommand("转到行", "跳转到当前文档中的一行", Icons.Outlined.FormatListNumbered) { runCommand(actions.goToLine) },
+        WorkspaceCommand("切换自动换行", "编辑器内长行自动换行", Icons.Outlined.WrapText) { runCommand(actions.toggleWrap) },
     ).filter { actions.textAvailable } + listOfNotNull(
-        active?.takeIf { SmartEditorSupport.outline(it) }?.let { WorkspaceCommand("Code outline", "Jump to a function, class or document symbol", Icons.Outlined.AccountTree) { runCommand(actions.outline) } },
-        active?.takeIf { SmartEditorSupport.format(it) }?.let { WorkspaceCommand("Format Document", "Format the draft · Undo available", Icons.Outlined.AutoFixHigh) { runCommand(actions.format) } },
-        active?.takeIf { SmartEditorSupport.navigation(it) }?.let { WorkspaceCommand("Go to Definition", "Open the symbol's project definition", Icons.Outlined.SubdirectoryArrowRight) { runCommand(actions.definition) } },
-        active?.takeIf { SmartEditorSupport.navigation(it) }?.let { WorkspaceCommand("Find References", "Find uses of this symbol", Icons.Outlined.ManageSearch) { runCommand(actions.references) } },
-        active?.takeIf { SmartEditorSupport.rename(it) }?.let { WorkspaceCommand("Rename Symbol", "Review semantic edits across the project", Icons.Outlined.DriveFileRenameOutline) { runCommand(actions.rename) } },
+        active?.takeIf { SmartEditorSupport.outline(it) }?.let { WorkspaceCommand("代码大纲", "跳转到函数、类或文档符号", Icons.Outlined.AccountTree) { runCommand(actions.outline) } },
+        active?.takeIf { SmartEditorSupport.format(it) }?.let { WorkspaceCommand("格式化文档", "格式化草稿 · 可撤销", Icons.Outlined.AutoFixHigh) { runCommand(actions.format) } },
+        active?.takeIf { SmartEditorSupport.navigation(it) }?.let { WorkspaceCommand("转到定义", "打开符号在项目中的定义", Icons.Outlined.SubdirectoryArrowRight) { runCommand(actions.definition) } },
+        active?.takeIf { SmartEditorSupport.navigation(it) }?.let { WorkspaceCommand("查找引用", "查找此符号的用法", Icons.Outlined.ManageSearch) { runCommand(actions.references) } },
+        active?.takeIf { SmartEditorSupport.rename(it) }?.let { WorkspaceCommand("重命名符号", "审阅整个项目中的语义编辑", Icons.Outlined.DriveFileRenameOutline) { runCommand(actions.rename) } },
     ).filter { actions.textAvailable } + listOf(
-        WorkspaceCommand("Open files", "Switch or close an editor tab", Icons.Outlined.Tab) { tools = null; openFiles = true },
-    ) + listOfNotNull(onOpenTerminal?.let { action -> WorkspaceCommand("Open terminal", "Terminal for this workspace", Icons.Outlined.Terminal) { tools = null; actions.close?.invoke(action) ?: action() } })
+        WorkspaceCommand("打开文件", "切换或关闭编辑器标签页", Icons.Outlined.Tab) { tools = null; openFiles = true },
+    ) + listOfNotNull(onOpenTerminal?.let { action -> WorkspaceCommand("打开终端", "此工作区的终端", Icons.Outlined.Terminal) { tools = null; actions.close?.invoke(action) ?: action() } })
     val chrome: @Composable () -> Unit = {
         Column {
-            AppHeader(title = "Editor", subtitle = if(state?.paths?.size == 1) active else project?.name ?: identity?.substringBefore(" [primary=")?.substringAfterLast('/') ?: "Workspace", onBack = { actions.close?.invoke(onBack) ?: onBack() },
+            AppHeader(title = "编辑器", subtitle = if(state?.paths?.size == 1) active else project?.name ?: identity?.substringBefore(" [primary=")?.substringAfterLast('/') ?: "工作区", onBack = { actions.close?.invoke(onBack) ?: onBack() },
                 actions = {
                     FilledTonalButton(onClick = { openFiles = true }, contentPadding = PaddingValues(horizontal = 12.dp),
-                        modifier = Modifier.heightIn(min = 44.dp).semantics { contentDescription = "Open files, ${state?.paths?.size ?: 0} open" }) {
+                        modifier = Modifier.heightIn(min = 44.dp).semantics { contentDescription = "打开文件，已打开 ${state?.paths?.size ?: 0} 个" }) {
                         Icon(Icons.Outlined.Tab, null, Modifier.size(18.dp)); Spacer(Modifier.width(6.dp)); Text((state?.paths?.size ?: 0).toString())
                     }
-                    ExpressiveIconButton(onClick = { active?.let(::close) }, enabled = active != null && !saving) { Icon(Icons.Outlined.Close, "Close current file") }
+                    ExpressiveIconButton(onClick = { active?.let(::close) }, enabled = active != null && !saving) { Icon(Icons.Outlined.Close, "关闭当前文件") }
                 })
             if (state != null && state.paths.size > 1) {
                 val selected = state.paths.indexOf(active).coerceAtLeast(0)
@@ -160,7 +160,7 @@ internal fun WorkspaceEditorScreen(
                     containerColor = MaterialTheme.colorScheme.surfaceContainerLow, divider = { HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant) }) {
                     state.paths.forEach { tab ->
                         val unsaved = state.buffers[tab]?.dirty?.value == true
-                        Tab(selected = tab == active, enabled = !saving, onClick = { select(tab) }, modifier = Modifier.semantics { contentDescription = "Tab $tab${if(unsaved) ", unsaved changes" else ""}" },
+                        Tab(selected = tab == active, enabled = !saving, onClick = { select(tab) }, modifier = Modifier.semantics { contentDescription = "标签页 $tab${if(unsaved) "，有未保存的更改" else ""}" },
                             text = {
                                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(7.dp)) {
                                     Text(tab.substringAfterLast('/'), maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.widthIn(max = 170.dp))
@@ -175,7 +175,7 @@ internal fun WorkspaceEditorScreen(
                     Text(active.orEmpty(), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 }
             }
-            if(state?.persistenceError != null) Text("Open tabs could not be saved. Your editor drafts are kept.",
+            if(state?.persistenceError != null) Text("无法保存打开的标签页，编辑器草稿已保留。",
                 Modifier.padding(horizontal = 16.dp, vertical = 6.dp), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
         }
     }
@@ -199,7 +199,7 @@ internal fun WorkspaceEditorScreen(
                     when {
                         failure != null -> Text(failure.orEmpty(), color = MaterialTheme.colorScheme.error)
                         state == null -> CircularProgressIndicator()
-                        else -> { Icon(Icons.Outlined.Description, null, Modifier.size(32.dp)); Spacer(Modifier.height(12.dp)); Text("No files open", style = MaterialTheme.typography.titleMedium); Spacer(Modifier.height(16.dp)); Button(onClick = { tools = WorkspaceToolMode.FILES }) { Text("Open a file") } }
+                        else -> { Icon(Icons.Outlined.Description, null, Modifier.size(32.dp)); Spacer(Modifier.height(12.dp)); Text("没有打开的文件", style = MaterialTheme.typography.titleMedium); Spacer(Modifier.height(16.dp)); Button(onClick = { tools = WorkspaceToolMode.FILES }) { Text("打开文件") } }
                     }
                 }
             }
@@ -207,8 +207,8 @@ internal fun WorkspaceEditorScreen(
         if(openFiles && state != null) ModalBottomSheet(onDismissRequest = { openFiles = false }, sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
             shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp), containerColor = MaterialTheme.colorScheme.surfaceContainerLow) {
             Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp)) {
-                Text("Open files", style = MaterialTheme.typography.titleLargeEmphasized)
-                Text("${state.paths.size} open · ${state.paths.count { state.buffers[it]?.dirty?.value == true }} unsaved", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text("打开文件", style = MaterialTheme.typography.titleLargeEmphasized)
+                Text("已打开 ${state.paths.size} 个 · ${state.paths.count { state.buffers[it]?.dirty?.value == true }} 个未保存", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 Spacer(Modifier.height(12.dp))
                 LazyColumn(Modifier.heightIn(max = 420.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     items(state.paths, key = { it }) { tab ->
@@ -226,14 +226,14 @@ internal fun WorkspaceEditorScreen(
                                         }
                                     }
                                 }
-                                ExpressiveIconButton(onClick = { close(tab) }) { Icon(Icons.Outlined.Close, "Close tab $tab") }
+                                ExpressiveIconButton(onClick = { close(tab) }) { Icon(Icons.Outlined.Close, "关闭标签页 $tab") }
                             }
                         }
                     }
                 }
                 Spacer(Modifier.height(8.dp)); HorizontalDivider()
                 TextButton(onClick = { openFiles = false; tools = WorkspaceToolMode.FILES }, modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)) {
-                    Icon(Icons.Outlined.FolderOpen, null, Modifier.size(18.dp)); Spacer(Modifier.width(8.dp)); Text("Open another file")
+                    Icon(Icons.Outlined.FolderOpen, null, Modifier.size(18.dp)); Spacer(Modifier.width(8.dp)); Text("打开其他文件")
                 }
             }
         }

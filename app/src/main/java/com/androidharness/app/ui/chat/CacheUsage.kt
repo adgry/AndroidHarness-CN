@@ -29,10 +29,10 @@ internal data class CacheUsageSummary(
 ) {
     val rate: Double? get() = if (input > 0) cached * 100.0 / input else null
     val label: String get() = when {
-        rate == null -> "Cache unavailable"
-        cached == 0L -> "Cache missed"
-        else -> "Cache hit · ${cachePercentage(cached, input)}%"
-    } + if (unknown > 0 && rate != null) " · partial" else ""
+        rate == null -> "缓存不可用"
+        cached == 0L -> "缓存未命中"
+        else -> "缓存命中 · ${cachePercentage(cached, input)}%"
+    } + if (unknown > 0 && rate != null) " · 部分" else ""
 }
 
 /** Two decimals, reserving 100% for a fully cached prompt and 0% for a true miss. */
@@ -120,21 +120,21 @@ internal fun CacheUsageFooter(rows: List<UsageEventEntity>, running: Boolean = f
             if (indicator.rate != null) {
                 Icon(
                     if (indicator.cached > 0) Icons.Filled.CheckCircle else Icons.Filled.Close,
-                    contentDescription = if (indicator.cached > 0) "Cache hit" else "Cache missed",
+                    contentDescription = if (indicator.cached > 0) "缓存命中" else "缓存未命中",
                     tint = if (indicator.cached > 0) successColor else errorColor,
                     modifier = Modifier.size(14.dp),
                 )
                 Spacer(Modifier.width(4.dp))
             }
             Text(
-                indicator.label + if (running) " · last completed" else "",
+                indicator.label + if (running) " · 上次完成" else "",
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.weight(1f, fill = false),
                 textAlign = TextAlign.End,
             )
             if (rows.isNotEmpty()) Icon(if (expanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
-                if (expanded) "Hide cache details" else "Show cache details",
+                if (expanded) "隐藏缓存详情" else "显示缓存详情",
                 Modifier.padding(start = 2.dp).size(16.dp),
                 tint = MaterialTheme.colorScheme.onSurfaceVariant)
             }
@@ -142,17 +142,17 @@ internal fun CacheUsageFooter(rows: List<UsageEventEntity>, running: Boolean = f
         if (expanded) {
             Column(Modifier.fillMaxWidth().heightIn(max = 200.dp).verticalScroll(rememberScrollState()).padding(8.dp),
                 verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                if (running) Text("Last completed request: ${indicator.label}",
+                if (running) Text("上次完成的请求：${indicator.label}",
                     style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                val costLabel = if (summary.cached > 0) "Cache-hit cost this turn" else "Input cost this turn"
-                Text("$costLabel: ${total?.let { "est. ${cacheMoney(it)}" } ?: "unavailable"}",
+                val costLabel = if (summary.cached > 0) "此轮缓存命中费用" else "此轮输入费用"
+                Text("$costLabel: ${total?.let { "约 ${cacheMoney(it)}" } ?: "不可用"}",
                     style = MaterialTheme.typography.bodySmall)
-                Text("${summary.cached} of ${summary.input} input tokens served from cache",
+                Text("${summary.input} 个输入 Token 中有 ${summary.cached} 个来自缓存",
                     style = MaterialTheme.typography.bodySmall)
-                Text(if (summary.cached > 0) "Estimated cached reads only, excluding output and cache writes."
-                    else "Estimated uncached input and cache writes, excluding output.",
+                Text(if (summary.cached > 0) "仅估算缓存读取费用，不含输出和缓存写入。"
+                    else "估算未缓存输入与缓存写入费用，不含输出。",
                     style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                if (summary.unknown > 0) Text("${summary.unknown} requests did not report cache usage; excluded from the rate.",
+                if (summary.unknown > 0) Text("${summary.unknown} 次请求未报告缓存用量，未计入命中率。",
                     style = MaterialTheme.typography.labelSmall)
                 if (rows.size > 1) {
                     HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
@@ -166,18 +166,18 @@ internal fun CacheUsageFooter(rows: List<UsageEventEntity>, running: Boolean = f
                                 if (validCacheUsage(r)) {
                                     Icon(
                                         if (r.cachedTokens > 0) Icons.Filled.CheckCircle else Icons.Filled.Close,
-                                        contentDescription = if (r.cachedTokens > 0) "Cache hit" else "Cache miss",
+                                        contentDescription = if (r.cachedTokens > 0) "缓存命中" else "缓存未命中",
                                         tint = if (r.cachedTokens > 0) successColor else errorColor,
                                         modifier = Modifier.size(12.dp),
                                     )
                                     Spacer(Modifier.width(4.dp))
                                 }
-                                Text("Request ${i + 1}", style = MaterialTheme.typography.labelSmall)
+                                Text("请求 ${i + 1}", style = MaterialTheme.typography.labelSmall)
                             }
                             Text(
-                                if (!validCacheUsage(r)) "Unavailable"
-                                else if (r.cachedTokens > 0) "${r.cachedTokens} cached"
-                                else "0 cached",
+                                if (!validCacheUsage(r)) "不可用"
+                                else if (r.cachedTokens > 0) "${r.cachedTokens} 已缓存"
+                                else "0 已缓存",
                                 style = MaterialTheme.typography.labelSmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )

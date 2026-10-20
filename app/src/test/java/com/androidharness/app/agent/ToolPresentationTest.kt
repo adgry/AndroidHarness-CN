@@ -19,7 +19,7 @@ class ToolPresentationTest {
             call("read_file", "{\"path\":\"app/src/main/ChatScreen.kt\"}"),
         )
 
-        assertEquals("Read ChatScreen.kt", presentation.title)
+        assertEquals("已读取 ChatScreen.kt", presentation.title)
         assertEquals("app/src/main/ChatScreen.kt", presentation.detail)
         assertEquals(ToolActivityKind.READ, presentation.kind)
     }
@@ -31,7 +31,7 @@ class ToolPresentationTest {
             result("one\ntwo\nthree\n"),
         )
 
-        assertEquals("Searched 3 matches", presentation.title)
+        assertEquals("搜索到 3 个匹配项", presentation.title)
         assertEquals(ToolActivityKind.SEARCH, presentation.kind)
     }
 
@@ -39,9 +39,9 @@ class ToolPresentationTest {
     fun `verification commands only report passed when the result succeeded`() {
         val verification = call("shell", "{\"command\":\"./gradlew testDebugUnitTest\"}")
 
-        assertEquals("Run tests", toolPresentation(verification).title)
-        assertEquals("Tests passed", toolPresentation(verification, result("BUILD SUCCESSFUL")).title)
-        assertEquals("Tests failed", toolPresentation(verification, result("BUILD FAILED", error = true)).title)
+        assertEquals("运行测试", toolPresentation(verification).title)
+        assertEquals("测试通过", toolPresentation(verification, result("BUILD SUCCESSFUL")).title)
+        assertEquals("测试失败", toolPresentation(verification, result("BUILD FAILED", error = true)).title)
     }
 
     @Test

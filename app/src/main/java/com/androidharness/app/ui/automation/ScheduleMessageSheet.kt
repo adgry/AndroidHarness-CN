@@ -113,7 +113,7 @@ internal fun ScheduleMessageSheet(
                 preferences.edit().putBoolean("unmetered", unmetered).apply()
                 onSaved(task)
                 onDismiss()
-            } catch (e: Exception) { error = e.message ?: "Could not save schedule" }
+            } catch (e: Exception) { error = e.message ?: "无法保存定时安排" }
             finally { saving = false }
         }
     }
@@ -123,7 +123,7 @@ internal fun ScheduleMessageSheet(
             onSelect = { id, selected -> providerId = id; model = selected ?: providers.firstOrNull { it.id == id }?.model; page = SchedulePage.DETAILS },
             onRefreshCatalog = { id ->
                 val selected = providers.firstOrNull { it.id == id }
-                if (selected == null) "Provider unavailable" else {
+                if (selected == null) "服务商不可用" else {
                     val key = if (id == com.androidharness.app.llm.HarnessProvider.ID) container.providers.harnessApiKey()
                         else selected.effectiveApiKey(container.providers.apiKey(id))
                     when (val result = com.androidharness.app.llm.ModelCatalog.listModels(selected, key)) {
@@ -140,19 +140,19 @@ internal fun ScheduleMessageSheet(
             Column(Modifier.fillMaxWidth().heightIn(max = (LocalConfiguration.current.screenHeightDp * 0.88f).dp).imePadding()) {
                 Row(Modifier.fillMaxWidth().padding(start = 12.dp, end = 12.dp, bottom = 8.dp), verticalAlignment = Alignment.CenterVertically) {
                     if (page != SchedulePage.DETAILS) IconButton(onClick = { page = SchedulePage.DETAILS }) {
-                        Icon(Icons.AutoMirrored.Outlined.ArrowBack, "Back to schedule")
+                        Icon(Icons.AutoMirrored.Outlined.ArrowBack, "返回定时安排")
                     }
                     Text(when (page) {
-                        SchedulePage.DETAILS -> if (existing) "Edit schedule" else "Schedule message"
-                        SchedulePage.CHAT -> "Choose chat"
-                        SchedulePage.WORKSPACE -> "Choose workspace"
-                        SchedulePage.PROVIDER -> "Choose provider"
-                        else -> "Choose model"
+                        SchedulePage.DETAILS -> if (existing) "编辑定时安排" else "定时发送消息"
+                        SchedulePage.CHAT -> "选择聊天"
+                        SchedulePage.WORKSPACE -> "选择工作区"
+                        SchedulePage.PROVIDER -> "选择服务商"
+                        else -> "选择模型"
                     }, style = MaterialTheme.typography.titleLarge, modifier = Modifier.weight(1f).padding(start = 8.dp))
                     if (existing && page == SchedulePage.DETAILS) Box {
-                        IconButton(onClick = { showActions = true }) { Icon(Icons.Outlined.MoreVert, "Schedule actions") }
+                        IconButton(onClick = { showActions = true }) { Icon(Icons.Outlined.MoreVert, "定时安排操作") }
                         DropdownMenu(showActions, { showActions = false }) {
-                            DropdownMenuItem(text = { Text(if (initial?.enabled == true) "Pause schedule" else "Resume schedule") },
+                            DropdownMenuItem(text = { Text(if (initial?.enabled == true) "暂停定时安排" else "恢复定时安排") },
                                 onClick = {
                                     showActions = false
                                     scope.launch {
@@ -163,33 +163,33 @@ internal fun ScheduleMessageSheet(
                                         onDismiss()
                                     }
                                 })
-                            DropdownMenuItem(text = { Text("Cancel schedule") }, onClick = { showActions = false; confirmCancel = true })
+                            DropdownMenuItem(text = { Text("取消定时安排") }, onClick = { showActions = false; confirmCancel = true })
                         }
                     }
-                    IconButton(onClick = { if (!saving) onDismiss() }, enabled = !saving) { Icon(Icons.Outlined.Close, "Close schedule") }
+                    IconButton(onClick = { if (!saving) onDismiss() }, enabled = !saving) { Icon(Icons.Outlined.Close, "关闭定时安排") }
                 }
                 LazyColumn(Modifier.weight(1f, fill = false).fillMaxWidth(),
                     contentPadding = PaddingValues(horizontal = 20.dp, vertical = 4.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     if (page == SchedulePage.DETAILS) {
                         item {
-                            OutlinedTextField(prompt, { prompt = it }, label = { Text("Message") },
+                            OutlinedTextField(prompt, { prompt = it }, label = { Text("消息") },
                                 modifier = Modifier.fillMaxWidth(), minLines = 2, maxLines = 4,
                                 enabled = !saving, shape = MaterialTheme.shapes.medium)
                         }
                         item {
                             Surface(color = MaterialTheme.colorScheme.surfaceContainerLow, shape = MaterialTheme.shapes.large) {
                                 Column {
-                                    if (schedule == AutomationSchedule.ONCE) ScheduleRow(Icons.Outlined.CalendarToday, "Date", DateFormat.getDateInstance(DateFormat.MEDIUM).format(Date(at))) {
+                                    if (schedule == AutomationSchedule.ONCE) ScheduleRow(Icons.Outlined.CalendarToday, "日期", DateFormat.getDateInstance(DateFormat.MEDIUM).format(Date(at))) {
                                         focus.clearFocus(); keyboard?.hide(); showDatePicker = true
                                     }
                                     if (schedule == AutomationSchedule.ONCE || schedule == AutomationSchedule.DAILY)
-                                    ScheduleRow(Icons.Outlined.Schedule, "Time", DateFormat.getTimeInstance(DateFormat.SHORT).format(Date(at))) {
-                                        focus.clearFocus(); keyboard?.hide(); showTimePicker = true
-                                    }
+                                        ScheduleRow(Icons.Outlined.Schedule, "时间", DateFormat.getTimeInstance(DateFormat.SHORT).format(Date(at))) {
+                                            focus.clearFocus(); keyboard?.hide(); showTimePicker = true
+                                        }
                                     var expanded by remember { mutableStateOf(false) }
                                     Box {
-                                        ScheduleRow(Icons.Outlined.Repeat, "Repeat", schedule.scheduleLabel()) { expanded = true }
+                                        ScheduleRow(Icons.Outlined.Repeat, "重复", schedule.scheduleLabel()) { expanded = true }
                                         DropdownMenu(expanded, { expanded = false }) {
                                             AutomationSchedule.entries.forEach { option ->
                                                 DropdownMenuItem(text = { Text(option.scheduleLabel()) }, onClick = { schedule = option; expanded = false })
@@ -200,39 +200,39 @@ internal fun ScheduleMessageSheet(
                             }
                         }
                         item {
-                            Text("Connection", style = MaterialTheme.typography.labelLarge)
-                            ConnectionChoice("Any internet", "Mobile data or Wi-Fi", !unmetered) { unmetered = false }
-                            ConnectionChoice("Unmetered only", "Wait for a connection without a data limit", unmetered) { unmetered = true }
+                            Text("连接", style = MaterialTheme.typography.labelLarge)
+                            ConnectionChoice("任何网络", "移动数据或 Wi-Fi", !unmetered) { unmetered = false }
+                            ConnectionChoice("仅不限流量网络", "等待不限流量的网络连接", unmetered) { unmetered = true }
                         }
                         item {
                             Surface(color = MaterialTheme.colorScheme.surfaceContainerLow, shape = MaterialTheme.shapes.large) {
                                 Column {
-                                    ScheduleRow(Icons.AutoMirrored.Outlined.Chat, "Chat", if (sessionId == null) "New chat" else session?.title ?: "Chat unavailable") { page = SchedulePage.CHAT }
-                                    ScheduleRow(Icons.Outlined.Folder, "Workspace", project?.name ?: "Choose workspace", enabled = sessionId == null) { page = SchedulePage.WORKSPACE }
-                                    ScheduleRow(Icons.Outlined.SmartToy, "Model", model ?: "Choose model") { page = SchedulePage.MODEL }
+                                    ScheduleRow(Icons.AutoMirrored.Outlined.Chat, "聊天", if (sessionId == null) "新聊天" else session?.title ?: "聊天不可用") { page = SchedulePage.CHAT }
+                                    ScheduleRow(Icons.Outlined.Folder, "工作区", project?.name ?: "选择工作区", enabled = sessionId == null) { page = SchedulePage.WORKSPACE }
+                                    ScheduleRow(Icons.Outlined.SmartToy, "模型", model ?: "选择模型") { page = SchedulePage.MODEL }
                                 }
                             }
-                            if (sessionId != null) Text("Workspace follows the selected chat.", style = MaterialTheme.typography.labelSmall,
+                            if (sessionId != null) Text("工作区随所选聊天变化。", style = MaterialTheme.typography.labelSmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 6.dp))
                         }
                         item {
-                            Text(if (schedule == AutomationSchedule.MANUAL) "Saved for you to run from Automations."
-                                else "Runs at or after this time when conditions allow.",
+                            Text(if (schedule == AutomationSchedule.MANUAL) "已保存，可从“自动化”中运行。"
+                                else "条件允许时，在此时间或之后运行。",
                                 style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
                         if (schedule == AutomationSchedule.ONCE && at <= System.currentTimeMillis()) item {
-                            Text("Choose a future date and time.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error)
+                            Text("请选择未来的日期和时间。", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error)
                         }
                         error?.let { item { Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error) } }
                     } else {
                         item {
-                            OutlinedTextField(query, { query = it }, placeholder = { Text("Search") }, leadingIcon = { Icon(Icons.Outlined.Search, null) },
+                            OutlinedTextField(query, { query = it }, placeholder = { Text("搜索") }, leadingIcon = { Icon(Icons.Outlined.Search, null) },
                                 modifier = Modifier.fillMaxWidth(), singleLine = true)
                         }
                         if (page == SchedulePage.CHAT) {
-                            item { ScheduleRow(Icons.Outlined.Add, "New chat", "Start a fresh conversation") { sessionId = null; page = SchedulePage.DETAILS } }
+                            item { ScheduleRow(Icons.Outlined.Add, "新聊天", "开始新聊天") { sessionId = null; page = SchedulePage.DETAILS } }
                             items(sessions.filter { it.title.contains(query, ignoreCase = true) }, key = { it.id }) { chat ->
-                                ScheduleRow(Icons.AutoMirrored.Outlined.Chat, chat.title, projects.firstOrNull { it.id == chat.projectId }?.name ?: "Workspace unavailable",
+                                ScheduleRow(Icons.AutoMirrored.Outlined.Chat, chat.title, projects.firstOrNull { it.id == chat.projectId }?.name ?: "工作区不可用",
                                     enabled = projects.any { it.id == chat.projectId }) {
                                     sessionId = chat.id; projectId = chat.projectId; page = SchedulePage.DETAILS
                                 }
@@ -243,7 +243,7 @@ internal fun ScheduleMessageSheet(
                             }
                         } else {
                             items(providers.filter { (it.enabled || query.isNotBlank()) && it.name.contains(query, ignoreCase = true) }, key = { it.id }) { p ->
-                                ScheduleRow(Icons.Outlined.SmartToy, p.name, if (p.enabled) p.model else "Disabled · Enable & use") {
+                                ScheduleRow(Icons.Outlined.SmartToy, p.name, if (p.enabled) p.model else "已停用 · 启用并使用") {
                                     if (!p.enabled) scope.launch { container.providers.setEnabled(p.id, true) }
                                     providerId = p.id; model = p.model; page = SchedulePage.MODEL }
                             }
@@ -254,7 +254,7 @@ internal fun ScheduleMessageSheet(
                     Button(onClick = ::save, enabled = valid && !saving,
                         modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 12.dp).heightIn(min = 48.dp)) {
                         if (saving) CircularProgressIndicator(Modifier.size(18.dp), strokeWidth = 2.dp)
-                        else Text(if (existing) "Save changes" else if (schedule == AutomationSchedule.MANUAL) "Save task" else "Schedule")
+                        else Text(if (existing) "保存更改" else if (schedule == AutomationSchedule.MANUAL) "保存任务" else "定时安排")
                     }
                 } else Spacer(Modifier.height(16.dp))
             }
@@ -274,31 +274,31 @@ internal fun ScheduleMessageSheet(
                         .atTime(date.toLocalTime()).atZone(zone).toInstant().toEpochMilli()
                 }
                 showDatePicker = false
-            }, enabled = picker.selectedDateMillis != null) { Text("Done") } },
-            dismissButton = { TextButton(onClick = { showDatePicker = false }) { Text("Cancel") } }) {
+            }, enabled = picker.selectedDateMillis != null) { Text("完成") } },
+            dismissButton = { TextButton(onClick = { showDatePicker = false }) { Text("取消") } }) {
             DatePicker(picker, showModeToggle = true,
                 modifier = Modifier.heightIn(max = (LocalConfiguration.current.screenHeightDp * .65f).dp).verticalScroll(rememberScrollState()))
         }
     }
     if (showTimePicker) {
         val picker = rememberTimePickerState(date.hour, date.minute, android.text.format.DateFormat.is24HourFormat(context))
-        AlertDialog(onDismissRequest = { showTimePicker = false }, title = { Text("Choose time") },
+        AlertDialog(onDismissRequest = { showTimePicker = false }, title = { Text("选择时间") },
             text = { TimeInput(picker) },
             confirmButton = { TextButton(onClick = {
                 at = date.withHour(picker.hour).withMinute(picker.minute).withSecond(0).withNano(0).toInstant().toEpochMilli()
                 showTimePicker = false
-            }) { Text("Done") } },
-            dismissButton = { TextButton(onClick = { showTimePicker = false }) { Text("Cancel") } })
+            }) { Text("完成") } },
+            dismissButton = { TextButton(onClick = { showTimePicker = false }) { Text("取消") } })
     }
-    if (confirmCancel) AlertDialog(onDismissRequest = { confirmCancel = false }, title = { Text("Cancel this schedule?") },
-        text = { Text("Future runs will stop. Chat history and completed work will stay available.") },
+    if (confirmCancel) AlertDialog(onDismissRequest = { confirmCancel = false }, title = { Text("取消此定时安排？") },
+        text = { Text("今后的运行将停止。聊天记录和已完成的工作会保留。") },
         confirmButton = { TextButton(onClick = {
             scope.launch {
                 withContext(Dispatchers.IO) { container.automation.cancel(requireNotNull(initial).id) }
                 onCancel?.invoke(); onDismiss()
             }
-        }) { Text("Cancel schedule") } },
-        dismissButton = { TextButton(onClick = { confirmCancel = false }) { Text("Keep schedule") } })
+        }) { Text("取消定时安排") } },
+        dismissButton = { TextButton(onClick = { confirmCancel = false }) { Text("保留定时安排") } })
 }
 
 @Composable
@@ -330,8 +330,8 @@ private fun ConnectionChoice(title: String, subtitle: String, selected: Boolean,
 }
 
 internal fun AutomationSchedule.scheduleLabel(): String = when (this) {
-    AutomationSchedule.ONCE -> "Once"
-    AutomationSchedule.DAILY -> "Every day"
-    AutomationSchedule.HOURLY -> "Every hour"
-    AutomationSchedule.MANUAL -> "Manual"
+    AutomationSchedule.ONCE -> "一次"
+    AutomationSchedule.DAILY -> "每天"
+    AutomationSchedule.HOURLY -> "每小时"
+    AutomationSchedule.MANUAL -> "手动"
 }

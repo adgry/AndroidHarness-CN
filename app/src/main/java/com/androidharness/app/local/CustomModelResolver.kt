@@ -22,7 +22,7 @@ class CustomModelResolver(private val client: OkHttpClient = OkHttpClient.Builde
         val root = client.newCall(Request.Builder().url(endpoint.build()).build()).execute().use { response ->
             checkResponse(response.code)
             val bytes = readPrefix(checkNotNull(response.body).byteStream(), 6 * 1024 * 1024 + 1)
-            check(bytes.size <= 6 * 1024 * 1024) { "Repository is too large to browse. Paste a direct HTTPS GGUF download link." }
+            check(bytes.size <= 6 * 1024 * 1024) { "仓库过大，无法浏览。请粘贴 GGUF 的 HTTPS 直接下载链接。" }
             Json.parseToJsonElement(bytes.toString(Charsets.UTF_8)).jsonObject
         }
         return if (format == LocalModelFormat.SAFETENSORS) listOf(parseSafetensors(link, root)) else parseRepository(link, root)
@@ -30,9 +30,9 @@ class CustomModelResolver(private val client: OkHttpClient = OkHttpClient.Builde
 
     internal fun parseRepository(link: Link, root: JsonObject): List<LocalModelSpec> {
         val revision = root["sha"]?.jsonPrimitive?.content.orEmpty()
-        require(revision.matches(Regex("[a-f0-9]{40}"))) { "Hugging Face did not return a pinned model revision." }
+        require(revision.matches(Regex("[a-f0-9]{40}"))) { "Hugging Face 未返回固定的模型修订版本。" }
         val license = root["cardData"]?.let { it as? JsonObject }?.get("license")?.let { it as? JsonPrimitive }?.content
-            ?: "See model source for license terms"
+            ?: "许可证条款请参阅模型来源"
         val repo = requireNotNull(link.repository)
         val files = root["siblings"]?.jsonArray.orEmpty().mapNotNull { entry ->
             val obj = entry.jsonObject
@@ -55,8 +55,8 @@ class CustomModelResolver(private val client: OkHttpClient = OkHttpClient.Builde
 
     internal fun parseSafetensors(link: Link, root: JsonObject): LocalModelSpec {
         val revision = root["sha"]?.jsonPrimitive?.content.orEmpty()
-        require(revision.matches(Regex("[a-f0-9]{40}"))) { "The model source did not provide a pinned revision." }
-        val repo = requireNotNull(link.repository) { "Use a Hugging Face repository so config and tokenizer files are included." }
+        require(revision.matches(Regex("[a-f0-9]{40}"))) { "模型来源未提供固定的修订版本。" }
+        val repo = requireNotNull(link.repository) { "请使用 Hugging Face 仓库，以包含配置和分词器文件。" }
         val folder = link.file?.substringBeforeLast('/', "").orEmpty()
         val files = root["siblings"]?.jsonArray.orEmpty().mapNotNull { entry ->
             val obj = entry.jsonObject
@@ -78,7 +78,7 @@ class CustomModelResolver(private val client: OkHttpClient = OkHttpClient.Builde
         val page = "https://huggingface.co/$repo/tree/$revision"
         val id = MessageDigest.getInstance("SHA-256").digest((page + folder).toByteArray()).take(16).joinToString("") { "%02x".format(it) }
         return LocalModelSpec("custom-$id", repo.substringAfter('/'), repo, revision, "model.safetensors", selectedFiles.sumOf { it.bytes }, "",
-            1, 256 * 1024, "Safetensors converted on this device to Q4 GGUF. Tools depend on the model's chat template and training.",
+            1, 256 * 1024, "Safetensors 会在此设备上转换为 Q4 GGUF。工具调用取决于模型的聊天模板和训练。",
             sourcePage = page, downloadUrl = page, custom = true, format = LocalModelFormat.SAFETENSORS, assets = selectedFiles)
     }
 
@@ -86,7 +86,7 @@ class CustomModelResolver(private val client: OkHttpClient = OkHttpClient.Builde
         val link = parseLink(text, projector = true)
         val url = link.url.toHttpUrlOrNull()!!.newBuilder()
         if (link.repository != null) {
-            require(link.file != null) { "Paste the matching projector file link, not a repository page." }
+            require(link.file != null) { "请粘贴匹配的视觉投影器文件链接，而不是仓库页面。" }
             url.encodedPath("/${link.repository}/resolve/${link.revision}/${link.file}")
         }
         val model = inspect(spec(url.build().toString(), link.file?.substringAfterLast('/') ?: "mmproj.gguf", 24, "", text))
@@ -98,11 +98,11 @@ class CustomModelResolver(private val client: OkHttpClient = OkHttpClient.Builde
         val request = Request.Builder().url(model.url).header("Range", "bytes=0-${GgufMetadata.PROBE_BYTES - 1}").build()
         return client.newCall(request).execute().use { response ->
             checkResponse(response.code)
-            val body = checkNotNull(response.body) { "Empty model response." }
+            val body = checkNotNull(response.body) { "模型响应为空。" }
             val size = if (response.code == 206) response.header("Content-Range")?.substringAfterLast('/')?.toLongOrNull()
                 else body.contentLength().takeIf { it > 0 }
-            require(size != null && size >= 24) { "The server must provide the complete GGUF file size." }
-            require(model.bytes == 24L || model.bytes == size) { "The file size changed. Paste the link again." }
+            require(size != null && size >= 24) { "服务器必须提供完整的 GGUF 文件大小。" }
+            require(model.bytes == 24L || model.bytes == size) { "文件大小已更改，请重新粘贴链接。" }
             val estimate = body.byteStream().use { GgufMetadata.inspect(readPrefix(it, GgufMetadata.PROBE_BYTES)) }
             model.copy(bytes = size, kvBytesPerToken = estimate.kvBytesPerToken, maxContext = estimate.maxContext)
         }
@@ -111,35 +111,35 @@ class CustomModelResolver(private val client: OkHttpClient = OkHttpClient.Builde
     private fun spec(url: String, title: String, size: Long, hash: String, page: String): LocalModelSpec {
         val id = MessageDigest.getInstance("SHA-256").digest(url.toByteArray()).take(16).joinToString("") { "%02x".format(it) }
         return LocalModelSpec("custom-$id", title.removeSuffix(".gguf"), "", "", title, size, hash,
-            1, 256 * 1024, "Custom GGUF. Requires a chat template supported by the local engine. RAM is estimated from the model header, with a conservative fallback.",
-            "See model source for license terms", url, page, true)
+            1, 256 * 1024, "自定义 GGUF，需要本地引擎支持的聊天模板。内存用量根据模型头估算，无法估算时采用保守值。",
+            "许可证条款请参阅模型来源", url, page, true)
     }
 
     private fun checkResponse(code: Int) {
         check(code in 200..299) { when (code) {
-            401, 403 -> "This model is private or gated. Use a public GGUF download link."
-            404 -> "Model or file not found. Check the link."
-            429 -> "Download service is busy. Try again later."
-            else -> "Model server returned HTTP $code. Try again later."
+            401, 403 -> "此模型为私有或受限模型，请使用公开的 GGUF 下载链接。"
+            404 -> "未找到模型或文件，请检查链接。"
+            429 -> "下载服务繁忙，请稍后重试。"
+            else -> "模型服务器返回 HTTP $code，请稍后重试。"
         } }
     }
 
     companion object {
         fun parseLink(text: String, format: LocalModelFormat = LocalModelFormat.GGUF, projector: Boolean = false): Link {
-            val url = text.trim().toHttpUrlOrNull() ?: error("Paste a valid Hugging Face or HTTPS GGUF link.")
-            require(url.isHttps && url.username.isEmpty() && url.password.isEmpty()) { "Use an HTTPS link without a username or password." }
+            val url = text.trim().toHttpUrlOrNull() ?: error("请粘贴有效的 Hugging Face 或 GGUF HTTPS 链接。")
+            require(url.isHttps && url.username.isEmpty() && url.password.isEmpty()) { "请使用不包含用户名和密码的 HTTPS 链接。" }
             val clean = url.newBuilder().fragment(null).build()
             val parts = clean.pathSegments.filter { it.isNotEmpty() }
             if (clean.host in listOf("huggingface.co", "www.huggingface.co")) {
-                require(parts.size >= 2 && parts.take(2).all { it.matches(Regex("[A-Za-z0-9_.-]+")) }) { "Paste a Hugging Face model repository or GGUF file link." }
+                require(parts.size >= 2 && parts.take(2).all { it.matches(Regex("[A-Za-z0-9_.-]+")) }) { "请粘贴 Hugging Face 模型仓库或 GGUF 文件链接。" }
                 val repo = parts.take(2).joinToString("/")
                 if (parts.size == 2) return Link(clean.toString(), repo)
-                require(parts.size >= 4 && parts[2] in listOf("blob", "resolve", "tree")) { "Paste a model repository, file page or GGUF download link." }
+                require(parts.size >= 4 && parts[2] in listOf("blob", "resolve", "tree")) { "请粘贴模型仓库、文件页面或 GGUF 下载链接。" }
                 val file = if (parts[2] == "tree") null else parts.drop(4).joinToString("/")
-                require(file == null || (if (format == LocalModelFormat.SAFETENSORS) file.endsWith(".safetensors") else if (projector) file.endsWith(".gguf", true) else isChatFile(file))) { "Choose a single-file chat GGUF, not safetensors, a split model or a vision projector." }
+                require(file == null || (if (format == LocalModelFormat.SAFETENSORS) file.endsWith(".safetensors") else if (projector) file.endsWith(".gguf", true) else isChatFile(file))) { "请选择单文件聊天 GGUF，不要选择 safetensors、分片模型或视觉投影器。" }
                 return Link(clean.toString(), repo, parts[3], file)
             }
-            require(format == LocalModelFormat.GGUF && (if (projector) parts.lastOrNull().orEmpty().endsWith(".gguf", true) else isChatFile(parts.lastOrNull().orEmpty()))) { "This must be a direct link to a single .gguf model file." }
+            require(format == LocalModelFormat.GGUF && (if (projector) parts.lastOrNull().orEmpty().endsWith(".gguf", true) else isChatFile(parts.lastOrNull().orEmpty()))) { "必须是单个 .gguf 模型文件的直接链接。" }
             return Link(clean.toString())
         }
         private fun isChatFile(name: String): Boolean = name.endsWith(".gguf", ignoreCase = true) &&

@@ -20,17 +20,17 @@ class DiagnosticReportTest {
         val unknown = catalogFailure("server returned password=$secret")
         assertEquals(CatalogCheck.FAILED, unknown)
         assertFalse(unknown.detail.contains(secret))
-        assertTrue(CatalogCheck.REACHABLE.detail.contains("quota have not been tested"))
+        assertTrue(CatalogCheck.REACHABLE.detail.contains("尚未测试模型生成能力和配额"))
     }
 
     @Test fun reportsIncludeScopeAndOptionalStatusWithoutRawConfiguration() {
         val report = diagnosticReport("2.1", 35, linkedMapOf(DiagnosticArea.PROVIDER to DiagnosticState.REACHABLE,
             DiagnosticArea.STORAGE to DiagnosticState.ISSUE, DiagnosticArea.NOTIFICATIONS to DiagnosticState.OFF), 3, 2)
-        assertTrue(report.contains("Scope: default provider and default workspace"))
-        assertTrue(report.contains("Storage access: Needs attention"))
-        assertTrue(report.contains("Notifications: Off"))
-        assertTrue(report.contains("Saved providers: 3"))
-        assertTrue(report.contains("Catalog access does not confirm model generation"))
+        assertTrue(report.contains("范围：默认提供商和默认工作区"))
+        assertTrue(report.contains("存储访问: 需要处理"))
+        assertTrue(report.contains("通知: 关闭"))
+        assertTrue(report.contains("已保存提供商：3"))
+        assertTrue(report.contains("目录可访问不代表模型可生成内容"))
         assertFalse(report.contains("http"))
     }
 

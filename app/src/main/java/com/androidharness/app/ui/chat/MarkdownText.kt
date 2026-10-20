@@ -466,7 +466,7 @@ private fun TableBlock(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Text(
-                    "Table · ${table.rows.size} rows",
+                    "表格 · ${table.rows.size} 行",
                     style = MaterialTheme.typography.labelMedium,
                     color = scheme.onSurfaceVariant,
                     modifier = Modifier.weight(1f),
@@ -482,7 +482,7 @@ private fun TableBlock(
                         modifier = Modifier.size(14.dp),
                     )
                     Spacer(Modifier.width(6.dp))
-                    Text(if (copied) "Copied" else "Copy table")
+                    Text(if (copied) "已复制" else "复制表格")
                 }
             }
             HorizontalDivider(color = scheme.outlineVariant.copy(alpha = 0.4f))
@@ -700,7 +700,7 @@ private fun CodeBlock(code: String, language: String) {
                 ) {
                     Icon(
                         if (copied) Icons.Filled.Check else Icons.Filled.ContentCopy,
-                        contentDescription = "Copy code",
+                        contentDescription = "复制代码",
                         tint = if (copied) scheme.primary else scheme.onSurfaceVariant,
                         modifier = Modifier.size(16.dp),
                     )
@@ -722,7 +722,7 @@ private fun CodeBlock(code: String, language: String) {
                         .align(Alignment.End)
                         .padding(end = 8.dp, bottom = 6.dp),
                 ) {
-                    Text("+ $hiddenCount more lines")
+                    Text("另有 $hiddenCount 行")
                 }
             }
         }

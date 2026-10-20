@@ -46,7 +46,7 @@ class AutomationAiPlanner(private val c: AppContainer) {
         selectedProviderId: String? = null,
         selectedModel: String? = null,
     ): AutomationAiReply {
-        require(turns.isNotEmpty()) { "Tell AI what you want to automate." }
+        require(turns.isNotEmpty()) { "请告诉 AI 你想自动化什么。" }
 
         val settings = c.settings.settings.first()
         val providerId = selectedProviderId ?: if (settings.planningModelsEnabled) {
@@ -55,7 +55,7 @@ class AutomationAiPlanner(private val c: AppContainer) {
             settings.activeProviderId
         }
         val provider = c.providers.providers.first().firstOrNull { it.id == providerId }
-            ?: error("Choose an AI provider in Settings first.")
+            ?: error("请先在设置中选择 AI 服务商。")
         val requestedModel = selectedModel?.takeIf { it.isNotBlank() }
             ?: if (selectedProviderId == null) {
                 (if (settings.planningModelsEnabled) settings.executionModel else settings.activeModel)
@@ -64,7 +64,7 @@ class AutomationAiPlanner(private val c: AppContainer) {
         val model = c.providers.resolveHarnessConfig(provider.copy(model = requestedModel)).model
         val apiKey = if (provider.id == HarnessProvider.ID) c.providers.harnessApiKey()
         else provider.effectiveApiKey(c.providers.apiKey(provider.id))
-            .takeIf { it.isNotBlank() } ?: error("Provider credentials are missing.")
+            .takeIf { it.isNotBlank() } ?: error("缺少服务商凭据。")
 
         if (provider.id == HarnessProvider.ID) {
             if (c.providers.wire(model) == null && !HarnessProvider.isPooled(model)) {
@@ -94,7 +94,7 @@ class AutomationAiPlanner(private val c: AppContainer) {
                 else -> Unit
             }
         }
-        check(output.isNotBlank()) { "AI returned an empty response." }
+        check(output.isNotBlank()) { "AI 返回了空回复。" }
         return parse(output.toString(), zone, now)
     }
 
@@ -156,33 +156,33 @@ class AutomationAiPlanner(private val c: AppContainer) {
                 .trim()
             val start = clean.indexOf('{')
             val end = clean.lastIndexOf('}')
-            require(start >= 0 && end > start) { "AI returned an invalid automation response." }
+            require(start >= 0 && end > start) { "AI 返回的自动化回复无效。" }
             val obj = json.parseToJsonElement(clean.substring(start, end + 1)).jsonObject
             return when (obj["type"]?.jsonPrimitive?.contentOrNull?.lowercase()) {
                 "question" -> {
                     val message = obj["message"]?.jsonPrimitive?.contentOrNull.orEmpty().trim()
-                    require(message.isNotBlank()) { "AI returned an empty question." }
+                    require(message.isNotBlank()) { "AI 返回了空问题。" }
                     AutomationAiReply.Question(message)
                 }
                 "draft" -> {
                     val title = obj["title"]?.jsonPrimitive?.contentOrNull.orEmpty().trim()
                     val prompt = obj["prompt"]?.jsonPrimitive?.contentOrNull.orEmpty().trim()
-                    require(title.isNotBlank() && prompt.isNotBlank()) { "AI returned an incomplete automation." }
+                    require(title.isNotBlank() && prompt.isNotBlank()) { "AI 返回的自动化不完整。" }
                     val schedule = runCatching {
                         AutomationSchedule.valueOf(obj["schedule"]?.jsonPrimitive?.contentOrNull.orEmpty().uppercase())
-                    }.getOrElse { throw IllegalArgumentException("AI returned an unsupported schedule.") }
+                    }.getOrElse { throw IllegalArgumentException("AI 返回了不支持的定时安排。") }
                     val hour = obj["hour"]?.jsonPrimitive?.intOrNull ?: 8
                     val minute = obj["minute"]?.jsonPrimitive?.intOrNull ?: 0
-                    require(hour in 0..23 && minute in 0..59) { "AI returned an invalid time." }
+                    require(hour in 0..23 && minute in 0..59) { "AI 返回的时间无效。" }
                     val scheduledAt = if (schedule == AutomationSchedule.ONCE) {
                         val date = obj["date"]?.jsonPrimitive?.contentOrNull.orEmpty()
                         val instant = LocalDate.parse(date).atTime(hour, minute).atZone(zone)
-                        require(instant.isAfter(now)) { "AI chose a time that has already passed." }
+                        require(instant.isAfter(now)) { "AI 选择的时间已经过去。" }
                         instant.toInstant().toEpochMilli()
                     } else null
                     val message = obj["message"]?.jsonPrimitive?.contentOrNull.orEmpty().trim()
                     AutomationAiReply.Draft(
-                        message = message.ifBlank { "Your automation is ready to review." },
+                        message = message.ifBlank { "自动化已准备好，请审阅。" },
                         automation = AutomationAiDraft(
                             title = title,
                             prompt = prompt,
@@ -194,7 +194,7 @@ class AutomationAiPlanner(private val c: AppContainer) {
                         ),
                     )
                 }
-                else -> throw IllegalArgumentException("AI returned an invalid automation response.")
+                else -> throw IllegalArgumentException("AI 返回的自动化回复无效。")
             }
         }
     }

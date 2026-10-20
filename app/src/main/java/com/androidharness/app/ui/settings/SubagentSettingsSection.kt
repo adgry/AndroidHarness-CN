@@ -18,7 +18,7 @@ internal fun SubagentSettingsSection(
     onSubagentTools: (Boolean) -> Unit,
 ) {
     SettingsPanel(Modifier.fillMaxWidth()) {
-        SettingsAnchor("Subagent action tools") {
+        SettingsAnchor("子代理操作工具") {
             Row(
                 Modifier.fillMaxWidth()
                     .toggleable(settings.subagentFullAccess, role = Role.Switch, onValueChange = onSubagentTools)
@@ -27,9 +27,9 @@ internal fun SubagentSettingsSection(
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
             ) {
                 Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                    Text("Subagent action tools", style = MaterialTheme.typography.titleSmall)
+                    Text("子代理操作工具", style = MaterialTheme.typography.titleSmall)
                     Text(
-                        "Let subagents edit and run commands in Act mode. They follow your permissions; Plan stays read-only.",
+                        "允许子代理在执行模式中编辑文件和运行命令，遵循你的权限设置；规划模式仍为只读。",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )

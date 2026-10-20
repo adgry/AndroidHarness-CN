@@ -27,7 +27,7 @@ object FileOps {
      */
     suspend fun copy(src: FsNode, destDir: FsNode, name: String, preserveAll: Boolean = false): FsNode =
         withContext(Dispatchers.IO) {
-            if (!destDir.isDirectory) throw ToolFailure("Target is not a folder")
+            if (!destDir.isDirectory) throw ToolFailure("目标不是文件夹")
             checkDestination(src, destDir)
             val targetName = uniqueChildName(destDir, name)
             val target = if (src.isDirectory) destDir.createDir(targetName) else destDir.createFile(targetName)
@@ -41,7 +41,7 @@ object FileOps {
      */
     suspend fun move(src: FsNode, destDir: FsNode, name: String): FsNode =
         withContext(Dispatchers.IO) {
-            require(destDir.isDirectory) { "Target is not a folder" }
+            require(destDir.isDirectory) { "目标不是文件夹" }
             checkDestination(src, destDir)
             val srcParent = src.relPath.substringBeforeLast('/', missingDelimiterValue = "")
             val dstParent = destDir.relPath.trim('.').trim('/')
@@ -54,13 +54,13 @@ object FileOps {
                     } else {
                         name
                     }
-                if (!src.renameTo(finalName)) throw ToolFailure("Rename failed for ${src.name}")
+                if (!src.renameTo(finalName)) throw ToolFailure("无法重命名 ${src.name}")
                 return@withContext src.resolveSiblingIn(destDir, finalName)
             }
             val moved = copy(src, destDir, name, preserveAll = true)
             if (!src.delete()) {
                 // Partially moved directories can't be rolled back safely, report.
-                throw ToolFailure("Copied to destination but could not delete the original")
+                throw ToolFailure("已复制到目标位置，但无法删除原文件")
             }
             moved
         }
@@ -69,7 +69,7 @@ object FileOps {
         val source = com.androidharness.app.workspace.normalizeRelPath(src.relPath)
         val target = com.androidharness.app.workspace.normalizeRelPath(dest.relPath)
         require(!src.isDirectory || (source != "." && source != "/" && target != source && !target.startsWith("$source/"))) {
-            "A folder cannot be copied or moved into itself."
+            "文件夹无法复制或移动到自身内部。"
         }
     }
 
@@ -86,7 +86,7 @@ object FileOps {
                 } catch (cancelled: kotlinx.coroutines.CancellationException) {
                     throw cancelled
                 } catch (error: Exception) {
-                    failures[node.relPath] = error.message ?: "Operation failed"
+                    failures[node.relPath] = error.message ?: "操作失败"
                 }
             }
             FileBatchResult(completed, failures)
@@ -94,7 +94,7 @@ object FileOps {
 
     /** Files share as separate attachments; selections containing folders share as one ZIP. */
     suspend fun shareMany(context: Context, nodes: List<FsNode>) {
-        require(nodes.isNotEmpty()) { "Select files to share." }
+        require(nodes.isNotEmpty()) { "请选择要分享的文件。" }
         val archive = nodes.any { it.isDirectory }
         val uris = if (archive) {
             listOf(withContext(Dispatchers.IO) {
@@ -115,12 +115,12 @@ object FileOps {
             }
             if (uris.size == 1) putExtra(Intent.EXTRA_STREAM, uris.first())
             else putParcelableArrayListExtra(Intent.EXTRA_STREAM, ArrayList(uris))
-            clipData = android.content.ClipData.newRawUri("Shared files", uris.first()).apply {
+            clipData = android.content.ClipData.newRawUri("分享的文件", uris.first()).apply {
                 uris.drop(1).forEach { addItem(android.content.ClipData.Item(it)) }
             }
             addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
         }
-        context.startActivity(Intent.createChooser(send, "Share ${nodes.size} items").apply {
+        context.startActivity(Intent.createChooser(send, "分享 ${nodes.size} 项").apply {
             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         })
     }
@@ -128,9 +128,9 @@ object FileOps {
     internal fun writeShareZip(nodes: List<FsNode>, output: java.io.OutputStream) {
         java.util.zip.ZipOutputStream(output).use { zip ->
             fun append(node: FsNode, path: String, depth: Int) {
-                require(depth < 100) { "Folder nesting is too deep to share." }
+                require(depth < 100) { "文件夹嵌套过深，无法分享。" }
                 realFileOrNull(node)?.let {
-                    require(!java.nio.file.Files.isSymbolicLink(it.toPath())) { "Cannot archive symbolic link: ${node.name}" }
+                    require(!java.nio.file.Files.isSymbolicLink(it.toPath())) { "无法打包符号链接：${node.name}" }
                 }
                 if (node.isDirectory) {
                     zip.putNextEntry(java.util.zip.ZipEntry("$path/"))
@@ -139,7 +139,7 @@ object FileOps {
                 } else {
                     zip.putNextEntry(java.util.zip.ZipEntry(path))
                     node.openInputStream()?.use { it.copyTo(zip) }
-                        ?: throw ToolFailure("Could not read ${node.name}")
+                        ?: throw ToolFailure("无法读取 ${node.name}")
                     zip.closeEntry()
                 }
             }
@@ -157,10 +157,10 @@ object FileOps {
         runCatching {
             node.openInputStream()?.use { input ->
                 staged.outputStream().use { output -> input.copyTo(output) }
-            } ?: throw ToolFailure("Could not read ${node.name}")
+            } ?: throw ToolFailure("无法读取 ${node.name}")
         }.onFailure {
             staged.delete()
-            throw ToolFailure("Could not read ${node.name}: ${it.message}")
+            throw ToolFailure("无法读取 ${node.name}：${it.message}")
         }
         FileProvider.getUriForFile(context, "${context.packageName}.update", staged)
     }
@@ -177,7 +177,7 @@ object FileOps {
             putExtra(Intent.EXTRA_TITLE, node.name)
             addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_ACTIVITY_NEW_TASK)
         }
-        context.startActivity(Intent.createChooser(send, "Share ${node.name}"))
+        context.startActivity(Intent.createChooser(send, "分享 ${node.name}"))
     }
 
     /** Stages [node] and lets another app open/view it. */
@@ -188,7 +188,7 @@ object FileOps {
             addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_ACTIVITY_NEW_TASK)
         }
         runCatching { context.startActivity(view) }.onFailure {
-            throw ToolFailure("No app can open ${node.name}")
+            throw ToolFailure("没有可打开 ${node.name} 的应用")
         }
     }
 
@@ -217,7 +217,7 @@ object FileOps {
     private fun transferInto(src: FsNode, target: FsNode, depth: Int = 0, preserveAll: Boolean = false) {
         if (src.isFile) {
             val bytes = src.openInputStream()?.use { it.readBytes() }
-                ?: throw ToolFailure("Could not read ${src.name}")
+                ?: throw ToolFailure("无法读取 ${src.name}")
             target.writeBytes(bytes)
         } else {
             for (child in src.list()) {

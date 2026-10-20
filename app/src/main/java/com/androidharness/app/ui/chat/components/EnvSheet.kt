@@ -69,15 +69,15 @@ fun EnvSheet(
                 .padding(horizontal = 16.dp, vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
-            Text("Linux environment", style = MaterialTheme.typography.titleMedium)
+            Text("Linux 环境", style = MaterialTheme.typography.titleMedium)
             Text(
                 when (envState) {
-                    is EnvState.Ready -> "Installed"
-                    is EnvState.Preparing -> "Resolving packages…"
-                    is EnvState.Downloading -> "Downloading packages…"
-                    is EnvState.Installing -> "Installing packages…"
-                    is EnvState.Failed -> "Failed: ${envState.message}"
-                    EnvState.NotInstalled -> "Not installed"
+                    is EnvState.Ready -> "已安装"
+                    is EnvState.Preparing -> "正在解析软件包…"
+                    is EnvState.Downloading -> "正在下载软件包…"
+                    is EnvState.Installing -> "正在安装软件包…"
+                    is EnvState.Failed -> "失败：${envState.message}"
+                    EnvState.NotInstalled -> "未安装"
                 },
                 style = MaterialTheme.typography.bodySmall,
                 color = if (envState is EnvState.Failed) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant,
@@ -88,7 +88,7 @@ fun EnvSheet(
                     val installed = linuxEnv.installedPackages()
                     if (installed.isNotEmpty()) {
                         Text(
-                            "Packages (${installed.size}): ${installed.joinToString(", ")}",
+                            "软件包（${installed.size}）： ${installed.joinToString(", ")}",
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
@@ -97,7 +97,7 @@ fun EnvSheet(
                         Text(
                             report,
                             style = MaterialTheme.typography.bodySmall,
-                            color = if (report.startsWith("All present")) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.primary,
+                            color = if (report.startsWith("全部可用")) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.primary,
                         )
                     }
                     FlowRow(
@@ -108,7 +108,7 @@ fun EnvSheet(
                         FilledTonalButton(onClick = { showPackagesSheet = true }) {
                             Icon(Icons.Outlined.Inventory2, contentDescription = null, modifier = Modifier.size(16.dp))
                             Spacer(Modifier.width(6.dp))
-                            Text("Packages")
+                            Text("软件包")
                         }
                         OutlinedButton(
                             enabled = !checking,
@@ -119,30 +119,30 @@ fun EnvSheet(
                                     checking = false
                                 }
                             },
-                        ) { Text(if (checking) "Checking…" else "Check missing") }
-                        if (checkResult != null && !checkResult!!.startsWith("All present")) {
+                        ) { Text(if (checking) "正在检查…" else "检查缺失项") }
+                        if (checkResult != null && !checkResult!!.startsWith("全部可用")) {
                             Button(onClick = {
                                 checkResult = null
                                 scope.launch { linuxEnv.updateEnvironment() }
-                            }) { Text("Update") }
+                            }) { Text("更新") }
                         }
                     }
                     OutlinedButton(
                         onClick = { confirmUninstall = true },
                         modifier = Modifier.fillMaxWidth(),
-                    ) { Text("Uninstall") }
+                    ) { Text("卸载") }
                 }
                 is EnvState.NotInstalled, is EnvState.Failed -> {
                     Text(
-                        if (envState is EnvState.Failed) "Fix the issue (usually network) and install again."
-                        else "Installs bash, git, python 3, pip, node.js and npm into private storage.",
+                        if (envState is EnvState.Failed) "请解决问题（通常是网络问题）后重新安装。"
+                        else "将 bash、git、python 3、pip、node.js 和 npm 安装到私有存储。",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                     Button(
                         onClick = { scope.launch { linuxEnv.install(linuxEnv.fullPackages) } },
                         modifier = Modifier.fillMaxWidth(),
-                    ) { Text(if (envState is EnvState.Failed) "Retry install" else "Install full environment") }
+                    ) { Text(if (envState is EnvState.Failed) "重试安装" else "安装完整环境") }
                 }
                 is EnvState.Downloading, is EnvState.Installing, is EnvState.Preparing -> {
                     PackageInstallProgress(envState)
@@ -155,8 +155,8 @@ fun EnvSheet(
     if (confirmUninstall) {
         AlertDialog(
             onDismissRequest = { confirmUninstall = false },
-            title = { Text("Uninstall Linux environment?") },
-            text = { Text("This removes the shared toolchain for every local workspace (bash, git, python, node, npm and all downloaded packages). The agent falls back to toybox sh until it is installed again.") },
+            title = { Text("卸载 Linux 环境？") },
+            text = { Text("这会移除所有本地工作区共用的工具链（bash、git、python、node、npm 和所有已下载软件包）。重新安装前，代理将使用 toybox sh。") },
             confirmButton = {
                 TextButton(onClick = {
                     confirmUninstall = false
@@ -165,10 +165,10 @@ fun EnvSheet(
                         catch (e: kotlinx.coroutines.CancellationException) { throw e }
                         catch (e: Exception) { checkResult = e.message }
                     }
-                }) { Text("Uninstall", color = MaterialTheme.colorScheme.error) }
+                }) { Text("卸载", color = MaterialTheme.colorScheme.error) }
             },
             dismissButton = {
-                TextButton(onClick = { confirmUninstall = false }) { Text("Cancel") }
+                TextButton(onClick = { confirmUninstall = false }) { Text("取消") }
             },
         )
     }

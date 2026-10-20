@@ -191,7 +191,7 @@ fun BuildTestScreen(
         if (url != null && remote == null) { previewTarget = url; launchPending = false }
         else if (!terminalState.busy) {
             launchPending = false
-            launchError = "Project stopped before reporting a preview URL. Check the output below."
+            launchError = "项目在返回预览地址前已停止，请查看下方输出。"
         }
     }
     previewTarget?.let { target ->
@@ -253,12 +253,12 @@ fun BuildTestScreen(
         containerColor = scheme.surface,
         topBar = {
             AppHeader(
-                title = "Build & Test",
-                subtitle = project?.name ?: "Project checks",
+                title = "构建与测试",
+                subtitle = project?.name ?: "项目检查",
                 onBack = onBack,
                 actions = {
                     IconButton(onClick = onOpenTerminal) {
-                        Icon(Icons.Outlined.Terminal, contentDescription = "Open terminal")
+                        Icon(Icons.Outlined.Terminal, contentDescription = "打开终端")
                     }
                 },
             )
@@ -294,18 +294,18 @@ fun BuildTestScreen(
                     colors = CardDefaults.cardColors(containerColor = scheme.surfaceContainerLow),
                     border = BorderStroke(1.dp, scheme.outlineVariant.copy(alpha = 0.55f))) {
                     Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Text("Run & preview", style = MaterialTheme.typography.titleSmall)
+                        Text("运行与预览", style = MaterialTheme.typography.titleSmall)
                         Text(when {
-                            !launchReady -> "Checking project files…"
-                            launchedHere && terminalState.busy -> "Development server is running in Terminal."
-                            remote != null -> "Run scripts on the SSH host. Remote previews need a reachable URL."
-                            launchScripts.isNotEmpty() -> "Runs your project script, then opens the URL reported by the server."
-                            staticPage != null -> "Open this HTML project without installing a runtime."
-                            else -> "No dev, start, or preview script found. Add a project command below."
+                            !launchReady -> "正在检查项目文件…"
+                            launchedHere && terminalState.busy -> "开发服务器正在终端中运行。"
+                            remote != null -> "在 SSH 主机上运行脚本。远程预览需要可访问的网址。"
+                            launchScripts.isNotEmpty() -> "运行项目脚本后，打开服务器返回的网址。"
+                            staticPage != null -> "直接打开此 HTML 项目，无需安装运行时。"
+                            else -> "未找到 dev、start 或 preview 脚本，请在下方添加项目命令。"
                         }, style = MaterialTheme.typography.bodySmall, color = scheme.onSurfaceVariant)
                         if (launchScripts.isNotEmpty()) Box {
                             OutlinedButton(onClick = { launchMenu = true }, enabled = !terminalState.busy) {
-                                Text("Script: $launchScript", maxLines = 1, overflow = TextOverflow.Ellipsis)
+                                Text("脚本：$launchScript", maxLines = 1, overflow = TextOverflow.Ellipsis)
                             }
                             DropdownMenu(expanded = launchMenu, onDismissRequest = { launchMenu = false }) {
                                 launchScripts.forEach { script -> DropdownMenuItem(text = { Text(script) }, onClick = {
@@ -334,15 +334,15 @@ fun BuildTestScreen(
                                     launchPending = remote == null
                                     terminal.send(command, workspace)
                                 }
-                            }) { Text(if (launchScripts.isEmpty()) "Open preview" else "Run project") }
+                            }) { Text(if (launchScripts.isEmpty()) "打开预览" else "运行项目") }
                             if (launchedHere && terminalState.busy) {
-                                TextButton(onClick = { launchPending = false; terminal.stopTerminal(); serverCommand = null }) { Text("Stop") }
+                                TextButton(onClick = { launchPending = false; terminal.stopTerminal(); serverCommand = null }) { Text("停止") }
                             }
                         }
                         if (launchedHere && terminalState.busy && remote == null) {
                             val url = com.androidharness.app.core.ProjectLaunch.previewUrl(terminalState.lines.joinToString("\n"))
-                            if (url != null) TextButton(onClick = { previewTarget = url }) { Text("Open preview") }
-                            else Text("Waiting for a localhost URL in server output. Open Terminal if the server needs input.",
+                            if (url != null) TextButton(onClick = { previewTarget = url }) { Text("打开预览") }
+                            else Text("正在等待服务器输出 localhost 地址。如需输入，请打开终端。",
                                 style = MaterialTheme.typography.bodySmall, color = scheme.onSurfaceVariant)
                         }
                         launchError?.let { Text(it, color = scheme.error, style = MaterialTheme.typography.bodySmall) }
@@ -355,14 +355,14 @@ fun BuildTestScreen(
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Column(Modifier.weight(1f)) {
-                        Text("Saved commands", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+                        Text("已保存命令", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
                         Text(
-                            "One tap checks for this workspace",
+                            "一键检查此工作区",
                             style = MaterialTheme.typography.bodySmall,
                             color = scheme.onSurfaceVariant,
                         )
                     }
-                    TextButton(onClick = { adding = true }) { Text("Add") }
+                    TextButton(onClick = { adding = true }) { Text("添加") }
                 }
             }
 
@@ -374,7 +374,7 @@ fun BuildTestScreen(
                         modifier = Modifier.fillMaxWidth(),
                     ) {
                         Text(
-                            "No saved checks yet. Add the command you use to test or build this project.",
+                            "暂无已保存的检查，请添加测试或构建此项目的命令。",
                             modifier = Modifier.padding(14.dp),
                             style = MaterialTheme.typography.bodyMedium,
                             color = scheme.onSurfaceVariant,
@@ -403,7 +403,7 @@ fun BuildTestScreen(
                         modifier = Modifier.fillMaxWidth(),
                     ) {
                         Text(
-                            "This workspace does not expose a shell path, so build commands cannot run here.",
+                            "此工作区不提供 Shell 路径，无法在此运行构建命令。",
                             modifier = Modifier.padding(16.dp),
                             style = MaterialTheme.typography.bodySmall,
                         )
@@ -415,7 +415,7 @@ fun BuildTestScreen(
                 item {
                     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         Text(
-                            "Errors",
+                            "错误",
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.SemiBold,
                         )
@@ -446,9 +446,9 @@ fun BuildTestScreen(
                             modifier = Modifier.padding(14.dp),
                             verticalArrangement = Arrangement.spacedBy(8.dp),
                         ) {
-                            Text("Let the agent fix this", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+                            Text("让代理修复", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
                             Text(
-                                "The failed command and recent output will be sent into a fresh agent chat.",
+                                "失败的命令和最近输出会发送到新的代理聊天。",
                                 style = MaterialTheme.typography.bodySmall,
                                 color = scheme.onSurfaceVariant,
                             )
@@ -465,7 +465,7 @@ fun BuildTestScreen(
                                 },
                                 modifier = Modifier.fillMaxWidth(),
                             ) {
-                                Text("Fix with agent")
+                                Text("让代理修复")
                             }
                         }
                     }
@@ -533,16 +533,16 @@ private fun RunHeroCard(
                 Column(Modifier.weight(1f)) {
                     Text(
                         when (status) {
-                            RunStatus.IDLE -> "Ready for a clean run"
-                            RunStatus.RUNNING -> "Running ${command?.name.orEmpty()}"
-                            RunStatus.PASSED -> "${command?.name.orEmpty()} passed"
-                            RunStatus.FAILED -> "${command?.name.orEmpty()} failed"
+                            RunStatus.IDLE -> "可以开始新一轮运行"
+                            RunStatus.RUNNING -> "正在运行 ${command?.name.orEmpty()}"
+                            RunStatus.PASSED -> "${command?.name.orEmpty()} 已通过"
+                            RunStatus.FAILED -> "${command?.name.orEmpty()} 失败"
                         },
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.SemiBold,
                     )
                     Text(
-                        workspacePath.ifBlank { "Workspace loading" },
+                        workspacePath.ifBlank { "正在加载工作区" },
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                         style = MaterialTheme.typography.bodySmall,
@@ -553,15 +553,15 @@ private fun RunHeroCard(
             }
 
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                MetricPill("Commands", commandCount.toString(), Modifier.weight(1f))
-                MetricPill("Errors", errorCount.toString(), Modifier.weight(1f))
+                MetricPill("命令", commandCount.toString(), Modifier.weight(1f))
+                MetricPill("错误", errorCount.toString(), Modifier.weight(1f))
                 MetricPill(
-                    "Result",
+                    "结果",
                     when (status) {
-                        RunStatus.IDLE -> "Ready"
+                        RunStatus.IDLE -> "就绪"
                         RunStatus.RUNNING -> formatDuration(elapsedMs)
                         RunStatus.PASSED -> formatDuration(elapsedMs)
-                        RunStatus.FAILED -> exitCode?.let { "Exit $it" } ?: "Failed"
+                        RunStatus.FAILED -> exitCode?.let { "退出码 $it" } ?: "失败"
                     },
                     Modifier.weight(1f),
                 )
@@ -644,15 +644,15 @@ private fun CommandCard(
                 enabled = enabled,
                 modifier = Modifier.heightIn(min = 38.dp),
             ) {
-                Text(if (running) "Running" else "Run")
+                Text(if (running) "运行中" else "运行")
             }
             Box {
                 IconButton(onClick = { menuOpen = true }, modifier = Modifier.size(40.dp)) {
-                    Icon(Icons.Outlined.MoreVert, contentDescription = "Command options", modifier = Modifier.size(19.dp))
+                    Icon(Icons.Outlined.MoreVert, contentDescription = "命令选项", modifier = Modifier.size(19.dp))
                 }
                 DropdownMenu(expanded = menuOpen, onDismissRequest = { menuOpen = false }) {
                     DropdownMenuItem(
-                        text = { Text("Edit") },
+                        text = { Text("编辑") },
                         leadingIcon = { Icon(Icons.Outlined.Edit, contentDescription = null) },
                         onClick = {
                             menuOpen = false
@@ -660,7 +660,7 @@ private fun CommandCard(
                         },
                     )
                     DropdownMenuItem(
-                        text = { Text("Delete") },
+                        text = { Text("删除") },
                         leadingIcon = { Icon(Icons.Outlined.Delete, contentDescription = null) },
                         onClick = {
                             menuOpen = false
@@ -725,9 +725,9 @@ private fun LiveOutputCard(
                     Box(Modifier.size(8.dp))
                 }
                 Spacer(Modifier.width(9.dp))
-                Text("Live output", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
+                Text("实时输出", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
                 Spacer(Modifier.weight(1f))
-                TextButton(onClick = onClear) { Text("Clear") }
+                TextButton(onClick = onClear) { Text("清空") }
             }
             LazyColumn(
                 state = listState,
@@ -741,7 +741,7 @@ private fun LiveOutputCard(
                 if (lines.isEmpty()) {
                     item {
                         Text(
-                            "Run a saved command and its output will appear here.",
+                            "运行已保存的命令后，输出会显示在这里。",
                             style = MaterialTheme.typography.bodySmall,
                             color = scheme.onSurfaceVariant,
                         )
@@ -777,21 +777,21 @@ private fun CommandDialog(
     var command by remember(existing?.id) { mutableStateOf(existing?.command.orEmpty()) }
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(if (existing == null) "Add command" else "Edit command") },
+        title = { Text(if (existing == null) "添加命令" else "编辑命令") },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 OutlinedTextField(
                     value = name,
                     onValueChange = { name = it },
-                    label = { Text("Name") },
-                    placeholder = { Text("Unit tests") },
+                    label = { Text("名称") },
+                    placeholder = { Text("单元测试") },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth(),
                 )
                 OutlinedTextField(
                     value = command,
                     onValueChange = { command = it },
-                    label = { Text("Command") },
+                    label = { Text("命令") },
                     placeholder = { Text("./gradlew test") },
                     minLines = 2,
                     maxLines = 4,
@@ -804,9 +804,9 @@ private fun CommandDialog(
             Button(
                 onClick = { onSave(name.trim(), command.trim()) },
                 enabled = name.isNotBlank() && command.isNotBlank(),
-            ) { Text("Save") }
+            ) { Text("保存") }
         },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text("取消") } },
     )
 }
 
@@ -816,8 +816,8 @@ private fun defaultCommands(workspace: WorkspaceFs?): List<SavedCommand> {
     val hasNpm = runCatching { workspace.resolve("package.json").exists }.getOrDefault(false)
     return buildList {
         if (hasGradle) {
-            add(saved("Tests", "./gradlew test"))
-            add(saved("Debug APK", "./gradlew assembleDebug"))
+            add(saved("测试", "./gradlew test"))
+            add(saved("调试 APK", "./gradlew assembleDebug"))
             add(saved("Lint", "./gradlew lint"))
         }
         if (hasNpm) {
@@ -890,7 +890,7 @@ private fun stripAnsi(value: String): String =
     value.replace(Regex("\\u001B\\[[;\\d]*[ -/]*[@-~]"), "")
 
 private fun formatDuration(ms: Long): String = when {
-    ms < 1_000 -> "${ms}ms"
-    ms < 60_000 -> "${"%.1f".format(ms / 1_000.0)}s"
-    else -> "${ms / 60_000}m ${(ms % 60_000) / 1_000}s"
+    ms < 1_000 -> "${ms} 毫秒"
+    ms < 60_000 -> "${"%.1f".format(ms / 1_000.0)} 秒"
+    else -> "${ms / 60_000} 分 ${(ms % 60_000) / 1_000} 秒"
 }

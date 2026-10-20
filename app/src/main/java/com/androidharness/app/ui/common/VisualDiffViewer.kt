@@ -106,7 +106,7 @@ fun VisualDiffViewer(
                     removed = parsed.totalRemoved.toLong(),
                     onCopy = {
                         clipboard.setText(AnnotatedString(diffText))
-                        Toast.makeText(context, "Diff copied to clipboard", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(context, "差异已复制到剪贴板", Toast.LENGTH_SHORT).show()
                     },
                     onOpenFile = onOpenFile?.let { cb -> { cb(displayPath) } },
                 )
@@ -121,7 +121,7 @@ fun VisualDiffViewer(
                         .padding(12.dp),
                 ) {
                     Text(
-                        diffText.ifBlank { "(empty diff)" },
+                        diffText.ifBlank { "（无差异）" },
                         style = MaterialTheme.typography.bodySmall,
                         fontFamily = HarnessMono,
                         color = scheme.onSurfaceVariant,
@@ -153,7 +153,7 @@ fun VisualDiffViewer(
                                 .padding(horizontal = 12.dp, vertical = 6.dp),
                         ) {
                             Text(
-                                "Diff truncated for display performance",
+                                "为保证显示性能，差异已截断",
                                 style = MaterialTheme.typography.labelSmall,
                                 color = scheme.onSurfaceVariant,
                                 fontFamily = HarnessMono,
@@ -219,7 +219,7 @@ private fun DiffHeaderBar(
         ) {
             Icon(
                 Icons.Default.ContentCopy,
-                contentDescription = "Copy Diff",
+                contentDescription = "复制差异",
                 tint = scheme.onSurfaceVariant,
                 modifier = Modifier.size(16.dp),
             )
@@ -252,7 +252,7 @@ private fun DiffHunkSection(hunk: DiffHunk) {
                 )
                 Icon(
                     if (expanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
-                    contentDescription = if (expanded) "Collapse hunk" else "Expand hunk",
+                    contentDescription = if (expanded) "收起差异块" else "展开差异块",
                     tint = scheme.onSurfaceVariant,
                     modifier = Modifier.size(16.dp),
                 )

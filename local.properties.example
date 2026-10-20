@@ -1,0 +1,24 @@
+# Copy to local.properties (ignored by Git). Set your Android SDK path locally.
+sdk.dir=
+
+# Public default is also checked into update.properties. Blank explicitly disables updates.
+# Format: username/repository (not a URL). No GitHub login/token required.
+UPDATE_REPOSITORY=adgry/AndroidHarness-CN
+UPDATE_INCLUDE_PRERELEASES=false
+
+# Optional: use an already installed compatible NDK. Default is 27.2.12479018.
+# NDK_VERSION=28.2.13676358
+
+# Optional shared source cache for the exact llama.cpp commit in CMakeLists.txt.
+# Verify the archive against its pinned SHA-256 before extracting; leave blank for automatic download.
+# LLAMA_SOURCE_DIR=/absolute/path/to/llama.cpp-d280808f5d82fcc3142b53f94ea5f594250cd765
+
+# Optional GitHub app integration, separate from in-app updates.
+GITHUB_CLIENT_ID=
+
+# Dedicated release signing. Never upload local.properties or signing-keys/.
+# Unconfigured release builds are unsigned; debug builds remain installable.
+RELEASE_STORE_FILE=
+RELEASE_KEY_ALIAS=
+RELEASE_STORE_PASSWORD=
+RELEASE_KEY_PASSWORD=

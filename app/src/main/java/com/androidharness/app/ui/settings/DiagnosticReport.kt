@@ -1,22 +1,22 @@
 package com.androidharness.app.ui.settings
 
 enum class DiagnosticState(val label: String) {
-    READY("Ready"), ISSUE("Needs attention"), OFF("Off"), NOT_CHECKED("Not checked"), CHECKING("Checking…"), INSTALLED("Installed"), REACHABLE("Catalog reachable"),
+    READY("就绪"), ISSUE("需要处理"), OFF("关闭"), NOT_CHECKED("未检查"), CHECKING("正在检查…"), INSTALLED("已安装"), REACHABLE("目录可访问"),
 }
 
 enum class DiagnosticArea(val label: String) {
-    PROVIDER("Default provider"), STORAGE("Storage access"), WORKSPACE("Default workspace"), LINUX("Linux tools"), SHIZUKU("Shizuku"), SSH("SSH workspaces"), MCP("Connected tools"), NOTIFICATIONS("Notifications"),
+    PROVIDER("默认提供商"), STORAGE("存储访问"), WORKSPACE("默认工作区"), LINUX("Linux 工具"), SHIZUKU("Shizuku"), SSH("SSH 工作区"), MCP("已连接工具"), NOTIFICATIONS("通知"),
 }
 
 enum class CatalogCheck(val detail: String) {
-    NOT_CHECKED("Check the model list to test access. Sending a model request is a separate check."),
-    CHECKING("Contacting the provider…"),
-    REACHABLE("The provider returned models. Model generation and quota have not been tested."),
-    EMPTY("The provider returned no models. Check the provider address and account access."),
-    AUTH("Sign-in or API key access was rejected. Reconnect or update the key."),
-    RATE_LIMIT("The provider is limiting requests. Wait and retry, or choose another provider."),
-    FAILED("Could not reach the model list. Check your connection and provider address, then retry."),
-    TIMEOUT("The check timed out. Check your connection and retry."),
+    NOT_CHECKED("检查模型列表以测试访问。发送模型请求需要单独测试。"),
+    CHECKING("正在连接提供商…"),
+    REACHABLE("提供商已返回模型列表，尚未测试模型生成能力和配额。"),
+    EMPTY("提供商未返回模型。请检查提供商地址和账号权限。"),
+    AUTH("登录或 API 密钥被拒绝。请重新连接或更新密钥。"),
+    RATE_LIMIT("提供商正在限制请求。请稍后重试，或选择其他提供商。"),
+    FAILED("无法获取模型列表。请检查网络连接和提供商地址后重试。"),
+    TIMEOUT("检查超时。请检查网络连接后重试。"),
 }
 
 fun catalogFailure(message: String): CatalogCheck = when {
@@ -36,14 +36,14 @@ fun shizukuDiagnostic(granted: Boolean, ready: Boolean, binding: Boolean, failed
 /** Export a whitelist of states, never configuration, names, paths or raw errors. */
 fun diagnosticReport(version: String, androidApi: Int, states: Map<DiagnosticArea, DiagnosticState>,
     providerCount: Int, enabledToolCount: Int): String = buildString {
-    appendLine("AndroidHarness troubleshooting")
+    appendLine("AndroidHarness 故障排查")
     // Only a build version's conventional characters may enter the export.
-    appendLine("App: ${version.filter { it.isLetterOrDigit() || it in ".-+" }.take(40)}")
-    appendLine("Android API: $androidApi")
-    appendLine("Scope: default provider and default workspace")
+    appendLine("应用：${version.filter { it.isLetterOrDigit() || it in ".-+" }.take(40)}")
+    appendLine("Android API：$androidApi")
+    appendLine("范围：默认提供商和默认工作区")
     states.forEach { (area, state) -> appendLine("${area.label}: ${state.label}") }
-    appendLine("Saved providers: $providerCount")
-    appendLine("Enabled MCP servers: $enabledToolCount")
-    appendLine("Catalog access does not confirm model generation or remaining quota.")
-    append("Credentials, endpoints, names, file paths, chats and raw logs are excluded.")
+    appendLine("已保存提供商：$providerCount")
+    appendLine("已启用 MCP 服务器：$enabledToolCount")
+    appendLine("目录可访问不代表模型可生成内容或仍有剩余配额。")
+    append("不包含凭据、端点、名称、文件路径、聊天和原始日志。")
 }

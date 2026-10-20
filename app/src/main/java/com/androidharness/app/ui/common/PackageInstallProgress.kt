@@ -26,17 +26,17 @@ internal data class PackageProgressPresentation(
 
 /** Download percentage measures bytes; install percentage measures completed packages. */
 internal fun EnvState.packageProgress(): PackageProgressPresentation? = when (this) {
-    EnvState.Preparing -> PackageProgressPresentation("Preparing installation", "Resolving packages and dependencies…")
+    EnvState.Preparing -> PackageProgressPresentation("正在准备安装", "正在解析软件包和依赖…")
     is EnvState.Downloading -> {
         val fraction = totalBytes?.takeIf { it > 0 }?.let { (downloadedBytes.toDouble() / it).coerceIn(0.0, 1.0).toFloat() }
-        PackageProgressPresentation("Downloading $pkg", buildString {
-            append("Package ${index + 1} of $total · ${downloadSize(downloadedBytes)}")
+        PackageProgressPresentation("正在下载 $pkg", buildString {
+            append("软件包 ${index + 1} / $total · ${downloadSize(downloadedBytes)}")
             totalBytes?.takeIf { it > 0 }?.let { append(" / ${downloadSize(it)}") }
         }, fraction, fraction?.let { "${(it * 100).roundToInt()}%" })
     }
     is EnvState.Installing -> {
         val fraction = if (total > 0) (index.toFloat() / total).coerceIn(0f, 1f) else null
-        PackageProgressPresentation("Installing $pkg", "${index.coerceAtLeast(0)} of $total packages installed",
+        PackageProgressPresentation("正在安装 $pkg", "已安装 ${index.coerceAtLeast(0)} / $total 个软件包",
             fraction, fraction?.let { "${(it * 100).toInt()}%" })
     }
     else -> null

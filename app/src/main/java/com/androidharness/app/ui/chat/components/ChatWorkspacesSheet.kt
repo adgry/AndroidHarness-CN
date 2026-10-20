@@ -43,7 +43,7 @@ fun ChatWorkspaceManagerSheet(
         androidx.activity.result.contract.ActivityResultContracts.OpenDocumentTree()) { uri ->
         if (uri != null) scope.launch {
             try { container.workspace.addPickedFolder(uri, activate = false) }
-            catch (e: Exception) { android.widget.Toast.makeText(context, e.message ?: "Could not add workspace", android.widget.Toast.LENGTH_LONG).show() }
+            catch (e: Exception) { android.widget.Toast.makeText(context, e.message ?: "无法添加工作区", android.widget.Toast.LENGTH_LONG).show() }
         }
     }
     if (initial != null) ChatWorkspacesSheet(projects, initial, container.workspace::describe,
@@ -75,10 +75,10 @@ fun ChatWorkspacesSheet(
         sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)) {
         Column(Modifier.fillMaxWidth().navigationBarsPadding().padding(horizontal = 20.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text("Workspaces for this chat", Modifier.weight(1f), style = MaterialTheme.typography.titleLarge)
-                IconButton(onClick = onDismiss, enabled = !saving) { Icon(Icons.Filled.Close, "Close without saving") }
+                Text("此聊天的工作区", Modifier.weight(1f), style = MaterialTheme.typography.titleLarge)
+                IconButton(onClick = onDismiss, enabled = !saving) { Icon(Icons.Filled.Close, "关闭且不保存") }
             }
-            Text("Choose access for each project. Primary is the default place for new files.",
+            Text("为每个项目选择访问权限。新文件默认保存在主要工作区。",
                 style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(bottom = 12.dp))
             LazyColumn(Modifier.fillMaxWidth().weight(1f, fill = false).heightIn(max = 430.dp)) {
@@ -102,12 +102,12 @@ fun ChatWorkspacesSheet(
                             Box {
                                 OutlinedButton(onClick = { accessMenu = true }, enabled = !saving,
                                     contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
-                                    modifier = Modifier.semantics { contentDescription = "${project.name} access: ${if (grant.canEdit) "Can edit" else "Read only"}" }) {
-                                    Text(if (grant.canEdit) "Can edit" else "Read only", style = MaterialTheme.typography.labelMedium)
+                                    modifier = Modifier.semantics { contentDescription = "${project.name} 访问权限： ${if (grant.canEdit) "可编辑" else "只读"}" }) {
+                                    Text(if (grant.canEdit) "可编辑" else "只读", style = MaterialTheme.typography.labelMedium)
                                     Icon(Icons.Filled.KeyboardArrowDown, null, Modifier.size(16.dp))
                                 }
                                 DropdownMenu(accessMenu, { accessMenu = false }) {
-                                    listOf(false to "Read only", true to "Can edit").forEach { (canEdit, label) ->
+                                    listOf(false to "只读", true to "可编辑").forEach { (canEdit, label) ->
                                         DropdownMenuItem(text = { Text(label) }, onClick = {
                                             update(draft.copy(grants = draft.grants.map { if (it.projectId == project.id) it.copy(canEdit = canEdit) else it }))
                                             accessMenu = false
@@ -118,9 +118,9 @@ fun ChatWorkspacesSheet(
                             Row(verticalAlignment = Alignment.CenterVertically,
                                 modifier = Modifier.toggleable(draft.primaryId == project.id, enabled = !saving, role = Role.RadioButton) {
                                     update(draft.copy(primaryId = project.id))
-                                }.heightIn(min = 44.dp).semantics { contentDescription = "Primary workspace: ${project.name}" }) {
+                                }.heightIn(min = 44.dp).semantics { contentDescription = "主要工作区：${project.name}" }) {
                                 RadioButton(draft.primaryId == project.id, onClick = null)
-                                Text("Primary", style = MaterialTheme.typography.labelMedium)
+                                Text("主要", style = MaterialTheme.typography.labelMedium)
                             }
                         }
                     }
@@ -131,14 +131,14 @@ fun ChatWorkspacesSheet(
                     TextButton(enabled = !saving, onClick = {
                         val remaining = draft.grants - grant
                         update(draft.copy(grants = remaining, primaryId = if (draft.primaryId == grant.projectId) remaining.firstOrNull()?.projectId.orEmpty() else draft.primaryId))
-                    }) { Text("Remove unavailable workspace") }
+                    }) { Text("移除不可用的工作区") }
                 }
-                if (onAdd != null) item { TextButton(onClick = onAdd, enabled = !saving) { Text("Add workspace…") } }
+                if (onAdd != null) item { TextButton(onClick = onAdd, enabled = !saving) { Text("添加工作区…") } }
             }
-            if (draft.grants.any { !it.canEdit }) Text("Commands and integrations require edit access to all selected workspaces.",
+            if (draft.grants.any { !it.canEdit }) Text("命令和集成需要对所有所选工作区拥有编辑权限。",
                 style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(top = 12.dp))
-            if (draft.grants.size > 1) Text("Workspace MCP servers aren't available in multi-workspace chats yet.",
+            if (draft.grants.size > 1) Text("多工作区聊天暂不支持工作区 MCP 服务器。",
                 style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(top = 4.dp))
             error?.let { Text(it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(top = 8.dp)) }
@@ -147,10 +147,10 @@ fun ChatWorkspacesSheet(
                 scope.launch {
                     try { onSave(draft.validated()); onDismiss() }
                     catch (e: CancellationException) { throw e }
-                    catch (e: Exception) { error = e.message ?: "Could not save workspace access." }
+                    catch (e: Exception) { error = e.message ?: "无法保存工作区访问权限。" }
                     finally { saving = false }
                 }
-            }) { Text(if (saving) "Saving…" else "Use ${draft.grants.size} workspace${if (draft.grants.size == 1) "" else "s"}") }
+            }) { Text(if (saving) "正在保存…" else "使用 ${draft.grants.size} 个工作区") }
         }
     }
 }

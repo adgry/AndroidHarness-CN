@@ -47,7 +47,7 @@ internal fun RootBrowserDialog(access: DeviceAccessManager, projectId: String?, 
             val page = access.rootFiles(projectId, sessionId) { Json.decodeFromString(RootDirectory.serializer(), it.rootList(path, offset)) }
             directory = if (offset == 0) page else page.copy(entries = directory?.entries.orEmpty() + page.entries)
         } catch (e: CancellationException) { throw e }
-        catch (e: Exception) { error = e.message ?: "Could not read this folder." }
+        catch (e: Exception) { error = e.message ?: "无法读取此文件夹。" }
         finally { busy = false }
     }
     LaunchedEffect(path) { load() }
@@ -59,12 +59,12 @@ internal fun RootBrowserDialog(access: DeviceAccessManager, projectId: String?, 
                         if (opened != null) { opened = null; edit = false }
                         else if (path != "/") { directory = null; path = path.substringBeforeLast('/').ifBlank { "/" } }
                         else onDismiss()
-                    } }) { Icon(Icons.AutoMirrored.Outlined.ArrowBack, "Back") }
+                    } }) { Icon(Icons.AutoMirrored.Outlined.ArrowBack, "返回") }
                     Column(Modifier.weight(1f)) {
-                        Text("Root browser", style = MaterialTheme.typography.titleMedium)
+                        Text("Root 文件浏览器", style = MaterialTheme.typography.titleMedium)
                         Text(opened?.path ?: path, style = MaterialTheme.typography.bodySmall, maxLines = 2)
                     }
-                    IconButton(onClick = { requestLeave(onDismiss) }) { Icon(Icons.Outlined.Close, "Close root browser") }
+                    IconButton(onClick = { requestLeave(onDismiss) }) { Icon(Icons.Outlined.Close, "关闭 Root 文件浏览器") }
                 }
                 HorizontalDivider()
                 if (busy) LinearProgressIndicator(Modifier.fillMaxWidth())
@@ -72,11 +72,11 @@ internal fun RootBrowserDialog(access: DeviceAccessManager, projectId: String?, 
                 val file = opened
                 if (file != null) {
                     Row(Modifier.fillMaxWidth().padding(12.dp), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-                        Text(if (edit) "Editing" else "Read only", Modifier.weight(1f), style = MaterialTheme.typography.labelLarge)
-                        if (!edit) FilledTonalButton(onClick = { edit = true }) { Text("Edit file") }
+                        Text(if (edit) "编辑中" else "只读", Modifier.weight(1f), style = MaterialTheme.typography.labelLarge)
+                        if (!edit) FilledTonalButton(onClick = { edit = true }) { Text("编辑文件") }
                         else {
-                            TextButton(onClick = { draft = file.text; edit = false }) { Text("Discard") }
-                            Button(onClick = { confirmSave = true }, enabled = !busy && draft != file.text) { Text("Save") }
+                            TextButton(onClick = { draft = file.text; edit = false }) { Text("放弃") }
+                            Button(onClick = { confirmSave = true }, enabled = !busy && draft != file.text) { Text("保存") }
                         }
                     }
                     OutlinedTextField(draft, onValueChange = { if (edit) draft = it }, readOnly = !edit,
@@ -87,7 +87,7 @@ internal fun RootBrowserDialog(access: DeviceAccessManager, projectId: String?, 
                         items(directory?.entries.orEmpty(), key = { it.path }) { entry ->
                             ListItem(
                                 headlineContent = { Text(entry.name) },
-                                supportingContent = { Text(if (entry.directory) "Folder" else "${entry.size} bytes") },
+                                supportingContent = { Text(if (entry.directory) "文件夹" else "${entry.size} 字节") },
                                 leadingContent = { Icon(if (entry.directory) Icons.Outlined.Folder else Icons.Outlined.InsertDriveFile, null) },
                                 modifier = Modifier.fillMaxWidth().clickable(enabled = !busy) {
                                     if (entry.directory) { directory = null; path = entry.path }
@@ -97,24 +97,24 @@ internal fun RootBrowserDialog(access: DeviceAccessManager, projectId: String?, 
                                             opened = access.rootFiles(projectId, sessionId) { Json.decodeFromString(RootText.serializer(), it.rootRead(entry.path)) }
                                             draft = opened!!.text; edit = false
                                         } catch (e: CancellationException) { throw e }
-                                        catch (e: Exception) { error = e.message ?: "This file cannot be opened as text." }
+                                        catch (e: Exception) { error = e.message ?: "无法将此文件作为文本打开。" }
                                         finally { busy = false }
                                     }
                                 },
                             )
                         }
-                        directory?.nextOffset?.let { next -> item { TextButton(onClick = { scope.launch { load(next) } }, enabled = !busy, modifier = Modifier.fillMaxWidth()) { Text("Load more") } } }
+                        directory?.nextOffset?.let { next -> item { TextButton(onClick = { scope.launch { load(next) } }, enabled = !busy, modifier = Modifier.fillMaxWidth()) { Text("加载更多") } } }
                     }
                 }
             }
         }
     }
-    leave?.let { action -> AlertDialog(onDismissRequest = { leave = null }, title = { Text("Discard changes?") },
-        text = { Text("Your changes to this root file have not been saved.") },
-        confirmButton = { TextButton(onClick = { leave = null; action() }) { Text("Discard") } },
-        dismissButton = { TextButton(onClick = { leave = null }) { Text("Keep editing") } }) }
-    if (confirmSave) AlertDialog(onDismissRequest = { confirmSave = false }, title = { Text("Save root file?") },
-        text = { Text("Write your changes to ${opened?.path}?") },
+    leave?.let { action -> AlertDialog(onDismissRequest = { leave = null }, title = { Text("放弃更改？") },
+        text = { Text("对此 Root 文件的更改尚未保存。") },
+        confirmButton = { TextButton(onClick = { leave = null; action() }) { Text("放弃") } },
+        dismissButton = { TextButton(onClick = { leave = null }) { Text("继续编辑") } }) }
+    if (confirmSave) AlertDialog(onDismissRequest = { confirmSave = false }, title = { Text("保存 Root 文件？") },
+        text = { Text("将更改写入 ${opened?.path}？") },
         confirmButton = { Button(onClick = { confirmSave = false; scope.launch {
             val file = opened ?: return@launch
             busy = true; error = null
@@ -122,8 +122,8 @@ internal fun RootBrowserDialog(access: DeviceAccessManager, projectId: String?, 
                 opened = access.rootFiles(projectId, sessionId) { Json.decodeFromString(RootText.serializer(), it.rootWrite(file.path, file.hash, draft)) }
                 draft = opened!!.text; edit = false
             } catch (e: CancellationException) { throw e }
-            catch (e: Exception) { error = e.message ?: "The file could not be saved." }
+            catch (e: Exception) { error = e.message ?: "无法保存文件。" }
             finally { busy = false }
-        } }) { Text("Save changes") } },
-        dismissButton = { TextButton(onClick = { confirmSave = false }) { Text("Cancel") } })
+        } }) { Text("保存更改") } },
+        dismissButton = { TextButton(onClick = { confirmSave = false }) { Text("取消") } })
 }

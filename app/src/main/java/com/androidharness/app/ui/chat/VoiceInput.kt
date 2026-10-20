@@ -220,7 +220,7 @@ class VoiceInputController(
             return true
         } catch (e: Exception) {
             cleanupGroqRecorder()
-            errorMessage = "Failed to start recording: ${e.message}"
+            errorMessage = "无法开始录音：${e.message}"
             return false
         }
     }
@@ -269,7 +269,7 @@ class VoiceInputController(
         val apiKey = container.keys.groqApiKey()
         if (apiKey.isNullOrBlank()) {
             file.delete()
-            errorMessage = "Groq API key not configured in Settings"
+            errorMessage = "尚未在设置中配置 Groq API 密钥"
             groqRecordState = GroqRecordState.IDLE
             return
         }
@@ -289,7 +289,7 @@ class VoiceInputController(
                         onTranscription(text)
                     }
                 }.onFailure { err ->
-                    errorMessage = err.message ?: "Transcription failed"
+                    errorMessage = err.message ?: "转写失败"
                 }
             }
         }

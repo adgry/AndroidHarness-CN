@@ -138,10 +138,10 @@ internal fun TodoCard(todos: List<TodoItem>) {
     ) {
         Column {
             Row(Modifier.fillMaxWidth().clickable(
-                onClickLabel = if (expanded) "Collapse task list" else "Expand task list",
+                onClickLabel = if (expanded) "收起任务列表" else "展开任务列表",
                 onClick = { expanded = !expanded },
             ).semantics {
-                stateDescription = "$done completed, ${todos.count { it.status == TodoItem.Status.IN_PROGRESS }} in progress, ${todos.count { it.status == TodoItem.Status.PENDING }} pending"
+                stateDescription = "$done 个已完成，${todos.count { it.status == TodoItem.Status.IN_PROGRESS }} 个进行中，${todos.count { it.status == TodoItem.Status.PENDING }} 个待处理"
             }.heightIn(min = 48.dp).padding(horizontal = 12.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
                 Icon(
                     Icons.Outlined.Checklist,
@@ -151,13 +151,13 @@ internal fun TodoCard(todos: List<TodoItem>) {
                 )
                 Spacer(Modifier.width(8.dp))
                 Column(Modifier.weight(1f)) {
-                    Text("Task list", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.SemiBold)
-                    Text("$done of ${todos.size} completed", style = MaterialTheme.typography.labelSmall,
+                    Text("任务列表", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.SemiBold)
+                    Text("已完成 $done / ${todos.size} 个", style = MaterialTheme.typography.labelSmall,
                         color = scheme.onSurfaceVariant)
                 }
                 Icon(
                     if (expanded) Icons.Filled.ExpandLess else Icons.Filled.ExpandMore,
-                    contentDescription = if (expanded) "Collapse task list" else "Expand task list",
+                    contentDescription = if (expanded) "收起任务列表" else "展开任务列表",
                     modifier = Modifier.size(20.dp),
                     tint = scheme.onSurfaceVariant,
                 )
@@ -168,7 +168,7 @@ internal fun TodoCard(todos: List<TodoItem>) {
                 modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp).height(4.dp))
             if (!expanded) {
                 Column(Modifier.padding(horizontal = 12.dp, vertical = 8.dp)) {
-                    Text(when { active != null -> "In progress"; next != null -> "Next"; else -> "All tasks completed" },
+                    Text(when { active != null -> "进行中"; next != null -> "下一步"; else -> "所有任务已完成" },
                         style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Medium,
                         color = if (done == todos.size) success else scheme.primary)
                     (active ?: next)?.let { Text(it.content, style = MaterialTheme.typography.bodySmall,
@@ -180,9 +180,9 @@ internal fun TodoCard(todos: List<TodoItem>) {
                     .verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     todos.forEach { todo ->
                         val status = when (todo.status) {
-                            TodoItem.Status.COMPLETED -> "Completed"
-                            TodoItem.Status.IN_PROGRESS -> "In progress"
-                            TodoItem.Status.PENDING -> "Pending"
+                            TodoItem.Status.COMPLETED -> "已完成"
+                            TodoItem.Status.IN_PROGRESS -> "进行中"
+                            TodoItem.Status.PENDING -> "待处理"
                         }
                         Row(
                             verticalAlignment = Alignment.Top,
@@ -254,19 +254,19 @@ internal fun QueuedMessageChip(
                     overflow = TextOverflow.Ellipsis,
                 )
                 Text(
-                    "Sends after this turn",
+                    "此轮完成后发送",
                     style = MaterialTheme.typography.labelSmall,
                     color = scheme.onSurfaceVariant,
                     maxLines = 1,
                 )
             }
             TextButton(onClick = onSteer) {
-                Text("Steer")
+                Text("引导")
             }
             // 40dp not 28: this sits next to a destructive action, so it needs to
             // be reliably hittable without growing the chip to full toolbar height.
             IconButton(onClick = onCancel, modifier = Modifier.size(40.dp)) {
-                Icon(Icons.Filled.Close, contentDescription = "Cancel queue", modifier = Modifier.size(16.dp))
+                Icon(Icons.Filled.Close, contentDescription = "取消排队", modifier = Modifier.size(16.dp))
             }
         }
     }
@@ -298,7 +298,7 @@ internal fun AttachmentChips(
                 ) {
                     Text(name.take(20), style = MaterialTheme.typography.labelSmall)
                     Spacer(Modifier.width(4.dp))
-                    Icon(Icons.Filled.Close, contentDescription = "Remove", modifier = Modifier.size(13.dp))
+                    Icon(Icons.Filled.Close, contentDescription = "移除", modifier = Modifier.size(13.dp))
                 }
             }
         }
@@ -325,14 +325,14 @@ internal fun SlashSuggestions(
     val typed = remember(query) { query.removePrefix("/").trim().lowercase() }
     val entries = remember(state.skills, state.snippets) {
         buildList {
-            add(SlashEntry("/clear", "New chat", "Start a fresh conversation", SlashCommands.Kind.CLEAR))
-            add(SlashEntry("/compact", "Compact", "Summarize older context", SlashCommands.Kind.COMPACT))
-            add(SlashEntry("/cost", "Cost", "Show token and cost totals", SlashCommands.Kind.COST))
-            add(SlashEntry("/doctor", "Harness doctor", "Run self-test across every harness tool", SlashCommands.Kind.DOCTOR))
-            add(SlashEntry("/init", "Init project", "Write or refresh AGENTS.md", SlashCommands.Kind.INIT))
-            add(SlashEntry("/plan", "Plan mode", "Load the plan skill and switch to Plan mode", SlashCommands.Kind.PLAN))
-            add(SlashEntry("/skills", "Browse skills", "Open the full skill picker", SlashCommands.Kind.SKILLS))
-            add(SlashEntry("/env", "Linux environment", "Check, update, install or repair the Linux env", SlashCommands.Kind.ENV))
+            add(SlashEntry("/clear", "新聊天", "开始新聊天", SlashCommands.Kind.CLEAR))
+            add(SlashEntry("/compact", "压缩", "总结较早的上下文", SlashCommands.Kind.COMPACT))
+            add(SlashEntry("/cost", "费用", "显示 Token 和费用总计", SlashCommands.Kind.COST))
+            add(SlashEntry("/doctor", "Harness 自检", "对所有 Harness 工具运行自检", SlashCommands.Kind.DOCTOR))
+            add(SlashEntry("/init", "初始化项目", "编写或更新 AGENTS.md", SlashCommands.Kind.INIT))
+            add(SlashEntry("/plan", "规划模式", "加载规划技能并切换到规划模式", SlashCommands.Kind.PLAN))
+            add(SlashEntry("/skills", "浏览技能", "打开完整技能选择器", SlashCommands.Kind.SKILLS))
+            add(SlashEntry("/env", "Linux 环境", "检查、更新、安装或修复 Linux 环境", SlashCommands.Kind.ENV))
             // "plan" is excluded: the built-in /plan entry above already covers
             // it (activates Plan mode + loads the plan skill), showing the
             // skill too used to list /plan twice.
@@ -340,7 +340,7 @@ internal fun SlashSuggestions(
                 add(SlashEntry("/${skill.name}", skill.name, skill.description, SlashCommands.Kind.SKILL))
             }
             state.snippets.forEach { snippet ->
-                add(SlashEntry("/${snippet.name}", snippet.name, "Saved prompt snippet", SlashCommands.Kind.SNIPPET))
+                add(SlashEntry("/${snippet.name}", snippet.name, "已保存的提示词片段", SlashCommands.Kind.SNIPPET))
             }
         }
     }
@@ -375,7 +375,7 @@ internal fun SlashSuggestions(
             ) {
                 if (filtered.isEmpty()) {
                     Text(
-                        "No matches for /$typed",
+                        "没有与 /$typed 匹配的项目",
                         style = MaterialTheme.typography.bodySmall,
                         color = scheme.onSurfaceVariant,
                         modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp),
@@ -409,9 +409,9 @@ internal fun SlashSuggestions(
                                 Spacer(Modifier.width(8.dp))
                                 Text(
                                     when (entry.kind) {
-                                        SlashCommands.Kind.SKILL -> "Skill"
-                                        SlashCommands.Kind.SNIPPET -> "Snippet"
-                                        else -> "Command"
+                                        SlashCommands.Kind.SKILL -> "技能"
+                                        SlashCommands.Kind.SNIPPET -> "片段"
+                                        else -> "命令"
                                     },
                                     style = MaterialTheme.typography.labelSmall,
                                     color = scheme.onSurfaceVariant,
@@ -501,8 +501,8 @@ internal fun CompactionBanner(note: String, modifier: Modifier = Modifier) {
             DotLoading()
             Spacer(Modifier.width(10.dp))
             Column {
-                Text("Compacting conversation", style = MaterialTheme.typography.bodyMedium)
-                if (note.isNotBlank() && note != "Compacting conversation…") {
+                Text("正在压缩聊天", style = MaterialTheme.typography.bodyMedium)
+                if (note.isNotBlank() && note != "正在压缩聊天…") {
                     Text(
                         note,
                         style = MaterialTheme.typography.labelSmall,
@@ -518,7 +518,7 @@ internal fun CompactionBanner(note: String, modifier: Modifier = Modifier) {
 @Composable
 internal fun CompactionNoticeLine(modifier: Modifier = Modifier) {
     Text(
-        "Context compacted, older messages summarized",
+        "上下文已压缩，较早消息已总结",
         style = MaterialTheme.typography.labelSmall,
         color = MaterialTheme.colorScheme.onSurfaceVariant,
         modifier = modifier
@@ -532,8 +532,8 @@ internal fun CompactionNoticeLine(modifier: Modifier = Modifier) {
 @Composable
 internal fun CompactionResultCard(message: String, showRetry: Boolean, busy: Boolean, onRetry: () -> Unit) {
     var expanded by remember { mutableStateOf(false) }
-    val stopped = message.startsWith("Compaction stopped.")
-    val saved = message.startsWith("Chat compacted, but")
+    val stopped = message.startsWith("Compaction stopped.") || message.startsWith("压缩已停止")
+    val saved = message.startsWith("Chat compacted, but") || message.startsWith("聊天已压缩，但")
     val scheme = MaterialTheme.colorScheme
     Surface(
         color = scheme.surfaceContainerLow,
@@ -542,19 +542,19 @@ internal fun CompactionResultCard(message: String, showRetry: Boolean, busy: Boo
         modifier = Modifier.fillMaxWidth(),
     ) {
         Column(Modifier.padding(horizontal = 14.dp, vertical = 8.dp)) {
-            Text(if (stopped) "Compaction stopped" else if (saved) "Summary saved" else "Compaction failed",
+            Text(if (stopped) "压缩已停止" else if (saved) "摘要已保存" else "压缩失败",
                 style = MaterialTheme.typography.bodyMedium,
                 color = if (stopped || saved) scheme.onSurface else scheme.error)
-            Text(if (saved) "Your summary is saved. Some task information could not refresh."
-                else "Your messages are still here. Try again or choose another model.",
+            Text(if (saved) "摘要已保存，部分任务信息无法刷新。"
+                else "消息仍然保留，请重试或选择其他模型。",
                 style = MaterialTheme.typography.bodySmall, color = scheme.onSurfaceVariant)
             if (expanded) androidx.compose.foundation.text.selection.SelectionContainer {
                 Text(message, style = MaterialTheme.typography.bodySmall,
                     color = scheme.onSurfaceVariant, modifier = Modifier.padding(top = 8.dp))
             }
             androidx.compose.foundation.layout.FlowRow {
-                if (showRetry && !saved) TextButton(onClick = onRetry, enabled = !busy) { Text("Retry") }
-                TextButton(onClick = { expanded = !expanded }) { Text(if (expanded) "Hide details" else "Details") }
+                if (showRetry && !saved) TextButton(onClick = onRetry, enabled = !busy) { Text("重试") }
+                TextButton(onClick = { expanded = !expanded }) { Text(if (expanded) "隐藏详情" else "详情") }
             }
         }
     }
@@ -599,7 +599,7 @@ internal fun FileAttachmentChips(
                         color = scheme.onSurfaceVariant,
                     )
                     Spacer(Modifier.width(4.dp))
-                    Icon(Icons.Filled.Close, contentDescription = "Remove", modifier = Modifier.size(13.dp))
+                    Icon(Icons.Filled.Close, contentDescription = "移除", modifier = Modifier.size(13.dp))
                 }
             }
         }

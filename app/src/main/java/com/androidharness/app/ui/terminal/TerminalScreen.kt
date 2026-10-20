@@ -113,35 +113,35 @@ fun TerminalScreen(
 
     if (showAccess) androidx.compose.material3.AlertDialog(
         onDismissRequest = { showAccess = false },
-        title = { Text("Access mode") },
+        title = { Text("访问模式") },
         text = { Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             com.androidharness.app.ui.settings.AccessModeChoices(accessPrefs.mode) { mode ->
                 accessScope.launch { container.deviceAccess.store.setMode(mode) }
             }
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text("Auto fallback", Modifier.weight(1f))
+                Text("自动回退", Modifier.weight(1f))
                 Switch(accessPrefs.mode == com.androidharness.app.data.env.AccessMode.AUTO || accessPrefs.autoFallback, enabled = accessPrefs.mode != com.androidharness.app.data.env.AccessMode.AUTO, onCheckedChange = { enabled -> accessScope.launch { container.deviceAccess.store.setFallback(enabled) } })
             }
-            Text("Auto: Root → Shizuku → Normal. Both: Shizuku for ordinary commands, root for root requests. Root access, temporary mode and project permissions are managed in Settings → Terminal & device.", style = androidx.compose.material3.MaterialTheme.typography.bodySmall)
+            Text("自动：Root → Shizuku → 普通。混合：普通命令使用 Shizuku，需要 Root 的请求使用 Root。Root 访问、临时模式和项目权限可在“设置 → 终端与设备”中管理。", style = androidx.compose.material3.MaterialTheme.typography.bodySmall)
         } },
-        confirmButton = { androidx.compose.material3.TextButton(onClick = { showAccess = false }) { Text("Done") } },
+        confirmButton = { androidx.compose.material3.TextButton(onClick = { showAccess = false }) { Text("完成") } },
     )
 
     Scaffold(
         containerColor = scheme.surface,
         topBar = {
             AppHeader(
-                title = "Terminal",
-                subtitle = if (remote != null) "SSH workspace" else "${state.backendLabel} · ${accessPrefs.mode.label} preferred",
+                title = "终端",
+                subtitle = if (remote != null) "SSH 工作区" else "${state.backendLabel} · 优先 ${accessPrefs.mode.displayLabel}",
                 onBack = onBack,
                 actions = {
                     IconButton(onClick = { showAccess = true }, enabled = remote == null) {
-                        Icon(Icons.Outlined.Shield, contentDescription = "Access mode", tint = scheme.primary)
+                        Icon(Icons.Outlined.Shield, contentDescription = "访问模式", tint = scheme.primary)
                     }
                     IconButton(onClick = { terminal.clear() }) {
                         Icon(
                             Icons.Outlined.Delete,
-                            contentDescription = "Clear output",
+                            contentDescription = "清空输出",
                             tint = scheme.onSurfaceVariant,
                         )
                     }
@@ -236,7 +236,7 @@ fun TerminalScreen(
                             Box(contentAlignment = Alignment.CenterStart) {
                                 if (input.isEmpty()) {
                                     Text(
-                                        "command…",
+                                        "输入命令…",
                                         style = MaterialTheme.typography.bodyMedium,
                                         fontFamily = HarnessMono,
                                         color = scheme.onSurfaceVariant,
@@ -261,7 +261,7 @@ fun TerminalScreen(
                     ) {
                         Icon(
                             Icons.AutoMirrored.Filled.Send,
-                            contentDescription = "Run",
+                            contentDescription = "运行",
                             modifier = Modifier.size(18.dp),
                             tint = if (input.isNotBlank() && !state.busy) scheme.primary
                             else scheme.onSurfaceVariant,

@@ -19,7 +19,7 @@ internal fun LocalModelWarningDialog(manager: LocalModelManager) {
             text = { Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 request.messages.forEach { Text(it) }
             } },
-            confirmButton = { TextButton(onClick = request::continueAnyway) { Text("Continue") } },
-            dismissButton = { TextButton(onClick = request::cancel) { Text("Cancel") } })
+            confirmButton = { TextButton(onClick = request::continueAnyway) { Text("继续") } },
+            dismissButton = { TextButton(onClick = request::cancel) { Text("取消") } })
     }
 }

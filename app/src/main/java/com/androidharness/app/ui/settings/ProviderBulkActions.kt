@@ -47,23 +47,23 @@ internal fun ProviderBulkActions(
     val scope = rememberCoroutineScope()
     val selected = providers.filter { it.id in state.ids }
     if (state.selecting) {
-        Text("${selected.size} selected", style = MaterialTheme.typography.labelLarge)
+        Text("已选择 ${selected.size} 项", style = MaterialTheme.typography.labelLarge)
         FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            listOf(true to "Enable", false to "Disable").forEach { (enabled, label) ->
+            listOf(true to "启用", false to "停用").forEach { (enabled, label) ->
                 OutlinedButton(enabled = selected.isNotEmpty() && !state.busy, onClick = {
                     scope.launch {
                         state.busy = true; state.error = null
                         try { selected.forEach { onEnabledChange(it.id, enabled) } }
                         catch (e: CancellationException) { throw e }
-                        catch (_: Exception) { state.error = "Some providers could not be updated. Review the list and retry." }
+                        catch (_: Exception) { state.error = "部分提供商更新失败。请检查列表后重试。" }
                         finally { state.busy = false }
                     }
                 }) { Text(label) }
             }
             OutlinedButton(enabled = selected.isNotEmpty() && selected.all(::deletableProvider) && !state.busy,
-                onClick = { state.requestDelete(selected.map { it.id }) }) { Text("Delete", color = MaterialTheme.colorScheme.error) }
+                onClick = { state.requestDelete(selected.map { it.id }) }) { Text("删除", color = MaterialTheme.colorScheme.error) }
         }
-        if (selected.any { !deletableProvider(it) }) Text("Built-in providers, connected accounts and installed models can be disabled here. Only API connections can be deleted.",
+        if (selected.any { !deletableProvider(it) }) Text("可在此停用内置提供商、已连接账号和已安装模型。仅 API 连接可删除。",
             style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
     state.error?.let { Text(it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall) }
@@ -72,13 +72,13 @@ internal fun ProviderBulkActions(
         val valid = targets.size == requested.size && targets.all(::deletableProvider)
         val multiple = requested.size > 1
         AlertDialog(onDismissRequest = { if (!state.busy) state.deleting = null },
-            title = { Text(if (state.reviewing) "Delete all ${requested.size} providers?"
-                else if (multiple) "Delete ${requested.size} providers?" else "Delete ${targets.firstOrNull()?.name ?: "provider"}?") },
+            title = { Text(if (state.reviewing) "删除全部 ${requested.size} 个提供商？"
+                else if (multiple) "删除 ${requested.size} 个提供商？" else "删除 ${targets.firstOrNull()?.name ?: "提供商"}？") },
             text = {
                 Column(Modifier.heightIn(max = 320.dp).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                    Text("Saved API keys and connections will be removed. Chat history stays. Chats and schedules using these connections will need another provider.")
+                    Text("将移除已保存的 API 密钥和连接，保留聊天记录。使用这些连接的聊天和计划任务需要选择其他提供商。")
                     if (state.reviewing || !multiple) targets.forEach { Text(it.name, style = MaterialTheme.typography.bodyMedium) }
-                    if (!valid) Text("The provider list changed. Edit the selection and try again.", color = MaterialTheme.colorScheme.error)
+                    if (!valid) Text("提供商列表已更改。请调整选择后重试。", color = MaterialTheme.colorScheme.error)
                     state.error?.let { Text(it, color = MaterialTheme.colorScheme.error) }
                 }
             },
@@ -101,12 +101,12 @@ internal fun ProviderBulkActions(
                             state.deleting = null
                             state.selecting = true
                             state.ids = state.ids + remaining
-                            state.error = "Some providers could not be deleted. Remaining providers stay selected; review them and retry."
+                            state.error = "部分提供商无法删除。其余提供商仍被选中，请检查后重试。"
                         } finally { state.busy = false }
                     }
-                }) { Text(if (state.busy) "Deleting…" else if (multiple && !state.reviewing) "Continue" else if (multiple) "Delete all" else "Delete provider") }
+                }) { Text(if (state.busy) "正在删除…" else if (multiple && !state.reviewing) "继续" else if (multiple) "全部删除" else "删除提供商") }
             }, dismissButton = { TextButton(enabled = !state.busy, onClick = { state.deleting = null }) {
-                Text(if (state.reviewing) "Edit selection" else "Cancel")
+                Text(if (state.reviewing) "调整选择" else "取消")
             } })
     }
 }

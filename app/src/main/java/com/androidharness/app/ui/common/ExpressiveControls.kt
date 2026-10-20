@@ -60,7 +60,7 @@ internal fun CatalogLoadingIndicator(modifier: Modifier = Modifier) {
         delay(4_800)
         phase = 2
     }
-    Box(modifier.semantics { contentDescription = "Refreshing models" }, contentAlignment = Alignment.Center) {
+    Box(modifier.semantics { contentDescription = "正在刷新模型" }, contentAlignment = Alignment.Center) {
         when (phase) {
             1 -> LoadingIndicator(Modifier.fillMaxSize())
             2 -> CircularProgressIndicator(Modifier.fillMaxSize(), strokeWidth = 2.dp)

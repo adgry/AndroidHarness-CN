@@ -56,8 +56,8 @@ fun ProvidersScreen(
         containerColor = scheme.surface,
         topBar = {
             AppHeader(
-                title = "Providers",
-                subtitle = "Connect models and choose what powers your chats",
+                title = "提供商",
+                subtitle = "连接模型，选择聊天使用的提供商",
                 onBack = onBack,
             )
         },
@@ -78,7 +78,7 @@ fun ProvidersScreen(
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
                         TextButton(enabled = !selection.busy, onClick = {
                             if (selection.selecting) selection.done() else selection.selecting = true
-                        }) { Text(if (selection.selecting) "Done" else "Select providers") }
+                        }) { Text(if (selection.selecting) "完成" else "选择提供商") }
                     }
                     FilledTonalButton(
                         onClick = {
@@ -92,18 +92,18 @@ fun ProvidersScreen(
                     ) {
                         Icon(Icons.Filled.Add, contentDescription = null, modifier = Modifier.size(18.dp))
                         Spacer(Modifier.width(8.dp))
-                        Text("Add provider")
+                        Text("添加提供商")
                     }
                 }
                 item {
                     OutlinedTextField(value = query, onValueChange = { query = it },
-                        label = { Text("Search providers or models") }, singleLine = true,
+                        label = { Text("搜索提供商或模型") }, singleLine = true,
                         modifier = Modifier.fillMaxWidth())
                     FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        FilterChip(selected = showDisabled, onClick = { showDisabled = !showDisabled }, label = { Text("Show disabled") })
-                        TextButton(onClick = { showAllModels = true }) { Text("Search all models") }
+                        FilterChip(selected = showDisabled, onClick = { showDisabled = !showDisabled }, label = { Text("显示已停用") })
+                        TextButton(onClick = { showAllModels = true }) { Text("搜索全部模型") }
                     }
-                    Text("Disabled providers stay searchable. Existing chats keep their model.",
+                    Text("已停用的提供商仍可搜索。现有聊天保留所选模型。",
                         style = MaterialTheme.typography.bodySmall, color = scheme.onSurfaceVariant)
                 }
                 items(visibleProviders, key = { it.id }) { provider ->
@@ -161,12 +161,12 @@ fun ProvidersScreen(
                             ) {
                                 ProviderMark(size = 48.dp)
                                 Text(
-                                    if (providers.isEmpty()) "No providers yet" else "No matching providers",
+                                    if (providers.isEmpty()) "尚无提供商" else "没有匹配的提供商",
                                     style = MaterialTheme.typography.titleSmallEmphasized,
                                     modifier = Modifier.padding(top = 12.dp),
                                 )
                                 Text(
-                                    if (providers.isEmpty()) "Add a provider, then choose its model." else "Try a different search or show disabled providers.",
+                                    if (providers.isEmpty()) "请添加提供商，然后选择模型。" else "请换个关键词，或显示已停用的提供商。",
                                     style = MaterialTheme.typography.bodySmall,
                                     color = scheme.onSurfaceVariant,
                                     modifier = Modifier.padding(top = 4.dp),
@@ -237,7 +237,7 @@ fun ProvidersScreen(
             onRefreshCatalog = { providerId ->
                 val provider = providers.firstOrNull { it.id == providerId }
                 when {
-                    provider == null -> "Unknown provider"
+                    provider == null -> "未知提供商"
                     else -> when (
                         val result = com.androidharness.app.llm.ModelCatalog.listModels(
                             provider,

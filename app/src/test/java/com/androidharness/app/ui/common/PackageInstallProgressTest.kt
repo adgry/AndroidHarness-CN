@@ -8,8 +8,8 @@ class PackageInstallProgressTest {
     @Test fun `download labels follow received bytes and the current package`() {
         val start = EnvState.Downloading(1, 4, "python", 0, 8192).packageProgress()!!
         val half = EnvState.Downloading(1, 4, "python", 4096, 8192).packageProgress()!!
-        assertEquals("Downloading python", half.title)
-        assertEquals("Package 2 of 4 · 4.0 KB / 8.0 KB", half.detail)
+        assertEquals("正在下载 python", half.title)
+        assertEquals("软件包 2 / 4 · 4.0 KB / 8.0 KB", half.detail)
         assertEquals("0%", start.percentage)
         assertEquals("50%", half.percentage)
         assertEquals(0.5f, half.fraction!!, 0f)
@@ -19,15 +19,15 @@ class PackageInstallProgressTest {
         val progress = EnvState.Downloading(0, 1, "jq", 2048).packageProgress()!!
         assertNull(progress.fraction)
         assertNull(progress.percentage)
-        assertEquals("Package 1 of 1 · 2.0 KB", progress.detail)
+        assertEquals("软件包 1 / 1 · 2.0 KB", progress.detail)
     }
 
     @Test fun `installation counts only finished packages and never finishes early`() {
         val first = EnvState.Installing(0, 4, "liba").packageProgress()!!
         val last = EnvState.Installing(3, 4, "python").packageProgress()!!
         assertEquals("0%", first.percentage)
-        assertEquals("Installing python", last.title)
-        assertEquals("3 of 4 packages installed", last.detail)
+        assertEquals("正在安装 python", last.title)
+        assertEquals("已安装 3 / 4 个软件包", last.detail)
         assertEquals("75%", last.percentage)
         assertNull(EnvState.Ready.packageProgress())
         assertNull(EnvState.Failed("offline").packageProgress())

@@ -83,7 +83,7 @@ class WorkspaceSearchTest {
         val plan=WorkspaceSearch.replacements(WorkspaceSearch.search(fs,WorkspaceSearch.index(fs),options),options,"world")
         b.writeText("external edit")
         val failure=runCatching{WorkspaceSearch.apply(fs,plan,{false})}.exceptionOrNull()
-        assertTrue(failure?.message.orEmpty().contains("changed after the preview"))
+        assertTrue(failure?.message.orEmpty().contains("在预览后已更改"))
         assertEquals("hello",a.readText());assertEquals("external edit",b.readText())
     }
     @Test fun unsavedDraftBlocksWholeBatchBeforeAnyWrite() = runBlocking {
@@ -91,14 +91,14 @@ class WorkspaceSearchTest {
         val fs=FileFs(root);val options=ProjectSearchOptions("hello")
         val plan=WorkspaceSearch.replacements(WorkspaceSearch.search(fs,WorkspaceSearch.index(fs),options),options,"world")
         val failure=runCatching{WorkspaceSearch.apply(fs,plan,{it=="b.txt"})}.exceptionOrNull()
-        assertTrue(failure?.message.orEmpty().contains("unsaved edits"));assertEquals("hello",a.readText())
+        assertTrue(failure?.message.orEmpty().contains("未保存的编辑"));assertEquals("hello",a.readText())
     }
     @Test fun readOnlyGrantBlocksReplacement() = runBlocking {
         val root=root();val a=file(root,"a.txt","hello")
         val fs=ChatWorkspaceFs("p",listOf(ChatWorkspaceBinding("p","project",false,FileFs(root))))
         val options=ProjectSearchOptions("hello")
         val plan=WorkspaceSearch.replacements(WorkspaceSearch.search(fs,WorkspaceSearch.index(fs),options),options,"world")
-        assertTrue(runCatching{WorkspaceSearch.apply(fs,plan,{false})}.exceptionOrNull()?.message.orEmpty().contains("read-only"))
+        assertTrue(runCatching{WorkspaceSearch.apply(fs,plan,{false})}.exceptionOrNull()?.message.orEmpty().contains("只读"))
         assertEquals("hello",a.readText())
     }
     @Test fun limitsResultsAndDisallowsIncompleteReplacement() = runBlocking {

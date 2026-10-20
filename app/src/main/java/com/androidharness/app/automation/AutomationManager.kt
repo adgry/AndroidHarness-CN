@@ -28,21 +28,21 @@ class AutomationManager(private val c: AppContainer) {
         require(task.title.isNotBlank() && task.prompt.isNotBlank())
         require(task.hour in 0..23 && task.minute in 0..59)
         require(task.githubPush != null || (!task.providerId.isNullOrBlank() && !task.model.isNullOrBlank())) {
-            "Choose a model for this automation."
+            "请为此自动化选择模型。"
         }
         task.githubPush?.let {
             require(it.remoteUrl == com.androidharness.app.github.gitHubRepositoryUrl(it.remoteUrl) && it.branch.isNotBlank() && it.commitMessage.isNotBlank()) {
-                "Choose a GitHub repository, branch and commit message."
+                "请选择 GitHub 仓库、分支和提交说明。"
             }
         }
         if (task.enabled && task.schedule == AutomationSchedule.ONCE) {
-            require((task.scheduledAt ?: 0) > System.currentTimeMillis()) { "Scheduled time must be in the future." }
+            require((task.scheduledAt ?: 0) > System.currentTimeMillis()) { "定时时间须在未来。" }
         }
         fun merge(old: AutomationTask): AutomationTask {
             require(old.activeRun == null || run {
                 old.prompt == task.prompt && old.projectId == task.projectId && old.targetSessionId == task.targetSessionId &&
                     old.providerId == task.providerId && old.model == task.model
-            }) { "Cancel the unfinished run before changing its instructions or destination." }
+            }) { "请先取消未完成的运行，再更改指令或目标。" }
             return task.copy(activeRun = old.activeRun, lastStatus = old.lastStatus, lastMessage = old.lastMessage,
                 lastRunAt = old.lastRunAt, lastSessionId = old.lastSessionId, lastFinishedOccurrence = old.lastFinishedOccurrence)
         }
@@ -70,8 +70,8 @@ class AutomationManager(private val c: AppContainer) {
                         .build())
             }
             task.enabled && task.schedule == AutomationSchedule.ONCE -> {
-                val runAt = requireNotNull(task.scheduledAt) { "Choose a date and time." }
-                require(runAt > System.currentTimeMillis()) { "Scheduled time must be in the future." }
+                val runAt = requireNotNull(task.scheduledAt) { "请选择日期和时间。" }
+                require(runAt > System.currentTimeMillis()) { "定时时间须在未来。" }
                 repository.updateTask(task.id) { it.copy(nextRunAt = runAt) }
                 work.enqueueUniqueWork(name, ExistingWorkPolicy.REPLACE,
                     OneTimeWorkRequestBuilder<AutomationWorker>()
@@ -90,7 +90,7 @@ class AutomationManager(private val c: AppContainer) {
     fun runNow(id: String) {
         val task = repository.task(id) ?: return
         repository.updateTask(id) { it.copy(lastStatus = AutomationStatus.QUEUED, lastFinishedOccurrence = null,
-            lastMessage = if (connection.value.allows(task)) "Waiting to start" else connection.value.waitingMessage(task))
+            lastMessage = if (connection.value.allows(task)) "等待开始" else connection.value.waitingMessage(task))
         }
         work.enqueueUniqueWork("automation-run-$id", ExistingWorkPolicy.KEEP,
             OneTimeWorkRequestBuilder<AutomationWorker>()
@@ -107,10 +107,10 @@ class AutomationManager(private val c: AppContainer) {
             task.activeRun?.let { active ->
                 if (c.runManager.controls.flow(active.sessionId).value.automationRunId == active.id) c.runManager.stop(active.sessionId)
                 repository.updateHistory(active.historyId) { it.copy(status = AutomationStatus.CANCELLED,
-                    message = "Cancelled", finishedAt = System.currentTimeMillis()) }
+                    message = "已取消", finishedAt = System.currentTimeMillis()) }
             }
             repository.updateTask(id) { it.copy(enabled = false, nextRunAt = null, activeRun = null,
-                lastStatus = AutomationStatus.CANCELLED, lastMessage = "Cancelled") }
+                lastStatus = AutomationStatus.CANCELLED, lastMessage = "已取消") }
         }
     }
 
@@ -118,7 +118,7 @@ class AutomationManager(private val c: AppContainer) {
 
     /** Do not race a worker creating chats or publishing a result during project removal. */
     internal suspend fun <T> withIdleAutomations(action: suspend () -> T): T {
-        check(mutex.tryLock()) { "Wait for the running automation to finish before deleting a project." }
+        check(mutex.tryLock()) { "请等待运行中的自动化结束，再删除项目。" }
         try { return action() } finally { mutex.unlock() }
     }
 
@@ -126,7 +126,7 @@ class AutomationManager(private val c: AppContainer) {
         work.cancelUniqueWork("automation-run-$id")
         work.cancelUniqueWork("automation-schedule-$id")
         repository.task(id)?.let { task ->
-            repository.updateTask(id) { it.copy(enabled = false, nextRunAt = null, lastStatus = AutomationStatus.PAUSED, lastMessage = "Paused") }
+            repository.updateTask(id) { it.copy(enabled = false, nextRunAt = null, lastStatus = AutomationStatus.PAUSED, lastMessage = "已暂停") }
         }
     }
 
@@ -155,9 +155,9 @@ class AutomationManager(private val c: AppContainer) {
         }
         if (!connection.value.allows(task)) return@withLock waiting(connection.value.waitingMessage(task))
         val destination = task.activeRun?.sessionId ?: task.targetSessionId
-        if (destination != null && c.runManager.isRunning(destination)) return@withLock waiting("Waiting for this chat to finish")
+        if (destination != null && c.runManager.isRunning(destination)) return@withLock waiting("正在等待此聊天完成")
         if (destination != null && task.activeRun == null && c.runManager.controls.flow(destination).value.resumable) {
-            return@withLock waiting("Waiting for this chat to finish")
+            return@withLock waiting("正在等待此聊天完成")
         }
         var run = task.activeRun
         var resultPreview: String? = null
@@ -181,26 +181,26 @@ class AutomationManager(private val c: AppContainer) {
                 if (finished) runCatching {
                     RunResultNotifications.post(c.appContext, RunResultNotification(state.sessionId, task.title,
                         value == AutomationStatus.COMPLETED || value == AutomationStatus.PASSED,
-                        (resultPreview ?: message ?: "Run finished").take(4000),
+                        (resultPreview ?: message ?: "运行完成").take(4000),
                         notificationTitle = if (value == AutomationStatus.COMPLETED || value == AutomationStatus.PASSED)
-                            "Scheduled task done" else "Scheduled task needs attention"))
+                            "定时任务已完成" else "定时任务需要处理"))
                 }
             }
         }
         fun saveRun(next: AutomationRun) {
             run = next
             repository.updateTask(id) {
-                check(it.lastStatus != AutomationStatus.CANCELLED) { "Schedule was cancelled" }
+                check(it.lastStatus != AutomationStatus.CANCELLED) { "定时安排已取消" }
                 it.copy(activeRun = next, lastSessionId = next.sessionId)
             }
         }
         var finished = false
         try {
             val project = c.workspace.projects.first().firstOrNull { it.id == task.projectId }
-                ?: error("Workspace was removed. Edit this schedule.")
+                ?: error("工作区已移除，请编辑此定时安排。")
             val fs = c.workspace.fsFor(project)
-            val target = destination?.let { c.sessions.session(it) ?: error("Chat was removed. Choose another chat.") }
-            check(target == null || target.projectId == task.projectId) { "This chat's workspace changed. Edit this schedule." }
+            val target = destination?.let { c.sessions.session(it) ?: error("聊天已移除，请选择其他聊天。") }
+            check(target == null || target.projectId == task.projectId) { "此聊天的工作区已更改，请编辑定时安排。" }
             if (run == null) {
                 val sid = destination ?: c.sessions.createSession(task.title, task.projectId)
                 val state = AutomationRun(occurrence = occurrence, sessionId = sid)
@@ -213,10 +213,10 @@ class AutomationManager(private val c: AppContainer) {
                     startedAt = state.startedAt, status = AutomationStatus.RUNNING))
             }
             val session = requireNotNull(run).sessionId
-            status(AutomationStatus.RUNNING, "Preparing workspace")
+            status(AutomationStatus.RUNNING, "正在准备工作区")
             if (task.githubPush != null) {
                 // A push interrupted after contacting GitHub has an unknown outcome: require review.
-                check(!requireNotNull(run).agentStarted) { "The previous push was interrupted. Check GitHub before running it again." }
+                check(!requireNotNull(run).agentStarted) { "上次推送已中断，请检查 GitHub 后再运行。" }
                 saveRun(requireNotNull(run).copy(agentStarted = true))
                 val result = c.githubRepositories.pushPreset(fs, task.githubPush)
                 c.sessions.addMessage(session, com.androidharness.app.core.ChatMessage(role = Role.ASSISTANT, text = result))
@@ -225,14 +225,14 @@ class AutomationManager(private val c: AppContainer) {
                 finished = true
                 return@withLock AutomationOutcome.DONE
             }
-            check(c.mcp.unapprovedWorkspaceServers(fs).isEmpty()) { "Workspace tools need approval. Open this chat to approve them." }
+            check(c.mcp.unapprovedWorkspaceServers(fs).isEmpty()) { "工作区工具需要批准，请打开此聊天进行批准。" }
             val settings = c.settings.settings.first()
             val provider = c.providers.providers.first().firstOrNull { it.id == task.providerId }
-                ?: error("The saved provider is unavailable. Choose another model.")
-            val model = task.model?.takeIf { it.isNotBlank() } ?: error("Choose a model for this schedule.")
+                ?: error("已保存的服务商不可用，请选择其他模型。")
+            val model = task.model?.takeIf { it.isNotBlank() } ?: error("请为此定时安排选择模型。")
             val key = if (provider.id == com.androidharness.app.llm.HarnessProvider.ID) c.providers.harnessApiKey()
                 else provider.effectiveApiKey(c.providers.apiKey(provider.id)).takeIf { it.isNotBlank() }
-                    ?: error("Sign in or add credentials for the saved provider.")
+                    ?: error("请登录或为已保存的服务商添加凭据。")
             runKey = key
             if (provider.id == com.androidharness.app.llm.HarnessProvider.ID) {
                 if (c.providers.wire(model) == null && !com.androidharness.app.llm.HarnessProvider.isPooled(model) &&
@@ -246,7 +246,7 @@ class AutomationManager(private val c: AppContainer) {
                 currentCoroutineContext().ensureActive()
                 val active = requireNotNull(run)
                 val saved = c.runManager.controls.flow(session).value
-                check(!active.checking || saved.automationRunId == active.id) { "This chat has moved on. Open it to review the schedule." }
+                check(!active.checking || saved.automationRunId == active.id) { "此聊天已有后续进展，请打开聊天检查定时安排。" }
                 if (!active.checking) {
                     when (automationRecovery(active, saved)) {
                         AutomationRecovery.START -> {
@@ -261,10 +261,10 @@ class AutomationManager(private val c: AppContainer) {
                         AutomationRecovery.RESUME -> c.runManager.resumeTask(session, key, active.id, notifyOnFinish = false)
                         AutomationRecovery.FINISHED -> Unit
                         AutomationRecovery.CANCELLED -> {
-                            status(AutomationStatus.CANCELLED, "Stopped in chat", true); finished = true
+                            status(AutomationStatus.CANCELLED, "已在聊天中停止", true); finished = true
                             return@withLock AutomationOutcome.DONE
                         }
-                        AutomationRecovery.REVIEW -> error("This chat has moved on. Open it to review the interrupted schedule.")
+                        AutomationRecovery.REVIEW -> error("此聊天已有后续进展，请打开聊天检查中断的定时安排。")
                     }
                     var previous: String? = null
                     while (c.runManager.isRunning(session)) {
@@ -278,40 +278,40 @@ class AutomationManager(private val c: AppContainer) {
                         delay(250)
                     }
                     val record = c.runManager.controls.flow(session).value
-                    check(record.automationRunId == active.id) { "This chat has moved on. Open it to review the schedule." }
+                    check(record.automationRunId == active.id) { "此聊天已有后续进展，请打开聊天检查定时安排。" }
                     val live = c.runManager.live(session).value
                     if (live.cancelled) {
-                        status(AutomationStatus.CANCELLED, "Stopped in chat", true); finished = true
+                        status(AutomationStatus.CANCELLED, "已在聊天中停止", true); finished = true
                         return@withLock AutomationOutcome.DONE
                     }
-                    check(record.status == "idle" && live.error == null) { record.reason ?: live.error ?: "Open this chat to continue the task." }
+                    check(record.status == "idle" && live.error == null) { record.reason ?: live.error ?: "请打开此聊天继续任务。" }
                     resultPreview = c.sessions.messages(session).lastOrNull { it.role == Role.ASSISTANT }?.text?.trim()?.take(4000)
                     if (task.checkCommand.isBlank()) {
-                        status(AutomationStatus.COMPLETED, resultPreview ?: "Run finished", true); finished = true
+                        status(AutomationStatus.COMPLETED, resultPreview ?: "运行完成", true); finished = true
                         return@withLock AutomationOutcome.DONE
                     }
                     saveRun(requireNotNull(run).copy(checking = true))
                 }
-                status(AutomationStatus.RUNNING, "Verifying result · attempt ${active.attempt} of $attempts")
+                status(AutomationStatus.RUNNING, "正在验证结果 · 第 ${active.attempt} / $attempts 次")
                 val check = c.deviceAccess.traceTool(task.projectId, session) { com.androidharness.app.tools.ShellTool(c.linuxEnv, c.shellRouter).execute(
                     kotlinx.serialization.json.buildJsonObject {
                         put("command", kotlinx.serialization.json.JsonPrimitive(task.checkCommand))
                         put("timeout_seconds", kotlinx.serialization.json.JsonPrimitive(600))
                     }, com.androidharness.app.tools.ToolContext(fs, sessionId = session)) }
                 c.sessions.addMessage(session, com.androidharness.app.core.ChatMessage(role = Role.USER,
-                    text = "Automation success check: ${task.checkCommand}\n${check.output}"))
+                    text = "自动化成功检查： ${task.checkCommand}\n${check.output}"))
                 if (check.ok) {
-                    status(AutomationStatus.PASSED, "Success check passed.\n" + check.output.takeLast(3500), true); finished = true
+                    status(AutomationStatus.PASSED, "成功检查已通过。\n" + check.output.takeLast(3500), true); finished = true
                     return@withLock AutomationOutcome.DONE
                 }
-                if (active.attempt == attempts) error("Success check still fails after $attempts attempts.\n" + check.output.takeLast(3500))
+                if (active.attempt == attempts) error("成功检查在 $attempts 次尝试后仍然失败。\n" + check.output.takeLast(3500))
                 saveRun(active.copy(id = java.util.UUID.randomUUID().toString(), attempt = active.attempt + 1,
                     agentStarted = false, checking = false,
                     feedback = "\nThe success check still fails. Fix it and verify again:\n" + check.output.takeLast(12000)))
             }
             AutomationOutcome.DONE
         } catch (e: com.androidharness.app.agent.RunBusyException) {
-            waiting("Waiting for this chat to finish")
+            waiting("正在等待此聊天完成")
         } catch (e: CancellationException) {
             withContext(NonCancellable) {
                 run?.let { active ->
@@ -319,14 +319,14 @@ class AutomationManager(private val c: AppContainer) {
                     if (record.automationRunId == active.id && record.resumable) {
                         c.runManager.stopAndJoin(active.sessionId)
                         c.runManager.controls.update(active.sessionId) {
-                            if (it.completed) it else it.copy(status = "interrupted", reason = "Scheduled task interrupted")
+                            if (it.completed) it else it.copy(status = "interrupted", reason = "定时任务已中断")
                         }
                     }
                 }
                 repository.task(id)?.takeIf { it.activeRun != null }?.let { current ->
                     status(if (current.enabled) AutomationStatus.QUEUED else AutomationStatus.PAUSED,
-                        if (!current.enabled) "Paused" else if (!connection.value.allows(current)) connection.value.waitingMessage(current)
-                        else "Interrupted · waiting to continue")
+                        if (!current.enabled) "已暂停" else if (!connection.value.allows(current)) connection.value.waitingMessage(current)
+                        else "已中断 · 等待继续")
                 }
             }
             throw e
@@ -334,7 +334,7 @@ class AutomationManager(private val c: AppContainer) {
             run?.let { active ->
                 if (c.runManager.controls.flow(active.sessionId).value.automationRunId == active.id) c.runManager.stopAndJoin(active.sessionId)
             }
-            val message = if (task.githubPush != null) c.github.safeMessage(e) else e.message ?: "Could not start task"
+            val message = if (task.githubPush != null) c.github.safeMessage(e) else e.message ?: "无法启动任务"
             status(AutomationStatus.BLOCKED, message, true); finished = true
             AutomationOutcome.DONE
         } finally {

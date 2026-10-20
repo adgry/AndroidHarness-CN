@@ -22,9 +22,9 @@ internal fun turnTokensPerSecond(messages: List<ChatMessage>): TurnSpeed? {
 
 internal fun turnPerformanceLabel(durationMs: Long?, speed: TurnSpeed?): String =
     listOfNotNull(
-        durationMs?.let { if (it <= 0) "0s" else formatDuration(it) },
+        durationMs?.let { if (it <= 0) "0 秒" else formatDuration(it) },
         speed?.tokensPerSecond?.takeIf { it.isFinite() && it > 0 }?.let {
-            String.format(Locale.US, "%.0f tk/s%s", it, if (speed.generationOnly) "" else " request")
+            String.format(Locale.US, "%.0f Token/秒%s", it, if (speed.generationOnly) "" else " 请求")
         },
-        speed?.firstTokenMs?.let { String.format(Locale.US, "first %.1fs", it / 1000.0) },
+        speed?.firstTokenMs?.let { String.format(Locale.US, "首字 %.1f 秒", it / 1000.0) },
     ).joinToString(" · ")

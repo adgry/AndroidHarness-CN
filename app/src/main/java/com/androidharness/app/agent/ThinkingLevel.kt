@@ -18,6 +18,18 @@ enum class ThinkingLevel(val label: String) {
     /** Position on the global ladder, basis for nearest-weaker clamping. */
     val rank: Int get() = ordinal
 
+    /** Localized display copy; label remains the provider reasoning vocabulary. */
+    val displayLabel: String get() = when (this) {
+        OFF -> "关闭"
+        MINIMAL -> "最低"
+        LOW -> "低"
+        MEDIUM -> "中"
+        HIGH -> "高"
+        XHIGH -> "超高"
+        MAX -> "最高"
+        ULTRA -> "极高"
+    }
+
     /**
      * Budget in tokens for providers that take an explicit thinking budget.
      * Intermediate presets only. ThinkingSpecs supplies the real minimum and

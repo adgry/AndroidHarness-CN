@@ -95,7 +95,7 @@ private const val MAX_EDIT_BYTES = 16_000_000L
  * to be text.
  *
  * When [sessionId] is set (chat context), manual saves also feed the session's
- * cumulative "Files changed" tracker, using the load-time content as the
+ * cumulative "文件已更改" tracker, using the load-time content as the
  * diff baseline candidate (the repository keeps the earliest baseline).
  */
 @OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
@@ -156,14 +156,14 @@ internal fun CodeEditorScreen(
             }
         } catch (e: kotlinx.coroutines.CancellationException) { throw e }
         catch (_: Exception) {
-            loadState = Load.Failed("Could not recover the editor draft. It has been kept on the device; the saved file has not been changed.")
+            loadState = Load.Failed("无法恢复编辑器草稿，草稿已保留在设备上，已保存的文件未被更改。")
             return@LaunchedEffect
         }
         val node = withContext(Dispatchers.IO) {
             fs?.let { f -> runCatching { f.resolve(path).takeIf { it.exists && it.isFile } }.getOrNull() }
         }
         if (node == null) {
-            loadState = Load.Failed("File not found or workspace unavailable.")
+            loadState = Load.Failed("文件不存在或工作区不可用。")
             return@LaunchedEffect
         }
         val fileLength = withContext(Dispatchers.IO) { node.length }
@@ -175,7 +175,7 @@ internal fun CodeEditorScreen(
             runCatching { node.openInputStream()?.use { it.readBytes() } }.getOrNull()
         }
         when {
-            bytes == null -> loadState = Load.Failed("Could not read file.")
+            bytes == null -> loadState = Load.Failed("无法读取文件。")
             else -> {
                 val dec = EditorFileCodec.decode(bytes)
                 if (dec == null) loadState = Load.Binary(fileLength)
@@ -267,7 +267,7 @@ internal fun CodeEditorScreen(
         scope.launch {
             val result = withContext(Dispatchers.IO) {
                 runCatching {
-                    container.runManager.withIdleWorkspace(f, "An agent is working in this workspace. Wait for it to finish before saving; your edits are kept.") {
+                    container.runManager.withIdleWorkspace(f, "代理正在此工作区中运行，请待其完成后再保存，你的编辑会保留。") {
                         saveEditorFile(f, path, expected, EditorFileCodec.encode(dec, newText))
                     }
                 }
@@ -291,7 +291,7 @@ internal fun CodeEditorScreen(
                     dirty = buffer.text.value != newText
                     buffer.recovered.value = false
                     persistDraft(immediate = true)
-                    Toast.makeText(context, "Saved", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, "已保存", Toast.LENGTH_SHORT).show()
                     // Feed the Files-changed tracker; repository keeps the
                     // earliest baseline even though we resend ours each time.
                     val sid = sessionId
@@ -310,7 +310,7 @@ internal fun CodeEditorScreen(
                     }
                 }
                 .onFailure { e ->
-                    Toast.makeText(context, "Save failed: ${e.message}", Toast.LENGTH_LONG).show()
+                    Toast.makeText(context, "保存失败：${e.message}", Toast.LENGTH_LONG).show()
                 }
             if (thenExit && saved && !dirty) leave()
         }
@@ -351,14 +351,14 @@ internal fun CodeEditorScreen(
         IconButton(
             onClick = { editorRef?.text?.undo() },
             enabled = undoAvailable,
-        ) { Icon(Icons.Outlined.Undo, contentDescription = "Undo") }
+        ) { Icon(Icons.Outlined.Undo, contentDescription = "撤销") }
         IconButton(
             onClick = { editorRef?.text?.redo() },
             enabled = redoAvailable,
-        ) { Icon(Icons.Outlined.Redo, contentDescription = "Redo") }
+        ) { Icon(Icons.Outlined.Redo, contentDescription = "重做") }
         if (workspaceChrome != null) Spacer(Modifier.weight(1f))
         if (smart != null && SmartEditorSupport.outline(path)) IconButton(onClick = { smartAction = SmartEditorAction.OUTLINE }, enabled = editorRef != null && !saving) {
-            Icon(Icons.Outlined.AccountTree, contentDescription = "Code outline")
+            Icon(Icons.Outlined.AccountTree, contentDescription = "代码大纲")
         }
         IconButton(onClick = {
             editing = !editing
@@ -368,37 +368,37 @@ internal fun CodeEditorScreen(
         }) {
             Icon(
                 if (editing) Icons.Outlined.Check else Icons.Outlined.Edit,
-                contentDescription = if (editing) "Done editing" else "Edit",
+                contentDescription = if (editing) "完成编辑" else "编辑",
                 tint = if (editing) scheme.primary else scheme.onSurfaceVariant,
             )
         }
         if (dirty && !saving) {
             IconButton(onClick = { save() }) {
-                Icon(Icons.Outlined.Save, contentDescription = "Save", tint = scheme.primary)
+                Icon(Icons.Outlined.Save, contentDescription = "保存", tint = scheme.primary)
             }
         }
         Box {
             IconButton(onClick = { menuOpen = true }) {
-                Icon(Icons.Filled.MoreVert, contentDescription = "More")
+                Icon(Icons.Filled.MoreVert, contentDescription = "更多")
             }
             DropdownMenu(expanded = menuOpen, onDismissRequest = { menuOpen = false }) {
                 if (smart != null) {
-                    if (SmartEditorSupport.format(path)) DropdownMenuItem(text = { Text("Format Document") }, leadingIcon = { Icon(Icons.Outlined.AutoFixHigh, null) }, enabled = editorRef != null && !saving,
+                    if (SmartEditorSupport.format(path)) DropdownMenuItem(text = { Text("格式化文档") }, leadingIcon = { Icon(Icons.Outlined.AutoFixHigh, null) }, enabled = editorRef != null && !saving,
                         onClick = { menuOpen = false; smartAction = SmartEditorAction.FORMAT })
                     if (SmartEditorSupport.navigation(path)) {
-                        DropdownMenuItem(text = { Text("Go to Definition") }, enabled = editorRef != null, onClick = { menuOpen = false; smartAction = SmartEditorAction.DEFINITION })
-                        DropdownMenuItem(text = { Text("Find References") }, enabled = editorRef != null, onClick = { menuOpen = false; smartAction = SmartEditorAction.REFERENCES })
+                        DropdownMenuItem(text = { Text("转到定义") }, enabled = editorRef != null, onClick = { menuOpen = false; smartAction = SmartEditorAction.DEFINITION })
+                        DropdownMenuItem(text = { Text("查找引用") }, enabled = editorRef != null, onClick = { menuOpen = false; smartAction = SmartEditorAction.REFERENCES })
                     }
-                    if (SmartEditorSupport.rename(path)) DropdownMenuItem(text = { Text("Rename Symbol") }, enabled = editorRef != null && !saving, onClick = { menuOpen = false; smartAction = SmartEditorAction.RENAME })
-                    DropdownMenuItem(text = { Text("Language support") }, onClick = { menuOpen = false; languageSupport = true })
+                    if (SmartEditorSupport.rename(path)) DropdownMenuItem(text = { Text("重命名符号") }, enabled = editorRef != null && !saving, onClick = { menuOpen = false; smartAction = SmartEditorAction.RENAME })
+                    DropdownMenuItem(text = { Text("语言支持") }, onClick = { menuOpen = false; languageSupport = true })
                     androidx.compose.material3.HorizontalDivider()
                 }
-                onQuickOpen?.let { action -> DropdownMenuItem(text = { Text("Quick Open") }, leadingIcon = { Icon(Icons.Outlined.OpenInNew, null) }, onClick = { menuOpen = false; action() }) }
-                onProjectSearch?.let { action -> DropdownMenuItem(text = { Text("Search project") }, leadingIcon = { Icon(Icons.Outlined.Search, null) }, onClick = { menuOpen = false; action() }) }
-                onCommands?.let { action -> DropdownMenuItem(text = { Text("Command palette") }, onClick = { menuOpen = false; action() }) }
+                onQuickOpen?.let { action -> DropdownMenuItem(text = { Text("快速打开") }, leadingIcon = { Icon(Icons.Outlined.OpenInNew, null) }, onClick = { menuOpen = false; action() }) }
+                onProjectSearch?.let { action -> DropdownMenuItem(text = { Text("搜索项目") }, leadingIcon = { Icon(Icons.Outlined.Search, null) }, onClick = { menuOpen = false; action() }) }
+                onCommands?.let { action -> DropdownMenuItem(text = { Text("命令面板") }, onClick = { menuOpen = false; action() }) }
                 if (onQuickOpen != null) androidx.compose.material3.HorizontalDivider()
                 DropdownMenuItem(
-                    text = { Text(if (searchOpen) "Hide find" else "Find…") },
+                    text = { Text(if (searchOpen) "隐藏查找" else "查找…") },
                     leadingIcon = { Icon(Icons.Outlined.Search, null) },
                     onClick = {
                         menuOpen = false
@@ -407,7 +407,7 @@ internal fun CodeEditorScreen(
                     },
                 )
                 DropdownMenuItem(
-                    text = { Text(if (wordwrapOn) "Word wrap: on" else "Word wrap: off") },
+                    text = { Text(if (wordwrapOn) "自动换行：开" else "自动换行：关") },
                     onClick = {
                         menuOpen = false
                         val enabled = !wordwrapOn
@@ -416,11 +416,11 @@ internal fun CodeEditorScreen(
                     },
                 )
                 DropdownMenuItem(
-                    text = { Text("Go to line…") },
+                    text = { Text("转到行…") },
                     onClick = { menuOpen = false; gotoOpen = true },
                 )
                 DropdownMenuItem(
-                    text = { Text("Share") },
+                    text = { Text("分享") },
                     leadingIcon = { Icon(Icons.Outlined.Share, null) },
                     onClick = {
                         menuOpen = false
@@ -430,13 +430,13 @@ internal fun CodeEditorScreen(
                                 val node = withContext(Dispatchers.IO) { f.resolve(path) }
                                 FileOps.share(context, node)
                             }.onFailure { e ->
-                                Toast.makeText(context, e.message ?: "Share failed", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(context, e.message ?: "分享失败", Toast.LENGTH_SHORT).show()
                             }
                         }
                     },
                 )
                 DropdownMenuItem(
-                    text = { Text("Open externally") },
+                    text = { Text("用其他应用打开") },
                     leadingIcon = { Icon(Icons.Outlined.OpenInNew, null) },
                     onClick = {
                         menuOpen = false
@@ -446,7 +446,7 @@ internal fun CodeEditorScreen(
                                 val node = withContext(Dispatchers.IO) { f.resolve(path) }
                                 FileOps.openWith(context, node)
                             }.onFailure { e ->
-                                Toast.makeText(context, e.message ?: "No app can open this", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(context, e.message ?: "没有可打开此文件的应用", Toast.LENGTH_SHORT).show()
                             }
                         }
                     },
@@ -479,7 +479,7 @@ internal fun CodeEditorScreen(
 
                 is Load.Binary -> NotTextView(
                     sizeBytes = st.sizeBytes,
-                    detail = "Binary file: it can't be edited as text.",
+                    detail = "二进制文件，无法作为文本编辑。",
                     onShare = {
                         val f = fs ?: return@NotTextView
                         scope.launch {
@@ -502,7 +502,7 @@ internal fun CodeEditorScreen(
 
                 is Load.TooLarge -> NotTextView(
                     sizeBytes = st.sizeBytes,
-                    detail = "Too large to edit here (over ${formatFileSize(MAX_EDIT_BYTES)}).",
+                    detail = "文件过大，无法在此编辑（超过 ${formatFileSize(MAX_EDIT_BYTES)}）。",
                     onShare = {
                         val f = fs ?: return@NotTextView
                         scope.launch {
@@ -526,10 +526,10 @@ internal fun CodeEditorScreen(
                 Load.Ready -> Column(Modifier.fillMaxSize()) {
                     if (dirty) Text(
                         when {
-                            draftStatus == EditorDraftStatus.FAILED -> "Draft recovery could not be saved. Keep this editor open or save the file."
-                            draftStatus == EditorDraftStatus.SAVING -> "Saving draft on device…"
-                            buffer.recovered.value -> "Recovered unsaved draft · file unchanged"
-                            else -> "Draft saved on device · file unsaved"
+                            draftStatus == EditorDraftStatus.FAILED -> "无法保存恢复草稿，请保持编辑器打开或保存文件。"
+                            draftStatus == EditorDraftStatus.SAVING -> "正在将草稿保存到设备…"
+                            buffer.recovered.value -> "已恢复未保存草稿 · 文件未更改"
+                            else -> "草稿已保存到设备 · 文件未保存"
                         },
                         style = MaterialTheme.typography.labelSmall,
                         color = if (draftStatus == EditorDraftStatus.FAILED) scheme.error else scheme.onSurfaceVariant,
@@ -537,13 +537,13 @@ internal fun CodeEditorScreen(
                     )
                     if (onAskAgent != null && selectedLength > 0) Surface(color = scheme.secondaryContainer) {
                         Row(Modifier.fillMaxWidth().padding(start = 12.dp, end = 4.dp), verticalAlignment = Alignment.CenterVertically) {
-                            Text(if (selectedLength > SelectedCode.MAX_CHARS) "Select less code to ask the agent" else "Selected code",
+                            Text(if (selectedLength > SelectedCode.MAX_CHARS) "请选择较少的代码再询问代理" else "所选代码",
                                 style = MaterialTheme.typography.labelMedium, modifier = Modifier.weight(1f))
                             TextButton(enabled = selectedLength <= SelectedCode.MAX_CHARS, onClick = {
                                 val ed = editorRef ?: return@TextButton
                                 selection = SelectedCode.capture(path, ed.text.toString(), ed.cursor.left, ed.cursor.right, dirty)
                                 ed.hideSoftInput(); ed.hideEditorWindows()
-                            }) { Icon(Icons.Outlined.AutoAwesome, null, Modifier.size(18.dp)); Spacer(Modifier.width(6.dp)); Text("Ask agent") }
+                            }) { Icon(Icons.Outlined.AutoAwesome, null, Modifier.size(18.dp)); Spacer(Modifier.width(6.dp)); Text("询问代理") }
                         }
                     }
                     androidx.compose.runtime.key(draftKey) {
@@ -678,14 +678,14 @@ internal fun CodeEditorScreen(
             sheetState = androidx.compose.material3.rememberModalBottomSheetState(skipPartiallyExpanded = true)) {
             Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(horizontal = 16.dp).padding(bottom = 24.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text("Ask about selected code", style = MaterialTheme.typography.titleLarge)
+                Text("询问所选代码", style = MaterialTheme.typography.titleLarge)
                 Text(captured.location, style = MaterialTheme.typography.bodySmall, color = scheme.onSurfaceVariant)
                 Surface(shape = androidx.compose.foundation.shape.RoundedCornerShape(12.dp), color = scheme.surfaceContainer) {
                     Text(captured.text.take(700) + if (captured.text.length > 700) "\n…" else "",
                         fontFamily = com.androidharness.app.ui.theme.HarnessMono, style = MaterialTheme.typography.bodySmall,
                         maxLines = 7, modifier = Modifier.padding(12.dp))
                 }
-                Text("Choose an action, then review and send it in chat.", style = MaterialTheme.typography.bodySmall, color = scheme.onSurfaceVariant)
+                Text("选择操作，然后在聊天中审阅并发送。", style = MaterialTheme.typography.bodySmall, color = scheme.onSurfaceVariant)
                 CodeAction.entries.forEach { action ->
                     Surface(onClick = {
                         selection = null
@@ -706,33 +706,33 @@ internal fun CodeEditorScreen(
             SmartEditorSheet(action, path, editorRef!!, buffer, smart, onDismiss = { smartAction = null }, onOpenLocation = onOpenSmartLocation)
         }
     }
-    if (languageSupport) AlertDialog(onDismissRequest = { languageSupport = false }, title = { Text("Language support") },
+    if (languageSupport) AlertDialog(onDismissRequest = { languageSupport = false }, title = { Text("语言支持") },
         text = { Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Text("JavaScript & TypeScript: autocomplete, definitions, references, rename, outline and formatting.")
-            Text("HTML, CSS, SCSS, LESS & JSON: autocomplete, outline and formatting. CSS languages also support definitions and references within a file.")
-            Text("Markdown: outline and formatting. YAML: formatting.")
-            Text("Other languages keep syntax highlighting and the existing editor tools. Project indexing excludes dependency and generated folders.")
-            Text("Formatting reads JSON Prettier settings. JavaScript configs and external formatter plugins must run in Terminal.")
-        } }, confirmButton = { TextButton(onClick = { languageSupport = false }) { Text("Got it") } })
+            Text("JavaScript 与 TypeScript：自动补全、定义、引用、重命名、大纲及格式化。")
+            Text("HTML、CSS、SCSS、LESS 与 JSON：自动补全、大纲及格式化。CSS 类语言还支持文件内定义和引用。")
+            Text("Markdown：大纲及格式化。YAML：格式化。")
+            Text("其他语言保留语法高亮及现有编辑工具。项目索引不包含依赖和生成文件夹。")
+            Text("格式化会读取 JSON 格式的 Prettier 设置。JavaScript 配置和外部格式化插件须在终端中运行。")
+        } }, confirmButton = { TextButton(onClick = { languageSupport = false }) { Text("知道了") } })
 
     conflict?.let { reviewed ->
         AlertDialog(
             onDismissRequest = { conflict = null },
-            title = { Text(if (compareConflict) "Compare changes" else "File changed on disk") },
+            title = { Text(if (compareConflict) "比较更改" else "磁盘上的文件已更改") },
             text = {
                 Column(Modifier.heightIn(max = 420.dp).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    Text("The saved file changed after you opened it. Your edits are still here. Reload replaces your edits with the saved version.")
+                    Text("打开后，已保存的文件发生了更改。你的编辑仍然保留。重新加载将以已保存版本替换你的编辑。")
                     if (compareConflict) {
-                        Text("Current saved file", style = MaterialTheme.typography.titleSmall)
+                        Text("当前已保存的文件", style = MaterialTheme.typography.titleSmall)
                         androidx.compose.foundation.text.selection.SelectionContainer {
-                            Text(reviewed.text?.take(12000) ?: if (reviewed.bytes == null) "File was deleted" else "File is no longer text",
+                            Text(reviewed.text?.take(12000) ?: if (reviewed.bytes == null) "文件已删除" else "文件已不再是文本",
                                 fontFamily = com.androidharness.app.ui.theme.HarnessMono, style = MaterialTheme.typography.bodySmall)
                         }
                         androidx.compose.material3.HorizontalDivider()
-                        Text("Your edits", style = MaterialTheme.typography.titleSmall)
+                        Text("你的编辑", style = MaterialTheme.typography.titleSmall)
                         Text(editorText().take(12000), fontFamily = com.androidharness.app.ui.theme.HarnessMono, style = MaterialTheme.typography.bodySmall)
-                        if ((reviewed.text?.length ?: 0) > 12000 || editorText().length > 12000) Text("Preview shortened to 12,000 characters per version.")
-                    } else TextButton(onClick = { compareConflict = true }) { Text("Compare") }
+                        if ((reviewed.text?.length ?: 0) > 12000 || editorText().length > 12000) Text("每个版本的预览已截短至 12,000 个字符。")
+                    } else TextButton(onClick = { compareConflict = true }) { Text("比较") }
                     if (reviewed.text != null) TextButton(onClick = {
                         val text = requireNotNull(reviewed.text)
                         decoded.value = EditorFileCodec.decode(requireNotNull(reviewed.bytes))
@@ -745,26 +745,26 @@ internal fun CodeEditorScreen(
                         persistDraft(immediate = true)
                         conflict = null
                         pendingNavigation = null
-                    }) { Text("Reload file") }
+                    }) { Text("重新加载文件") }
                 }
             },
-            confirmButton = { TextButton(enabled = !saving, onClick = { save(conflictThenExit, reviewed.version) }) { Text("Keep my edits") } },
-            dismissButton = { TextButton(onClick = { conflict = null; pendingNavigation = null }) { Text("Cancel") } },
+            confirmButton = { TextButton(enabled = !saving, onClick = { save(conflictThenExit, reviewed.version) }) { Text("保留我的编辑") } },
+            dismissButton = { TextButton(onClick = { conflict = null; pendingNavigation = null }) { Text("取消") } },
         )
     }
     if (showExitPrompt) {
         AlertDialog(
             onDismissRequest = { showExitPrompt = false; pendingNavigation = null },
-            title = { Text("Unsaved changes") },
-            text = { Text("${path.substringAfterLast('/')} has unsaved changes.") },
+            title = { Text("未保存的更改") },
+            text = { Text("${path.substringAfterLast('/')} 有未保存的更改。") },
             confirmButton = {
                 TextButton(onClick = { showExitPrompt = false; save(thenExit = true) }) {
-                    Text("Save & exit")
+                    Text("保存并退出")
                 }
             },
             dismissButton = {
                 Row {
-                    TextButton(onClick = { showExitPrompt = false; pendingNavigation = null }) { Text("Cancel") }
+                    TextButton(onClick = { showExitPrompt = false; pendingNavigation = null }) { Text("取消") }
                     TextButton(onClick = {
                         showExitPrompt = false
                         editorRef?.setText(lastSavedText.value)
@@ -774,7 +774,7 @@ internal fun CodeEditorScreen(
                         persistDraft(immediate = true)
                         leave()
                     }) {
-                        Text("Discard")
+                        Text("放弃")
                     }
                 }
             },
@@ -853,12 +853,12 @@ private fun NotTextView(
             OutlinedButton(onClick = onShare) {
                 Icon(Icons.Outlined.Share, null, Modifier.size(17.dp))
                 Spacer(Modifier.width(8.dp))
-                Text("Share")
+                Text("分享")
             }
             Button(onClick = onOpenWith) {
                 Icon(Icons.Outlined.OpenInNew, null, Modifier.size(17.dp))
                 Spacer(Modifier.width(8.dp))
-                Text("Open with…")
+                Text("打开方式…")
             }
         }
     }
@@ -894,7 +894,7 @@ private fun FindBar(
                 OutlinedTextField(
                     value = query,
                     onValueChange = { query = it },
-                    placeholder = { Text("Find", style = MaterialTheme.typography.bodySmall) },
+                    placeholder = { Text("查找", style = MaterialTheme.typography.bodySmall) },
                     singleLine = true,
                     isError = patternError,
                     textStyle = MaterialTheme.typography.bodySmall,
@@ -911,25 +911,25 @@ private fun FindBar(
                     val s = editor?.searcher ?: return@IconButton
                     s.gotoPrevious()
                     matchInfo = matchInfo.first to s.getCurrentMatchedPositionIndex()
-                }) { Icon(Icons.Outlined.KeyboardArrowUp, contentDescription = "Previous match") }
+                }) { Icon(Icons.Outlined.KeyboardArrowUp, contentDescription = "上一个匹配项") }
                 IconButton(onClick = {
                     val s = editor?.searcher ?: return@IconButton
                     s.gotoNext()
                     matchInfo = matchInfo.first to s.getCurrentMatchedPositionIndex()
-                }) { Icon(Icons.Outlined.KeyboardArrowDown, contentDescription = "Next match") }
-                ToggleChip("Aa", matchCase, "Match case", onMatchCaseChanged)
-                ToggleChip(".*", regexOn, "Regex", onRegexChanged)
+                }) { Icon(Icons.Outlined.KeyboardArrowDown, contentDescription = "下一个匹配项") }
+                ToggleChip("Aa", matchCase, "区分大小写", onMatchCaseChanged)
+                ToggleChip(".*", regexOn, "正则", onRegexChanged)
                 IconButton(onClick = {
                     editor?.searcher?.stopSearch()
                     onClosed()
-                }) { Icon(Icons.Outlined.Close, contentDescription = "Close find") }
+                }) { Icon(Icons.Outlined.Close, contentDescription = "关闭查找") }
             }
             if (editingEnabled) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     OutlinedTextField(
                         value = replaceWith,
                         onValueChange = { replaceWith = it },
-                        placeholder = { Text("Replace with", style = MaterialTheme.typography.bodySmall) },
+                        placeholder = { Text("替换为", style = MaterialTheme.typography.bodySmall) },
                         singleLine = true,
                         textStyle = MaterialTheme.typography.bodySmall,
                         shape = MaterialTheme.shapes.medium,
@@ -937,10 +937,10 @@ private fun FindBar(
                     )
                     TextButton(onClick = {
                         editor?.searcher?.replaceCurrentMatch(replaceWith)
-                    }) { Text("Replace") }
+                    }) { Text("替换") }
                     TextButton(onClick = {
                         editor?.searcher?.replaceAll(replaceWith)
-                    }) { Text("All") }
+                    }) { Text("全部") }
                 }
             }
         }
@@ -998,13 +998,13 @@ private fun GoToLineDialog(editor: CodeEditor?, onDismiss: () -> Unit) {
     var value by remember { mutableStateOf("") }
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Go to line") },
+        title = { Text("转到行") },
         text = {
             OutlinedTextField(
                 value = value,
                 onValueChange = { v -> value = v.filter(Char::isDigit) },
                 singleLine = true,
-                placeholder = { Text("Line number") },
+                placeholder = { Text("行号") },
             )
         },
         confirmButton = {
@@ -1016,8 +1016,8 @@ private fun GoToLineDialog(editor: CodeEditor?, onDismiss: () -> Unit) {
                     editor.ensurePositionVisible(line, 0)
                 }
                 onDismiss()
-            }) { Text("Go") }
+            }) { Text("前往") }
         },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text("取消") } },
     )
 }

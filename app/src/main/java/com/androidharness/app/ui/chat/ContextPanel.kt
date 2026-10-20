@@ -84,11 +84,11 @@ fun ContextUsageDialog(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
             ) {
-                TextButton(onClick = onContextLimits) { Text("Context/limits") }
-                TextButton(onClick = onDismiss) { Text("Close") }
+                TextButton(onClick = onContextLimits) { Text("上下文与限制") }
+                TextButton(onClick = onDismiss) { Text("关闭") }
             }
         },
-        title = { Text("Context and Usage") },
+        title = { Text("上下文与用量") },
         text = {
             Column(
                 verticalArrangement = Arrangement.spacedBy(12.dp),
@@ -96,14 +96,14 @@ fun ContextUsageDialog(
             ) {
                 Column {
                     Text(
-                        "Context Window",
+                        "上下文窗口",
                         style = MaterialTheme.typography.labelLarge,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                     Spacer(Modifier.height(2.dp))
                     Text(
-                        "${formatTokenCount(used)} / ${formatTokenCount(max)} tokens (" +
-                            "%.1f%%".format(fraction * 100) + ")",
+                        "${formatTokenCount(used)} / ${formatTokenCount(max)} Token（" +
+                            "%.1f%%".format(fraction * 100) + "）",
                         style = MaterialTheme.typography.titleMedium,
                     )
                     Spacer(Modifier.height(8.dp))
@@ -114,41 +114,41 @@ fun ContextUsageDialog(
                 }
 
                 Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                    BreakdownRow("Messages", estimate?.messagesTokens, estimateTotal)
-                    BreakdownRow("Tools and Skills", estimate?.toolsTokens, estimateTotal)
-                    BreakdownRow("System Prompt", estimate?.systemTokens, estimateTotal)
-                    BreakdownRow("Meta Context", estimate?.metaTokens, estimateTotal)
+                    BreakdownRow("消息", estimate?.messagesTokens, estimateTotal)
+                    BreakdownRow("工具与技能", estimate?.toolsTokens, estimateTotal)
+                    BreakdownRow("系统提示词", estimate?.systemTokens, estimateTotal)
+                    BreakdownRow("元上下文", estimate?.metaTokens, estimateTotal)
                 }
 
                 HorizontalDivider()
 
                 Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     Text(
-                        "Session Tokens",
+                        "此聊天的 Token",
                         style = MaterialTheme.typography.labelLarge,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                     Spacer(Modifier.height(2.dp))
-                    TokenRow("Fresh input tokens", formatTokenCount(freshInput))
-                    TokenRow("Cached tokens (hits)", formatTokenCount(state.usage.totalCached))
+                    TokenRow("新输入 Token", formatTokenCount(freshInput))
+                    TokenRow("缓存 Token（命中）", formatTokenCount(state.usage.totalCached))
                     if (state.usage.totalCacheWrite > 0) {
-                        TokenRow("Cache writes (created)", formatTokenCount(state.usage.totalCacheWrite))
+                        TokenRow("缓存写入（创建）", formatTokenCount(state.usage.totalCacheWrite))
                     }
-                    TokenRow("Output tokens", formatTokenCount(state.usage.totalOutput))
-                    TokenRow("Total requests", state.usage.requests.toString())
+                    TokenRow("输出 Token", formatTokenCount(state.usage.totalOutput))
+                    TokenRow("总请求数", state.usage.requests.toString())
                 }
 
                 HorizontalDivider()
 
                 Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     val hitRateText = when {
-                        state.usage.requests == 0L && state.busy -> "Calculating…"
+                        state.usage.requests == 0L && state.busy -> "正在计算…"
                         state.usage.totalInput > 0 -> "%.1f%%".format(state.usage.avgCacheHitRate * 100)
                         else -> "0.0%"
                     }
-                    TokenRow("Overall cache hit rate", hitRateText)
+                    TokenRow("总体缓存命中率", hitRateText)
                     Text(
-                        "Hit rate updates after each completed turn",
+                        "每轮完成后更新命中率",
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
                     )
@@ -157,20 +157,20 @@ fun ContextUsageDialog(
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        Text("Estimated cost", style = MaterialTheme.typography.bodyMedium)
+                        Text("预计费用", style = MaterialTheme.typography.bodyMedium)
                         Text(
-                            if (usesChatGptPlan) "ChatGPT plan" else "$%.4f".format(estimatedCost ?: 0.0),
+                            if (usesChatGptPlan) "ChatGPT 套餐" else "$%.4f".format(estimatedCost ?: 0.0),
                             style = MaterialTheme.typography.titleMedium,
                             fontFamily = HarnessMono,
                             color = MaterialTheme.colorScheme.primary,
                         )
                     }
                     val subText = if (usesChatGptPlan) {
-                        "Review plan usage and credits in ChatGPT settings"
+                        "在 ChatGPT 设置中查看套餐用量与额度"
                     } else if (state.sessionModelUsage.size > 1) {
-                        "Sum across ${state.sessionModelUsage.size} models used in this session"
+                        "此聊天所用 ${state.sessionModelUsage.size} 个模型的合计"
                     } else {
-                        "Calculated from ${model ?: "current model"} rates"
+                        "按 ${model ?: "当前模型"} 的费率计算"
                     }
                     Text(
                         subText,
@@ -183,9 +183,9 @@ fun ContextUsageDialog(
                     val context = androidx.compose.ui.platform.LocalContext.current
                     TextButton(onClick = {
                         com.androidharness.app.ui.common.openOAuthBrowser(context, android.net.Uri.parse(com.androidharness.app.chatgpt.ChatGptProtocol.USAGE_URL))
-                    }) { Text("Manage usage") }
+                    }) { Text("管理用量") }
                 } else Text(
-                    "Reasoning and thinking tokens are billed as output and are not re-sent as input.",
+                    "推理和思考 Token 按输出计费，不会作为输入再次发送。",
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
                 )

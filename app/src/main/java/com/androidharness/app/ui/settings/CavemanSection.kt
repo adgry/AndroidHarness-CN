@@ -31,29 +31,29 @@ internal fun CavemanSection(container: AppContainer, settings: AppSettings) {
             busy = true
             error = null
             try { action() } catch (e: CancellationException) { throw e }
-            catch (e: Exception) { error = e.message ?: "Could not save Caveman settings." }
+            catch (e: Exception) { error = e.message ?: "无法保存 Caveman 设置。" }
             finally { busy = false }
         }
     }
     CavemanPanel("Caveman") {
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-            Text("Native skill pack", Modifier.weight(1f), style = MaterialTheme.typography.bodyMedium)
-            Text(if (settings.cavemanInstalled) "Installed" else "Not installed",
+            Text("内置技能包", Modifier.weight(1f), style = MaterialTheme.typography.bodyMedium)
+            Text(if (settings.cavemanInstalled) "已安装" else "未安装",
                 style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.primary)
         }
-        Text("Shorter replies and five focused coding skills. Uses your existing model, with no extra API key, terminal or proxy.",
+        Text("精简回复和五项专用编程技能。使用现有模型，无需额外 API 密钥、终端或代理。",
             style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         if (settings.cavemanInstalled) {
-            OutlinedButton(onClick = { confirmRemove = true }, enabled = !busy) { Text("Uninstall") }
+            OutlinedButton(onClick = { confirmRemove = true }, enabled = !busy) { Text("卸载") }
         } else {
-            Button(onClick = { save { container.settings.setCavemanInstalled(true) } }, enabled = !busy) { Text("Install Caveman") }
-            Text("Installs from the app. Reply mode starts Off; coding skills can be switched off individually.", style = MaterialTheme.typography.labelSmall)
+            Button(onClick = { save { container.settings.setCavemanInstalled(true) } }, enabled = !busy) { Text("安装 Caveman") }
+            Text("从应用内安装。回复模式默认关闭，编程技能可单独关闭。", style = MaterialTheme.typography.labelSmall)
         }
         if (busy) AppLinearProgressIndicator(Modifier.fillMaxWidth())
         error?.let { Text(it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall) }
     }
     if (settings.cavemanInstalled) {
-        CavemanPanel("Reply intensity") {
+        CavemanPanel("回复精简程度") {
             SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
                 CavemanIntensity.entries.forEachIndexed { index, intensity ->
                     SegmentedButton(
@@ -61,29 +61,29 @@ internal fun CavemanSection(container: AppContainer, settings: AppSettings) {
                         onClick = { save { container.settings.setCavemanIntensity(intensity) } },
                         enabled = !busy,
                         shape = SegmentedButtonDefaults.itemShape(index, CavemanIntensity.entries.size),
-                    ) { Text(intensity.label, maxLines = 1) }
+                    ) { Text(intensity.displayLabel, maxLines = 1) }
                 }
             }
             Text(settings.cavemanIntensity.description, style = MaterialTheme.typography.bodyMedium)
-            Text("Automatically applied from the next model request, across chats. Off removes style instructions; skills stay independent.",
+            Text("从下一次模型请求开始，在所有聊天中自动生效。关闭会移除风格指令，各项技能独立设置。",
                 style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             HorizontalDivider()
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Column(Modifier.weight(1f)) {
-                    Text("Classical Chinese", style = MaterialTheme.typography.bodyMedium)
-                    Text("Wenyan variant of the selected intensity", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text("文言文", style = MaterialTheme.typography.bodyMedium)
+                    Text("所选精简程度的文言文版本", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
                 Switch(checked = settings.cavemanWenyan,
                     onCheckedChange = { save { container.settings.setCavemanWenyan(it) } },
                     enabled = !busy && settings.cavemanIntensity != CavemanIntensity.OFF,
-                    modifier = Modifier.semantics { contentDescription = "Classical Chinese" })
+                    modifier = Modifier.semantics { contentDescription = "文言文" })
             }
-            Text("Code, paths and exact errors stay intact. Warnings and unclear instructions use full sentences.", style = MaterialTheme.typography.labelSmall)
+            Text("保留代码、路径和错误原文。警告和不明确的指令使用完整句子。", style = MaterialTheme.typography.labelSmall)
         }
-        CavemanPanel("Coding skills") {
-            Text("Loaded only when relevant. Available in the Skills picker after installation.", style = MaterialTheme.typography.bodySmall,
+        CavemanPanel("编程技能") {
+            Text("仅在相关时加载。安装后可在技能选择器中使用。", style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant)
-            val labels = listOf("Commit messages", "Code reviews", "Investigate first", "Targeted patches", "Verify and stop")
+            val labels = listOf("提交信息", "代码评审", "先调查", "针对性修补", "验证后停止")
             CavemanPolicy.skills.keys.forEachIndexed { index, name ->
                 if (index > 0) HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f))
                 Row(verticalAlignment = Alignment.CenterVertically) {
@@ -97,32 +97,32 @@ internal fun CavemanSection(container: AppContainer, settings: AppSettings) {
                 }
             }
         }
-        CavemanPanel("Token reports") {
-            Text("Token savings from Caveman only. No total usage or unrelated context reductions.",
+        CavemanPanel("词元报告") {
+            Text("仅统计 Caveman 节省的词元，不含总用量或无关的上下文缩减。",
                 style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            FilledTonalButton(onClick = { showReports = !showReports }) { Text(if (showReports) "Hide report" else "Show report") }
+            FilledTonalButton(onClick = { showReports = !showReports }) { Text(if (showReports) "收起报告" else "显示报告") }
             if (showReports) {
-                Text("Tokens saved: Not measured", style = MaterialTheme.typography.titleSmall)
-                Text("Reply modes guide your model; they do not produce a normal reply to compare against. A matched run with Caveman off is needed to measure savings. No extra model requests are made for this report.",
+                Text("节省词元：尚未统计", style = MaterialTheme.typography.titleSmall)
+                Text("回复模式用于引导模型，不会生成普通回复用于比较。需在关闭 Caveman 的同等运行中测量节省量。此报告不会额外请求模型。",
                     style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                Text("Shorter replies do not guarantee lower total cost. Style instructions also use input tokens.", style = MaterialTheme.typography.labelSmall)
+                Text("回复更短不保证总费用更低，风格指令也会消耗输入词元。", style = MaterialTheme.typography.labelSmall)
             }
         }
     }
     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        TextButton(onClick = { uri.openUri("https://github.com/JuliusBrussee/caveman") }) { Text("Source") }
-        TextButton(onClick = { showLicense = true }) { Text("MIT license") }
+        TextButton(onClick = { uri.openUri("https://github.com/JuliusBrussee/caveman") }) { Text("源码") }
+        TextButton(onClick = { showLicense = true }) { Text("MIT 许可证") }
     }
     if (confirmRemove) AlertDialog(
-        onDismissRequest = { confirmRemove = false }, title = { Text("Uninstall Caveman?") },
-        text = { Text("Removes the optional skill pack and turns reply mode off. Chats and your own skill copies are kept. Instructions already loaded into a chat remain in its history.") },
-        confirmButton = { TextButton(onClick = { confirmRemove = false; save { container.settings.setCavemanInstalled(false) } }) { Text("Uninstall") } },
-        dismissButton = { TextButton(onClick = { confirmRemove = false }) { Text("Cancel") } },
+        onDismissRequest = { confirmRemove = false }, title = { Text("卸载 Caveman？") },
+        text = { Text("移除可选技能包并关闭回复模式。保留聊天和你自己的技能副本。已加载到聊天的指令仍保留在历史记录中。") },
+        confirmButton = { TextButton(onClick = { confirmRemove = false; save { container.settings.setCavemanInstalled(false) } }) { Text("卸载") } },
+        dismissButton = { TextButton(onClick = { confirmRemove = false }) { Text("取消") } },
     )
-    if (showLicense) AlertDialog(onDismissRequest = { showLicense = false }, title = { Text("Caveman skills") },
-        text = { Text("Adapted from Julius Brussee's MIT-licensed Caveman skills. Copyright (c) 2026 Julius Brussee. This integration does not include the BSL compression engine or proxy.") },
-        confirmButton = { TextButton(onClick = { uri.openUri("https://github.com/JuliusBrussee/caveman/blob/main/LICENSE") }) { Text("Full license") } },
-        dismissButton = { TextButton(onClick = { showLicense = false }) { Text("Close") } })
+    if (showLicense) AlertDialog(onDismissRequest = { showLicense = false }, title = { Text("Caveman 技能") },
+        text = { Text("改编自 Julius Brussee 以 MIT 许可证发布的 Caveman 技能。Copyright (c) 2026 Julius Brussee。本集成不包含 BSL 压缩引擎或代理。") },
+        confirmButton = { TextButton(onClick = { uri.openUri("https://github.com/JuliusBrussee/caveman/blob/main/LICENSE") }) { Text("完整许可证") } },
+        dismissButton = { TextButton(onClick = { showLicense = false }) { Text("关闭") } })
 }
 
 @Composable

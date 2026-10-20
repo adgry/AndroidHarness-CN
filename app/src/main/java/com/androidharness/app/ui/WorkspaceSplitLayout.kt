@@ -44,7 +44,7 @@ internal fun WorkspaceSplitLayout(
             if (wide && panelVisible) {
                 Box(Modifier.width(24.dp).fillMaxHeight()
                     .semantics {
-                        contentDescription = "Resize workspace panes"
+                        contentDescription = "调整工作区面板大小"
                         progressBarRangeInfo = ProgressBarRangeInfo(fraction, minimum..maximum)
                         setProgress { onResize(it.coerceIn(minimum, maximum)); true }
                     }

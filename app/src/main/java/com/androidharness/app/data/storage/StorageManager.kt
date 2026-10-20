@@ -29,11 +29,11 @@ class StorageManager(private val container: AppContainer) {
         val localRoots = linkedMapOf<String, File>()
         val unavailable = mutableMapOf<String, String>()
         projects.forEach { project ->
-            if (project.kind == "SSH") unavailable[project.id] = "On SSH host · not measured"
+            if (project.kind == "SSH") unavailable[project.id] = "位于 SSH 主机 · 未统计"
             else {
                 val root = runCatching { container.workspace.fsFor(project).shellRoot?.let(::canonical) }.getOrNull()
-                if (root == null) unavailable[project.id] = "Picker-only folder · not measured"
-                else if (!root.isDirectory || !root.canRead()) unavailable[project.id] = "Folder unavailable · not measured"
+                if (root == null) unavailable[project.id] = "仅通过文件选择器访问 · 未统计"
+                else if (!root.isDirectory || !root.canRead()) unavailable[project.id] = "文件夹不可用 · 未统计"
                 else localRoots[project.id] = root
             }
         }
@@ -70,14 +70,14 @@ class StorageManager(private val container: AppContainer) {
         env.withPackageStorageLock {
             candidates += env.packageCleanupCandidates()
             (if (safeDownloads) downloads.listFiles().orEmpty() else emptyArray()).filter { it.isFile && it.name.endsWith(".deb") }.forEach { file ->
-                StorageFiles.candidate("download:${file.name}", file.name, "Interrupted tool download", "Downloads",
+                StorageFiles.candidate("download:${file.name}", file.name, "中断的工具下载", "下载",
                     downloads, file, dayAgo)?.let(candidates::add)
             }
         }
         // These roots contain cache data only; credentials/configuration are outside them.
         (if (safeCacheRoot) listOf(File(cacheRoot, "npm/_cacache"), File(cacheRoot, "pip")) else emptyList()).forEach { file ->
-            StorageFiles.candidate("cache:${file.name}", if (file.name == "pip") "pip download cache" else "npm download cache",
-                "Shared app cache · downloads again when needed", "Caches", cacheRoot, file, dayAgo)?.let(candidates::add)
+            StorageFiles.candidate("cache:${file.name}", if (file.name == "pip") "pip 下载缓存" else "npm 下载缓存",
+                "应用共享缓存 · 需要时会重新下载", "缓存", cacheRoot, file, dayAgo)?.let(candidates::add)
         }
         val weekAgo = System.currentTimeMillis() - 7L * 24 * 60 * 60 * 1000
         roots.forEach { root ->
@@ -92,23 +92,23 @@ class StorageManager(private val container: AppContainer) {
                 listOf("outputs", "intermediates", "tmp").forEach { name ->
                     val output = File(build, name)
                     StorageFiles.candidate("build:${output.path}", "${module.name}/build/$name",
-                        "${projects.firstOrNull { localRoots[it.id] == root }?.name ?: root.name} · build output older than 7 days",
-                        "Build outputs", root, output, weekAgo)?.let(candidates::add)
+                        "${projects.firstOrNull { localRoots[it.id] == root }?.name ?: root.name} · 超过 7 天的构建产物",
+                        "构建产物", root, output, weekAgo)?.let(candidates::add)
                 }
             }
         }
         StorageInventory(
-            listOf(StorageUsage("Shared tools", tools, "One toolchain for local workspaces"),
-                StorageUsage("Download caches", caches, "Shared per execution tier"),
-                StorageUsage("Workspaces", workspaceBytes.values.sum(), "Project files and build outputs"),
-                StorageUsage("Local models", models, "Kept on this device"),
-                StorageUsage("Chat history & recovery", recovery, "Messages, images and undo checkpoints"),
-                StorageUsage("App data & runtime staging", other, "Settings, other caches and required staging")),
+            listOf(StorageUsage("共享工具", tools, "本地工作区共用一套工具链"),
+                StorageUsage("下载缓存", caches, "在同一执行层级共享"),
+                StorageUsage("工作区", workspaceBytes.values.sum(), "项目文件与构建产物"),
+                StorageUsage("本地模型", models, "保存在此设备上"),
+                StorageUsage("聊天记录与恢复数据", recovery, "消息、图片和撤销检查点"),
+                StorageUsage("应用数据与运行时暂存", other, "设置、其他缓存和必需的暂存数据")),
             projects.map { p ->
                 val root = localRoots[p.id]
                 StorageWorkspace(p.id, p.name, root?.path.orEmpty(), root?.let { workspaceBytes[it.toPath()] },
                     unavailable[p.id] ?: if (roots.any { it != root && it.toPath().startsWith(root!!.toPath()) })
-                        "Nested workspace bytes appear in their own row" else "Shared tools excluded")
+                        "嵌套工作区的空间用量单独列出" else "不含共享工具")
             }, env.installedPackages().sorted(), env.managedTools(), env.installedPackages().associateWith(env::packageProtection),
             candidates.distinctBy { it.id }, counter.incomplete,
         )

@@ -23,7 +23,7 @@ object BiometricAuth {
     fun prompt(
         activity: FragmentActivity,
         title: String,
-        subtitle: String = "Confirm your fingerprint, face, or PIN",
+        subtitle: String = "请验证指纹、面容或 PIN",
         onSuccess: () -> Unit,
         onError: ((String) -> Unit)? = null,
     ) {
@@ -33,17 +33,17 @@ object BiometricAuth {
             if (canAuth == BiometricManager.BIOMETRIC_ERROR_NONE_ENROLLED) {
                 Toast.makeText(
                     activity,
-                    "Set up screen lock (PIN/fingerprint) in device Settings first",
+                    "请先在设备设置中设定屏幕锁定（PIN 或指纹）",
                     Toast.LENGTH_LONG,
                 ).show()
             } else {
                 Toast.makeText(
                     activity,
-                    "Biometric authentication not supported on this device",
+                    "此设备不支持生物识别验证",
                     Toast.LENGTH_SHORT,
                 ).show()
             }
-            onError?.invoke("Biometrics unavailable")
+            onError?.invoke("生物识别不可用")
             return
         }
 
@@ -73,7 +73,7 @@ object BiometricAuth {
         try {
             prompt.authenticate(promptInfo)
         } catch (e: Exception) {
-            onError?.invoke(e.message ?: "Authentication failed")
+            onError?.invoke(e.message ?: "验证失败")
         }
     }
 }

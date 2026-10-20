@@ -93,13 +93,13 @@ fun SubagentScreen(
         parentCall?.let { taskArgsObject(it.argumentsJson) }
     }
     val title = taskInfo?.get("title")?.jsonPrimitive?.contentOrNull
-        ?.takeIf { it.isNotBlank() } ?: "Subagent"
+        ?.takeIf { it.isNotBlank() } ?: "子代理"
     val prompt = taskInfo?.get("prompt")?.jsonPrimitive?.contentOrNull.orEmpty()
     val statusText = when {
-        running -> steps.lastOrNull() ?: "Running…"
-        result?.isError == true -> "Failed"
-        result != null -> "Done"
-        else -> "Interrupted"
+        running -> steps.lastOrNull() ?: "正在运行…"
+        result?.isError == true -> "失败"
+        result != null -> "完成"
+        else -> "已中断"
     }
 
     val listState = rememberLazyListState()
@@ -133,13 +133,13 @@ fun SubagentScreen(
                         running -> DotLoading(Modifier.size(width = 20.dp, height = 12.dp))
                         result?.isError == true -> Icon(
                             Icons.Filled.Close,
-                            contentDescription = "Failed",
+                            contentDescription = "失败",
                             tint = scheme.error,
                             modifier = Modifier.size(18.dp),
                         )
                         result != null -> Icon(
                             Icons.Filled.CheckCircle,
-                            contentDescription = "Done",
+                            contentDescription = "完成",
                             tint = success,
                             modifier = Modifier.size(18.dp),
                         )
@@ -150,7 +150,7 @@ fun SubagentScreen(
     ) { padding ->
         if (parentCall == null) {
             Text(
-                "This subagent run isn't part of this chat anymore.",
+                "此子代理运行已不属于此聊天。",
                 style = MaterialTheme.typography.bodyMedium,
                 color = scheme.onSurfaceVariant,
                 modifier = Modifier.padding(padding).padding(20.dp),
@@ -223,7 +223,7 @@ fun SubagentScreen(
             if (!running && result == null && innerTurns.isEmpty()) {
                 item(key = "interrupted") {
                     Text(
-                        "This run was interrupted before it produced anything.",
+                        "此次运行在产生结果前已中断。",
                         style = MaterialTheme.typography.bodySmall,
                         color = scheme.onSurfaceVariant,
                     )

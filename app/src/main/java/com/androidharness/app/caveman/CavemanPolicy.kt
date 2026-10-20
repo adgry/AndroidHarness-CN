@@ -3,11 +3,11 @@ package com.androidharness.app.caveman
 import com.androidharness.app.skills.SkillStore
 
 @kotlinx.serialization.Serializable
-enum class CavemanIntensity(val label: String, val description: String) {
-    OFF("Off", "Normal replies. No Caveman style instructions."),
-    LITE("Lite", "Concise, complete sentences. No filler."),
-    FULL("Full", "Short fragments. Keep every fact."),
-    ULTRA("Ultra", "Maximum brevity. One fact, said once."),
+enum class CavemanIntensity(val label: String, val displayLabel: String, val description: String) {
+    OFF("Off", "关闭", "正常回复，不添加 Caveman 风格指令。"),
+    LITE("Lite", "轻度", "使用简洁完整的句子，去掉赘述。"),
+    FULL("Full", "完整", "使用简短片段，保留每项事实。"),
+    ULTRA("Ultra", "极简", "尽可能简短，每项事实只说一次。"),
 }
 
 /**

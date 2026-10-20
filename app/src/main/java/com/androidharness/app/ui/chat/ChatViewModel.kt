@@ -80,7 +80,7 @@ enum class ModelSelectionTarget {
 
 data class ChatUiState(
     val sessionId: String? = null,
-    val sessionTitle: String = "New chat",
+    val sessionTitle: String = "新聊天",
     val messages: List<ChatMessage> = emptyList(),
     /** True while messages are being initially loaded from Room for this session. */
     val isLoadingMessages: Boolean = false,
@@ -118,7 +118,7 @@ data class ChatUiState(
     val providers: List<ProviderConfig> = emptyList(),
     val activeProviderId: String? = null,
     val estimate: ContextEstimate? = null,
-    /** While a compaction runs, its status line for the transcript ("Compacting conversation…"). */
+    /** While a compaction runs, its status line for the transcript ("正在压缩聊天…"). */
     val compactionNote: String? = null,
     /** Workspace files for the @-mention picker (lazily loaded, per workspace). */
     val mentionFiles: List<String> = emptyList(),
@@ -284,7 +284,7 @@ class ChatViewModel(
     fun refreshWebPreviewSources() { webPreviewRefresh.update { it + 1 } }
     private val sessionCreation = Mutex()
 
-    private suspend fun ensureSession(title: String = "New chat"): String = sessionCreation.withLock {
+    private suspend fun ensureSession(title: String = "新聊天"): String = sessionCreation.withLock {
         sessionId ?: c.sessions.createSession(title, c.workspace.currentProjectOnce().id).also { sid ->
             c.chatModels.initialize(sid)
             sessionId = sid
@@ -318,7 +318,7 @@ class ChatViewModel(
         viewModelScope.launch {
             val approved = runCatching {
                 val workspace = requireNotNull(pendingMcpWorkspace)
-                check(workspace.displayPath == chatWorkspace().displayPath) { "The workspace changed. Send your message again to review its servers." }
+                check(workspace.displayPath == chatWorkspace().displayPath) { "工作区已更改，请重新发送消息以审阅其服务器。" }
                 c.mcp.approveWorkspace(workspace)
             }
             pendingMcpWorkspace = null
@@ -424,7 +424,7 @@ class ChatViewModel(
             activeWorkspace.collect { project ->
                 mentionCacheKey = null
                 val store = c.skills.forProject(project?.let { runCatching { c.workspace.fsFor(it).shellRoot?.resolve(".harness/skills") }.getOrNull() })
-                _state.update { it.copy(workspaceName = project?.name ?: "Workspace unavailable", skills = store.list(), mentionFiles = emptyList()) }
+                _state.update { it.copy(workspaceName = project?.name ?: "工作区不可用", skills = store.list(), mentionFiles = emptyList()) }
             }
         }
         viewModelScope.launch {
@@ -543,7 +543,7 @@ class ChatViewModel(
                 _state.update {
                     it.copy(
                         sessionId = initialSessionId,
-                        sessionTitle = sess?.title ?: "Chat",
+                        sessionTitle = sess?.title ?: "聊天",
                         turnsWithCheckpoints = refreshCheckpoints(initialSessionId),
                     )
                 }
@@ -698,7 +698,7 @@ class ChatViewModel(
                 action()
                 applyModelState(c.chatModels.observe(sessionId).first())
             } catch (e: kotlinx.coroutines.CancellationException) { throw e }
-            catch (e: Exception) { _state.update { it.copy(error = e.message ?: "Could not save the model selection") } }
+            catch (e: Exception) { _state.update { it.copy(error = e.message ?: "无法保存所选模型") } }
             finally { _state.update { it.copy(modelSelectionBusy = false) } }
         }
     }
@@ -710,31 +710,31 @@ class ChatViewModel(
     /**
      * Human-readable description of what the agent is doing right now.
      * [ChatUiState.currentToolAction] lingers briefly after a tool finishes so
-     * fast local operations ("Editing app.py…") stay visible before "Thinking…".
+     * fast local operations ("Editing app.py…") stay visible before "正在思考…".
      * Computed once per state emission, not per recomposition.
      */
     private fun ChatUiState.computeCurrentAction(): String? = when {
-        pendingQuestion != null -> "Waiting for your answer"
-        pendingApproval != null -> "Waiting for your approval"
-        installingEnvironment != null -> "Installing Linux environment"
+        pendingQuestion != null -> "等待你的回答"
+        pendingApproval != null -> "等待你的批准"
+        installingEnvironment != null -> "正在安装 Linux 环境"
         pendingEnvironment != null -> when {
-            envState is com.androidharness.app.data.env.EnvState.NotInstalled -> "Waiting for your approval"
-            envState is com.androidharness.app.data.env.EnvState.Failed -> "Linux install failed"
+            envState is com.androidharness.app.data.env.EnvState.NotInstalled -> "等待你的批准"
+            envState is com.androidharness.app.data.env.EnvState.Failed -> "Linux 安装失败"
             pendingEnvironment.repair -> when {
                 envState is com.androidharness.app.data.env.EnvState.Downloading ||
                     envState is com.androidharness.app.data.env.EnvState.Installing ->
-                    "Repairing Linux environment…"
-                else -> "Waiting for your approval"
+                    "正在修复 Linux 环境…"
+                else -> "等待你的批准"
             }
-            else -> "Installing Linux environment…"
+            else -> "正在安装 Linux 环境…"
         }
         retryStatus != null -> retryStatus
         runningCalls.isNotEmpty() -> currentToolAction ?: describeToolCall(runningCalls.last())
-        codeDrafts.values.any { it.stage == com.androidharness.app.agent.CodeDraftStage.GENERATING } -> "Generating code…"
-        streamingThinking != null && streamingText.isNullOrEmpty() -> "Thinking…"
-        streamingText != null -> "Writing response…"
+        codeDrafts.values.any { it.stage == com.androidharness.app.agent.CodeDraftStage.GENERATING } -> "正在生成代码…"
+        streamingThinking != null && streamingText.isNullOrEmpty() -> "正在思考…"
+        streamingText != null -> "正在撰写回复…"
         currentToolAction != null -> currentToolAction
-        busy -> if (mode == AgentMode.PLAN) "Planning…" else "Working…"
+        busy -> if (mode == AgentMode.PLAN) "正在规划…" else "正在处理…"
         else -> null
     }
 
@@ -745,7 +745,7 @@ class ChatViewModel(
     /** True when the composer can consume the draft, including local commands and queued messages. */
     fun send(rawText: String): Boolean {
         if (compactionJob?.isActive == true) {
-            _state.update { it.copy(error = "Wait for compaction to finish, or stop it before sending a message.") }
+            _state.update { it.copy(error = "请等待压缩完成，或停止压缩后再发送消息。") }
             return false
         }
         val trimmed = rawText.trim()
@@ -770,7 +770,7 @@ class ChatViewModel(
             }
             SlashCommands.Kind.COMPACT -> {
                 if (_state.value.busy || startingRun) {
-                    _state.update { it.copy(error = "Stop the current task before compacting this chat.") }
+                    _state.update { it.copy(error = "请先停止当前任务，再压缩聊天。") }
                     return false
                 }
                 compactionJob = viewModelScope.launch { forceCompact() }
@@ -862,14 +862,14 @@ class ChatViewModel(
                 _state.value.activeModel?.takeIf { it.isNotBlank() }
                     ?.let { active.copy(model = it) } ?: active
             }
-            ?: error("Saved provider is unavailable")
+            ?: error("已保存的服务商不可用")
         if (record.provider == null) {
             c.runManager.controls.update(sid) { it.copy(provider = provider) }
         }
         val key = if (provider.id == com.androidharness.app.llm.HarnessProvider.ID) {
             c.providers.harnessApiKey()
         } else provider.effectiveApiKey(c.providers.apiKey(provider.id))
-        check(key.isNotBlank()) { "Add the saved provider's API key before resuming" }
+        check(key.isNotBlank()) { "请先添加已保存服务商的 API 密钥，再继续" }
         _state.update { it.copy(error = null) }
         c.runManager.resumeTask(sid, key)
     }
@@ -897,7 +897,7 @@ class ChatViewModel(
     suspend fun saveFallbacks(mode: com.androidharness.app.llm.FallbackMode?, policy: com.androidharness.app.llm.FallbackPolicy) {
         require(policy.valid())
         val sid = ensureSession()
-        check(!c.runManager.isRunning(sid)) { "Pause the task before editing its fallback chain." }
+        check(!c.runManager.isRunning(sid)) { "请先暂停任务，再编辑其回退链。" }
         c.runManager.controls.update(sid) { it.copy(fallbackMode = mode ?: com.androidharness.app.llm.FallbackMode.DEFAULT,
             fallbackOverride = policy.takeIf { mode == com.androidharness.app.llm.FallbackMode.CUSTOM }) }
     }
@@ -906,7 +906,7 @@ class ChatViewModel(
         viewModelScope.launch {
             try {
                 val sid = ensureSession()
-                check(!c.runManager.isRunning(sid) && compactionJob?.isActive != true) { "Stop the task or compaction before changing context or limits" }
+                check(!c.runManager.isRunning(sid) && compactionJob?.isActive != true) { "请先停止任务或压缩，再更改上下文或限制" }
                 val cutoff = if (clearOlder) {
                     // Keep the latest user turn and all of its assistant/tool messages together.
                     c.sessions.messages(sid).lastOrNull { it.role == Role.USER }?.createdAt ?: 0
@@ -947,7 +947,7 @@ class ChatViewModel(
         viewModelScope.launch(kotlinx.coroutines.Dispatchers.IO) {
             val stored = c.images.import(uri)
             if (stored == null) {
-                _state.update { it.copy(error = "Could not load that image.") }
+                _state.update { it.copy(error = "无法加载此图片。") }
                 return@launch
             }
             pendingAttachments += ImageRef(stored.file.name, stored.mime)
@@ -987,7 +987,7 @@ class ChatViewModel(
                         PdfTextExtractor.extract(stream)
                     }
                     if (pdfExtract != null && pdfExtract.text.isNotBlank()) {
-                        val pageLabel = if (pdfExtract.pageCount == 1) "1 page" else "${pdfExtract.pageCount} pages"
+                        val pageLabel = if (pdfExtract.pageCount == 1) "1 页" else "${pdfExtract.pageCount} 页"
                         val sizeLabel = "${FileAttachments.humanBytes(size ?: pdfExtract.text.length.toLong())}, $pageLabel"
                         addFileAttachment(
                             FileAttachment(
@@ -1012,7 +1012,7 @@ class ChatViewModel(
                 }
                 copyAttachmentToWorkspace(resolver, uri, name, mime, size)
             }.onFailure {
-                _state.update { st -> st.copy(error = "Could not attach that file: ${it.message}") }
+                _state.update { st -> st.copy(error = "无法添加此文件附件：${it.message}") }
             }
         }
     }
@@ -1060,7 +1060,7 @@ class ChatViewModel(
     ) {
         val cap = FileAttachments.COPY_BYTE_LIMIT
         if (size != null && size > cap) {
-            throw IllegalStateException("file is larger than ${FileAttachments.humanBytes(cap)}")
+            throw IllegalStateException("文件大于 ${FileAttachments.humanBytes(cap)}")
         }
         val fs = chatWorkspace()
         val dir = fs.resolve(".harness/attachments")
@@ -1072,7 +1072,7 @@ class ChatViewModel(
         val bytes = resolver.openInputStream(uri)!!.use { it.readBytes() }
         if (bytes.size > cap) {
             runCatching { node.delete() }
-            throw IllegalStateException("file is larger than ${FileAttachments.humanBytes(cap)}")
+            throw IllegalStateException("文件大于 ${FileAttachments.humanBytes(cap)}")
         }
         node.writeBytes(bytes)
         addFileAttachment(
@@ -1124,7 +1124,7 @@ class ChatViewModel(
         val targetSession = sessionId
         val s0 = _state.value
         if (!s0.modelSelectionReady || s0.modelSelectionBusy) {
-            _state.update { it.copy(error = "Model selection is being saved. Try sending again in a moment.") }
+            _state.update { it.copy(error = "正在保存所选模型，请稍后重新发送。") }
             return false
         }
         if (s0.modelSelectionError != null) {
@@ -1137,12 +1137,12 @@ class ChatViewModel(
             else -> s0.activeProviderId
         }
         if (!s0.sameModelAcrossChats && selectedProviderId != null && s0.providers.none { it.id == selectedProviderId }) {
-            _state.update { it.copy(error = "This chat's provider is unavailable. Choose another provider in the model picker.") }
+            _state.update { it.copy(error = "此聊天的服务商不可用，请在模型选择器中选择其他服务商。") }
             return false
         }
         if (selectedProviderId != null && com.androidharness.app.local.LocalModelCatalog.isLocal(selectedProviderId) &&
             s0.providers.none { it.id == selectedProviderId }) {
-            _state.update { it.copy(error = "The selected local model was removed. Download it again or explicitly choose another provider.") }
+            _state.update { it.copy(error = "所选本地模型已移除，请重新下载或选择其他服务商。") }
             return false
         }
         // Separate planning/execution models: plan-mode runs use the planning
@@ -1155,7 +1155,7 @@ class ChatViewModel(
                 s0.providers.firstOrNull { it.id == s0.executionProviderId } ?: s0.activeProvider
             else -> s0.activeProvider
         } ?: run {
-            _state.update { it.copy(error = "No provider configured. Add one from the Providers screen first.") }
+            _state.update { it.copy(error = "尚未配置服务商，请先在“服务商”页面添加。") }
             return false
         }
         val roleModel = when {
@@ -1173,13 +1173,13 @@ class ChatViewModel(
         if (!s0.sameModelAcrossChats && provider.id == com.androidharness.app.llm.HarnessProvider.ID &&
             com.androidharness.app.llm.HarnessProvider.sanitize(roleModel,
                 com.androidharness.app.llm.HarnessProvider.customModelIds) != roleModel) {
-            _state.update { it.copy(error = "This chat's model is no longer available. Choose another model in the picker.") }
+            _state.update { it.copy(error = "此聊天的模型已不可用，请在选择器中选择其他模型。") }
             return false
         }
         val apiKey = if (provider.id == com.androidharness.app.llm.HarnessProvider.ID) c.providers.harnessApiKey(s0.providers)
         else provider.effectiveApiKey(c.providers.apiKey(provider.id))
         if (apiKey.isBlank()) {
-            _state.update { it.copy(error = "Provider \"${provider.name}\" has no API key. Edit it on the Providers screen.") }
+            _state.update { it.copy(error = "服务商“${provider.name}”没有 API 密钥，请在“服务商”页面编辑。") }
             return false
         }
 
@@ -1240,7 +1240,7 @@ class ChatViewModel(
                     ?.let { provider.copy(model = it) } ?: provider
                 val resolved = c.providers.resolveHarnessConfig(effectiveConfig)
                 check(s0.sameModelAcrossChats || resolved.model == effectiveConfig.model) {
-                    "This chat's model is no longer available. Choose another model in the picker."
+                    "此聊天的模型已不可用，请在选择器中选择其他模型。"
                 }
                 if (resolved.model != effectiveConfig.model) {
                     when {
@@ -1252,7 +1252,7 @@ class ChatViewModel(
                     }
                 }
                 if (replacement != null) {
-                    check(targetSession != null && targetSession == sessionId) { "The active chat changed" }
+                    check(targetSession != null && targetSession == sessionId) { "当前聊天已更改" }
                 }
                 val localLimits = if (com.androidharness.app.local.LocalModelCatalog.isLocal(provider.id)) {
                     kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) { c.localModels.limits(provider.id.removePrefix(com.androidharness.app.local.LocalModelCatalog.PROVIDER_PREFIX)) }
@@ -1285,7 +1285,7 @@ class ChatViewModel(
             } catch (e: kotlinx.coroutines.CancellationException) {
                 throw e
             } catch (e: Exception) {
-                _state.update { it.copy(error = e.message ?: "Could not start the message") }
+                _state.update { it.copy(error = e.message ?: "无法开始处理消息") }
             } finally {
                 startingRun = false
             }
@@ -1341,7 +1341,7 @@ class ChatViewModel(
         val wasDual = _state.value.dualPlanning
         _state.update { it.copy(mode = mode, dualPlanning = false).withCurrentAction() }
         if (wasDual) {
-            _state.update { it.copy(modeToast = "Dual planning off: ${if (mode == AgentMode.PLAN) "Plan mode" else "Act mode"}") }
+            _state.update { it.copy(modeToast = "双模型规划已关闭：${if (mode == AgentMode.PLAN) "规划模式" else "执行模式"}") }
         } else {
             announceMode(mode)
         }
@@ -1351,7 +1351,7 @@ class ChatViewModel(
         val s = _state.value
         if (s.dualPlanning) {
             _state.update { it.copy(dualPlanning = false, mode = AgentMode.ACT).withCurrentAction() }
-            _state.update { it.copy(modeToast = "Dual planning off") }
+            _state.update { it.copy(modeToast = "双模型规划已关闭") }
             return
         }
 
@@ -1363,12 +1363,12 @@ class ChatViewModel(
             ?: s.activeProvider?.model
 
         if (planModel == null && execModel == null) {
-            _state.update { it.copy(modeToast = "Configure dual planning models in Settings first") }
+            _state.update { it.copy(modeToast = "请先在设置中配置双模型规划") }
             return
         }
 
-        val planName = planModel?.substringAfterLast('/') ?: "default"
-        val execName = execModel?.substringAfterLast('/') ?: "default"
+        val planName = planModel?.substringAfterLast('/') ?: "默认"
+        val execName = execModel?.substringAfterLast('/') ?: "默认"
 
         _state.update {
             it.copy(
@@ -1376,7 +1376,7 @@ class ChatViewModel(
                 mode = AgentMode.PLAN,
             ).withCurrentAction()
         }
-        _state.update { it.copy(modeToast = "Dual planning on: $planName -> $execName") }
+        _state.update { it.copy(modeToast = "双模型规划已开启：$planName → $execName") }
     }
 
     /** Approve the plan produced by a PLAN-mode run and execute it. */
@@ -1388,7 +1388,7 @@ class ChatViewModel(
     }
 
     private fun announceMode(mode: AgentMode) {
-        val label = if (mode == AgentMode.PLAN) "Plan mode" else "Act mode"
+        val label = if (mode == AgentMode.PLAN) "规划模式" else "执行模式"
         _state.update { it.copy(modeToast = label) }
     }
 
@@ -1453,10 +1453,10 @@ class ChatViewModel(
         viewModelScope.launch {
             try {
                 val newSid = c.sessions.forkSession(sid, messageId)
-                _state.update { it.copy(modeToast = "Branched into new chat") }
+                _state.update { it.copy(modeToast = "已分支为新聊天") }
                 onForked(newSid)
             } catch (e: Exception) {
-                _state.update { it.copy(error = "Fork failed: ${e.message}") }
+                _state.update { it.copy(error = "创建分支失败：${e.message}") }
             }
         }
     }
@@ -1506,19 +1506,19 @@ class ChatViewModel(
     /** Read-only comparison from this turn's checkpoint to the current workspace file. */
     suspend fun fileDiff(turnId: String, path: String): String =
         kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
-            val sid = sessionId ?: error("This chat is no longer available.")
+            val sid = sessionId ?: error("此聊天已不可用。")
             val normalized = com.androidharness.app.workspace.normalizeRelPath(path)
             val checkpoint = c.checkpoints.entitiesForTurns(sid, listOf(turnId)).firstOrNull {
                 com.androidharness.app.workspace.normalizeRelPath(it.relPath) == normalized
-            } ?: error("No checkpoint is available for this file.")
-            check(!checkpoint.wasDirectory) { "This change is a directory, not a text file." }
+            } ?: error("此文件没有可用的检查点。")
+            check(!checkpoint.wasDirectory) { "此更改是目录，无法作为文本文件查看。" }
             val before = if (checkpoint.existedBefore) {
                 String(android.util.Base64.decode(checkpoint.contentB64, android.util.Base64.DEFAULT), Charsets.UTF_8)
             } else ""
             val fs = chatWorkspace()
             val node = fs.resolve(path)
             val current = if (!node.exists) "" else {
-                check(node.isFile && node.length <= 1_000_000) { "This file is too large for an inline review." }
+                check(node.isFile && node.length <= 1_000_000) { "此文件过大，无法内嵌查看。" }
                 node.readText()
             }
             com.androidharness.app.core.Diff.unified(before, current, path)
@@ -1534,7 +1534,7 @@ class ChatViewModel(
                     val start = messageWindowStart.value ?: return@withLock
                     messageWindowStart.value = c.sessions.messageWindowStart(sid, before = start)
                 } catch (e: kotlinx.coroutines.CancellationException) { throw e }
-                catch (e: Exception) { _state.update { it.copy(error = "Could not load older messages: ${e.message}") } }
+                catch (e: Exception) { _state.update { it.copy(error = "无法加载更早的消息：${e.message}") } }
                 finally { _state.update { it.copy(isLoadingOlderMessages = false) } }
             }
         }
@@ -1612,21 +1612,21 @@ class ChatViewModel(
      * refreshed. Returns a user-facing summary for the snackbar.
      */
     suspend fun performRewind(turnId: String): String {
-        val sid = sessionId ?: return "No active chat."
+        val sid = sessionId ?: return "没有当前聊天。"
         if (_state.value.busy || sid in c.runManager.runningSessionIds.value) {
-            return "Stop the running agent first."
+            return "请先停止运行中的代理。"
         }
         val summary = runCatching { c.runManager.rewindFromTurn(sid, turnId) }
-            .getOrElse { e -> return "Rewind failed: ${e.message}" }
+            .getOrElse { e -> return "回退失败：${e.message}" }
         _state.update { it.copy(turnsWithCheckpoints = refreshCheckpoints(sid)) }
         return when {
             summary.filesFailed > 0 ->
-                "Undo incomplete: ${summary.filesRestored} file(s) restored, ${summary.filesFailed} failed. " +
-                    "History and failed checkpoints were kept. Retry undo after fixing the file access issue."
-            summary.filesTouched == 0 && summary.messagesDeleted == 0 -> "Nothing to rewind for that turn."
+                "撤销未完成：已恢复 ${summary.filesRestored} 个文件，${summary.filesFailed} 个失败。" +
+                    "历史和失败的检查点已保留，请修复文件访问问题后重试撤销。"
+            summary.filesTouched == 0 && summary.messagesDeleted == 0 -> "该轮没有可回退的内容。"
             else ->
-                "Undo complete: ${summary.filesRestored} file(s) restored, " +
-                    "${summary.messagesDeleted} message(s) removed."
+                "撤销完成：已恢复 ${summary.filesRestored} 个文件，" +
+                    "移除 ${summary.messagesDeleted} 条消息。"
         }
     }
 
@@ -1658,11 +1658,11 @@ class ChatViewModel(
         val sid = sessionId ?: return
         val current = _state.value
         if (!current.modelSelectionReady || current.modelSelectionBusy || current.modelSelectionError != null) {
-            _state.update { it.copy(error = current.modelSelectionError ?: "Choose a model before compacting this chat.") }
+            _state.update { it.copy(error = current.modelSelectionError ?: "请先选择模型，再压缩聊天。") }
             return
         }
         val provider = current.activeProvider?.let { it.copy(model = current.effectiveModel ?: it.model) } ?: return
-        _state.update { it.copy(busy = true, error = null, compactionNote = "Preparing chat summary…") }
+        _state.update { it.copy(busy = true, error = null, compactionNote = "正在准备聊天摘要…") }
         var keepalive = false
         var committed = false
         try {
@@ -1671,9 +1671,9 @@ class ChatViewModel(
             kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
                 val key = if (provider.id == com.androidharness.app.llm.HarnessProvider.ID) c.providers.harnessApiKey()
                     else provider.effectiveApiKey(c.providers.apiKey(provider.id))
-                check(key.isNotBlank()) { "Add this provider's API key before compacting." }
+                check(key.isNotBlank()) { "请先添加此服务商的 API 密钥，再压缩聊天。" }
                 val snapshot = c.sessions.compactionSnapshot(sid)
-                check(snapshot.history.size >= 4) { "There are too few messages to compact yet." }
+                check(snapshot.history.size >= 4) { "消息过少，暂时无需压缩。" }
                 val routing = com.androidharness.app.llm.FallbackRun(provider) {
                     val record = c.runManager.controls.flow(sid).value
                     com.androidharness.app.llm.effectiveFallback(c.settings.settings.first().fallbackPolicy, record.fallbackMode, record.fallbackOverride)
@@ -1698,7 +1698,7 @@ class ChatViewModel(
                             if (sessionId == sid) _state.update { it.copy(compactionNote = event.reason) }
                         }
                         is com.androidharness.app.llm.StreamEvent.Retrying -> if (sessionId == sid)
-                            _state.update { it.copy(compactionNote = "Retrying summary · attempt ${event.attempt} · ${event.reason}") }
+                            _state.update { it.copy(compactionNote = "正在重试摘要 · 第 ${event.attempt} 次 · ${event.reason}") }
                         else -> Unit
                     } }) }
                 val before = c.sessions.commitCompaction(sid, summary, snapshot)
@@ -1711,11 +1711,11 @@ class ChatViewModel(
             }
         } catch (e: kotlinx.coroutines.CancellationException) {
             if (!committed) saveCompactionNotice(sid, ChatMessage(role = Role.SYSTEM,
-                text = "Compaction stopped. History was kept. Retry /compact when ready."))
+                text = "压缩已停止，历史已保留。准备好后可重试 /compact。"))
             throw e
         } catch (e: Exception) {
-            val message = if (committed) "Chat compacted, but its task settings or context estimate could not refresh: ${e.message}"
-                else "Compaction failed: ${e.message}. History was kept. Retry /compact or choose another model."
+            val message = if (committed) "聊天已压缩，但无法刷新任务设置或上下文估算：${e.message}"
+                else "压缩失败：${e.message}。历史已保留。请重试 /compact 或选择其他模型。"
             if (sessionId == sid) _state.update { it.copy(error = message) }
             saveCompactionNotice(sid, ChatMessage(role = Role.SYSTEM, text = message, isError = true))
         } finally {
@@ -1769,9 +1769,9 @@ class ChatViewModel(
             c.chatModels.select(sid, com.androidharness.app.data.ChatModelTarget.valueOf(target.name), providerId, model)
             viewModelScope.launch { c.providers.refreshCatalog(providerId, automatic = true) }
             if (target == ModelSelectionTarget.ACTIVE && s.dualPlanning) {
-                val chosen = (model ?: s.providers.firstOrNull { it.id == providerId }?.model)?.substringAfterLast('/') ?: "default"
+                val chosen = (model ?: s.providers.firstOrNull { it.id == providerId }?.model)?.substringAfterLast('/') ?: "默认"
                 _state.update { it.copy(dualPlanning = false, mode = AgentMode.ACT,
-                    modeToast = "Dual planning off. Switched to $chosen").withCurrentAction() }
+                    modeToast = "双模型规划已关闭，已切换为 $chosen").withCurrentAction() }
             }
         }
     }

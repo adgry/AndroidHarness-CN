@@ -86,7 +86,7 @@ class ProjectsDeviceTest {
             tap("Close schedule"); tap("Back"); awaitText("Project memory")
             tap("Chats"); tap("New chat")
             awaitText("Message actions")
-            withTimeout(15000) { while (c.sessions.sessions.first().none { it.title == "New chat" && it.projectId == a.id }) delay(50) }
+            withTimeout(15000) { while (c.sessions.sessions.first().none { it.title == "新聊天" && it.projectId == a.id }) delay(50) }
             assertEquals(b.id, c.workspace.currentProjectOnce().id)
             // The previous chat remains on the navigation stack with its composer draft.
             shell("input keyevent 4"); awaitText("Project memory")

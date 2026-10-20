@@ -39,6 +39,7 @@ import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.lifecycleScope
 import com.androidharness.app.data.AppSettings
 import com.androidharness.app.data.ScreenshotPolicy
 import com.androidharness.app.data.update.UpdateIntents
@@ -50,6 +51,10 @@ import kotlinx.coroutines.launch
 import java.io.File
 
 class MainActivity : FragmentActivity() {
+    override fun attachBaseContext(base: android.content.Context) {
+        super.attachBaseContext(chineseContext(base))
+    }
+
 
     private lateinit var container: AppContainer
     private var isUnlocked by mutableStateOf(false)
@@ -57,6 +62,18 @@ class MainActivity : FragmentActivity() {
 
     private val notificationPermission =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { }
+
+    private val updateInstaller: androidx.activity.result.ActivityResultLauncher<Intent> = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+        container.updates.systemInstallerReturned()
+    }
+    private val updatePermission: androidx.activity.result.ActivityResultLauncher<Intent> = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+        lifecycleScope.launch {
+            container.updates.resumeAfterPermission(
+                onOpenSystemInstaller = { updateInstaller.launch(UpdateIntents.installIntent(this@MainActivity, it)) },
+                onOpenUnknownSourcesSettings = { updatePermission.launch(UpdateIntents.unknownSourcesIntent(this@MainActivity)) },
+            )
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -131,19 +148,19 @@ class MainActivity : FragmentActivity() {
                         ) {
                             Icon(
                                 Icons.Outlined.Lock,
-                                contentDescription = "App Locked",
+                                contentDescription = "应用已锁定",
                                 tint = MaterialTheme.colorScheme.primary,
                                 modifier = Modifier.size(64.dp),
                             )
                             Spacer(Modifier.height(16.dp))
                             Text(
-                                "AndroidHarness is Locked",
+                                "AndroidHarness 已锁定",
                                 style = MaterialTheme.typography.titleLarge,
                                 textAlign = TextAlign.Center,
                             )
                             Spacer(Modifier.height(8.dp))
                             Text(
-                                "Unlock with biometric or device credentials to access your workspaces and chats.",
+                                "请使用指纹、面容或设备密码解锁，访问工作区和对话。",
                                 style = MaterialTheme.typography.bodyMedium,
                                 textAlign = TextAlign.Center,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -152,7 +169,7 @@ class MainActivity : FragmentActivity() {
                             Button(onClick = { promptBiometricUnlock() }) {
                                 Icon(Icons.Outlined.Fingerprint, contentDescription = null, modifier = Modifier.size(18.dp))
                                 Spacer(Modifier.size(8.dp))
-                                Text("Unlock")
+                                Text("解锁")
                             }
                         }
                     }
@@ -170,23 +187,24 @@ class MainActivity : FragmentActivity() {
                         val release = when (s) {
                             is com.androidharness.app.data.update.UpdateManager.Step.Available -> s.release
                             is com.androidharness.app.data.update.UpdateManager.Step.Error -> s.release
+                            is com.androidharness.app.data.update.UpdateManager.Step.AwaitingPermission -> s.release
                             else -> null
                         }
                         if (release != null) {
-                            kotlinx.coroutines.MainScope().launch {
+                            lifecycleScope.launch {
                                 container.updates.startUpdate(
                                     release,
                                     onOpenSystemInstaller = { apk ->
-                                        UpdateIntents.installApk(this@MainActivity, apk)
+                                        updateInstaller.launch(UpdateIntents.installIntent(this@MainActivity, apk))
                                     },
                                     onOpenUnknownSourcesSettings = {
-                                        UpdateIntents.openUnknownSourcesSettings(this@MainActivity)
+                                        updatePermission.launch(UpdateIntents.unknownSourcesIntent(this@MainActivity))
                                     },
                                 )
                             }
                         } else {
                             // Error without release context = check failure; retry the check.
-                            kotlinx.coroutines.MainScope().launch { container.updates.check(manual = true) }
+                            lifecycleScope.launch { container.updates.check(manual = true) }
                         }
                     },
                     onOpenSystemInstaller = { apk: File -> UpdateIntents.installApk(this, apk) },
@@ -225,8 +243,8 @@ class MainActivity : FragmentActivity() {
         promptShownThisResume = true
         BiometricAuth.prompt(
             activity = this,
-            title = "Unlock AndroidHarness",
-            subtitle = "Confirm your fingerprint, face, or PIN",
+            title = "解锁 AndroidHarness",
+            subtitle = "请验证指纹、面容或 PIN 码",
             onSuccess = { isUnlocked = true },
             onError = {
                 // If biometrics not enrolled or unavailable, fallback unlock so user is not permanently locked out
@@ -256,7 +274,7 @@ class MainActivity : FragmentActivity() {
     /** Completes the MCP OAuth browser round-trip (androidharness://mcp/oauth?code=…). */
     private fun handleMcpOAuth(intent: Intent?) {
         val data = intent?.data ?: return
-        if (data.scheme != "androidharness" || data.host != "mcp") return
+        if (data.scheme != BuildConfig.APPLICATION_ID || data.host != "mcp") return
         kotlinx.coroutines.MainScope().launch {
             container.mcp.completeAuthentication(
                 stateParam = data.getQueryParameter("state"),

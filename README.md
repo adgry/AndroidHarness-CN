@@ -1,3 +1,5 @@
+> **简体中文版**：本分支已加入中文界面和可配置的应用内更新。请先阅读 [中文说明](README.zh-CN.md)。更新源已配置为 [adgry/AndroidHarness-CN](https://github.com/adgry/AndroidHarness-CN) 的 Releases。
+
 # AndroidHarness
 
 <a href="https://github.com/Sanuu7/AndroidHarness/releases/latest"><img src=".github/assets/download-from-github.png" alt="Download from GitHub" height="72"></a>

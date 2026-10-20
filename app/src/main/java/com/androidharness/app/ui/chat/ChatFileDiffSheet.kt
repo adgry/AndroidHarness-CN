@@ -38,12 +38,12 @@ internal fun ChatFileDiffSheet(
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             Row(Modifier.fillMaxWidth(), verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
-                Text("File changes", style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
-                TextButton(onClick = onOpenFile) { Text("Open file") }
+                Text("文件更改", style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
+                TextButton(onClick = onOpenFile) { Text("打开文件") }
             }
             Text(path, style = MaterialTheme.typography.bodyMedium, fontFamily = HarnessMono)
             Text(
-                "Before this turn → current file",
+                "此轮之前 → 当前文件",
                 style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -51,7 +51,7 @@ internal fun ChatFileDiffSheet(
             when {
                 result == null -> AppLinearProgressIndicator(Modifier.fillMaxWidth())
                 result.isFailure -> Text(
-                    result.exceptionOrNull()?.message ?: "Could not load the diff.",
+                    result.exceptionOrNull()?.message ?: "无法加载差异。",
                     color = MaterialTheme.colorScheme.error,
                 )
                 else -> VisualDiffViewer(

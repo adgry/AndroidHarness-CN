@@ -9,10 +9,10 @@ import java.time.ZoneId
 internal data class StatsWindow(val since: Long, val until: Long)
 
 internal enum class StatsRange(val label: String, private val days: Long?) {
-    DAY("Today", 1),
-    WEEK("1 week", 7),
-    MONTH("1 month", 30),
-    LIFETIME("Lifetime", null);
+    DAY("今天", 1),
+    WEEK("1 周", 7),
+    MONTH("1 个月", 30),
+    LIFETIME("全部时间", null);
 
     fun window(now: Long, zone: ZoneId = ZoneId.systemDefault()): StatsWindow {
         val count = days ?: return StatsWindow(0, Long.MAX_VALUE)

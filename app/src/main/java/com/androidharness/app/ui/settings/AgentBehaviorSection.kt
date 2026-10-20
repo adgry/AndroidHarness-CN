@@ -31,10 +31,10 @@ private enum class BehaviorPicker { PERMISSIONS, CONTEXT, ITERATIONS }
 private data class BehaviorChoice(val key: String, val title: String, val description: String)
 
 private fun PermissionMode.description(): String = when (this) {
-    PermissionMode.CONFIRM_ALL -> "Ask before each tool action, including reads."
-    PermissionMode.CONFIRM_RISKY -> "Read freely. Ask before edits and commands."
-    PermissionMode.FULL_AUTO -> "Run automatically with workspace and command safeguards."
-    PermissionMode.FULL_ACCESS -> "Run without approvals, workspace limits or command safeguards."
+    PermissionMode.CONFIRM_ALL -> "每次工具操作前都询问，包括读取操作。"
+    PermissionMode.CONFIRM_RISKY -> "自由读取，编辑和运行命令前询问。"
+    PermissionMode.FULL_AUTO -> "自动运行，保留工作区和命令保护。"
+    PermissionMode.FULL_ACCESS -> "无需审批、工作区限制或命令保护即可运行。"
 }
 
 /** Presentation only: all changes still go through the existing settings repository. */
@@ -52,14 +52,14 @@ internal fun AgentBehaviorSection(
 
     Column(verticalArrangement = Arrangement.spacedBy(20.dp)) {
         Text(
-            "Choose how the agent works. You can also change permissions from chat.",
+            "选择代理的工作方式，也可以在聊天中调整权限。",
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
-        BehaviorGroup("Permissions", Icons.Outlined.Security) {
-            SettingsAnchor("Default permission mode") {
+        BehaviorGroup("权限", Icons.Outlined.Security) {
+            SettingsAnchor("默认权限模式") {
                 BehaviorValueRow(
-                    title = "Default permission mode",
+                    title = "默认权限模式",
                     value = settings.permissionMode.label,
                     description = settings.permissionMode.description(),
                     onClick = { pickerName = BehaviorPicker.PERMISSIONS.name },
@@ -67,30 +67,30 @@ internal fun AgentBehaviorSection(
                 )
             }
         }
-        BehaviorGroup("Run limits", Icons.Outlined.Tune) {
-            SettingsAnchor("Max context window") {
+        BehaviorGroup("运行限制", Icons.Outlined.Tune) {
+            SettingsAnchor("最大上下文窗口") {
                 BehaviorValueRow(
-                    title = "Max context window",
-                    value = "${formatTokenCount(settings.maxContextTokens.toLong())} tokens",
-                    description = "Cap the context sent to the model.",
+                    title = "最大上下文窗口",
+                    value = "${formatTokenCount(settings.maxContextTokens.toLong())} 词元",
+                    description = "限制发送给模型的上下文大小。",
                     onClick = { pickerName = BehaviorPicker.CONTEXT.name },
                 )
             }
             BehaviorDivider()
-            SettingsAnchor("Tool-call iteration limit") {
+            SettingsAnchor("工具调用轮数限制") {
                 BehaviorValueRow(
-                    title = "Tool-call iteration limit",
-                    value = if (settings.maxIterations <= 0) "Unlimited" else "${settings.maxIterations} rounds",
-                    description = "How many tool rounds a run can take.",
+                    title = "工具调用轮数限制",
+                    value = if (settings.maxIterations <= 0) "不限" else "${settings.maxIterations} 轮",
+                    description = "单次运行允许的工具调用轮数。",
                     onClick = { pickerName = BehaviorPicker.ITERATIONS.name },
                 )
             }
         }
-        BehaviorGroup("Project instructions", Icons.Outlined.Description) {
-            SettingsAnchor("Project instructions (AGENTS.md)") {
+        BehaviorGroup("项目指令", Icons.Outlined.Description) {
+            SettingsAnchor("项目指令（AGENTS.md）") {
                 BehaviorValueRow(
-                    title = "Project instructions (AGENTS.md)",
-                    description = "View or edit the rules for your current workspace.",
+                    title = "项目指令（AGENTS.md）",
+                    description = "查看或编辑当前工作区的规则。",
                     onClick = onProjectInstructions,
                 )
             }
@@ -104,29 +104,29 @@ internal fun AgentBehaviorSection(
         val choices: List<BehaviorChoice>
         when (picker) {
             BehaviorPicker.PERMISSIONS -> {
-                title = "Default permission mode"
-                description = "Choose when the agent asks for approval. Package installs always ask; remembered approvals skip repeat prompts."
+                title = "默认权限模式"
+                description = "选择代理何时请求审批。安装软件包总会询问；记住的授权会跳过重复提示。"
                 selected = settings.permissionMode.name
                 choices = PermissionMode.entries.map {
                     BehaviorChoice(it.name, it.label, it.description())
                 }
             }
             BehaviorPicker.CONTEXT -> {
-                title = "Max context window"
-                description = "A larger context can keep more history, but uses more tokens. The model's own limit still applies."
+                title = "最大上下文窗口"
+                description = "更大的上下文可以保留更多历史，但会消耗更多词元，仍受模型自身限制。"
                 selected = settings.maxContextTokens.toString()
                 choices = (listOf(131_072, 262_144, 400_000, 1_000_000, 2_000_000) + settings.maxContextTokens)
                     .distinct().sorted().map {
-                        BehaviorChoice(it.toString(), "${formatTokenCount(it.toLong())} tokens", "")
+                        BehaviorChoice(it.toString(), "${formatTokenCount(it.toLong())} 词元", "")
                     }
             }
             BehaviorPicker.ITERATIONS -> {
-                title = "Tool-call iteration limit"
-                description = "A round can include several tool calls. Unlimited keeps going until the task finishes or you stop it."
+                title = "工具调用轮数限制"
+                description = "一轮可以包含多个工具调用。不限轮数时，代理会持续工作直到任务完成或你手动停止。"
                 selected = settings.maxIterations.coerceAtLeast(0).toString()
                 choices = (listOf(0, 25, 100, 250) + settings.maxIterations.coerceAtLeast(0))
                     .distinct().sorted().map {
-                        BehaviorChoice(it.toString(), if (it == 0) "Unlimited" else "$it rounds", "")
+                        BehaviorChoice(it.toString(), if (it == 0) "不限" else "$it 轮", "")
                     }
             }
         }
@@ -178,7 +178,7 @@ internal fun AgentBehaviorSection(
                         }
                     }
                 }
-                TextButton(onClick = { pickerName = null }, modifier = Modifier.align(Alignment.End)) { Text("Cancel") }
+                TextButton(onClick = { pickerName = null }, modifier = Modifier.align(Alignment.End)) { Text("取消") }
             }
         }
     }

@@ -67,7 +67,7 @@ internal fun taskArgsObject(argumentsJson: String): JsonObject? =
 /** Label for tabs/summaries: the delegating agent's title, else a stable fallback. */
 internal fun subagentLabel(call: ToolCallData, index: Int): String =
     taskArgsObject(call.argumentsJson)?.get("title")?.jsonPrimitive?.contentOrNull
-        ?.takeIf { it.isNotBlank() } ?: "agent ${index + 1}"
+        ?.takeIf { it.isNotBlank() } ?: "代理 ${index + 1}"
 
 /**
  * The shared face of a subagent: neutral icon tile, monospace "subagent"
@@ -107,7 +107,7 @@ internal fun SubagentHeaderRow(
         Spacer(Modifier.width(10.dp))
         Column(Modifier.weight(1f)) {
             Text(
-                "subagent",
+                "子代理",
                 style = MaterialTheme.typography.labelLarge,
                 fontFamily = HarnessMono,
                 maxLines = 1,
@@ -137,13 +137,13 @@ internal fun SubagentHeaderRow(
                 0 -> DotLoading(Modifier.size(width = 20.dp, height = 12.dp))
                 1 -> Icon(
                     Icons.Filled.CheckCircle,
-                    contentDescription = "Done",
+                    contentDescription = "完成",
                     tint = success,
                     modifier = Modifier.size(18.dp),
                 )
                 2 -> Icon(
                     Icons.Filled.Close,
-                    contentDescription = "Failed",
+                    contentDescription = "失败",
                     tint = scheme.error,
                     modifier = Modifier.size(18.dp),
                 )
@@ -154,7 +154,7 @@ internal fun SubagentHeaderRow(
             IconButton(onClick = onOpenFull, modifier = Modifier.size(40.dp)) {
                 Icon(
                     Icons.Outlined.OpenInNew,
-                    contentDescription = "Open subagent page",
+                    contentDescription = "打开子代理页面",
                     tint = scheme.onSurfaceVariant,
                     modifier = Modifier.size(17.dp),
                 )
@@ -197,7 +197,7 @@ internal fun SubagentDetailBody(
     }
     if (invocation != null) {
         Text(
-            "TASK",
+            "任务",
             style = MaterialTheme.typography.labelSmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.padding(bottom = 4.dp),
@@ -213,7 +213,7 @@ internal fun SubagentDetailBody(
             MonoBlock(it.text.take(4000))
         } else {
             Text(
-                "RESULT",
+                "结果",
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(bottom = 4.dp),

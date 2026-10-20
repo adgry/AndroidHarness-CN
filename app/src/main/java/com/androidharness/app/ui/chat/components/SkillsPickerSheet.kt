@@ -56,9 +56,9 @@ fun SkillsPickerSheet(
                 .navigationBarsPadding()
                 .padding(horizontal = 16.dp, vertical = 8.dp),
         ) {
-            Text("Skills", style = MaterialTheme.typography.titleMedium)
+            Text("技能", style = MaterialTheme.typography.titleMedium)
             Text(
-                "Pick one to load it into this turn. The agent also loads these on its own via skill_view.",
+                "选择技能以加载到此轮。代理也会通过 skill_view 自行加载技能。",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(top = 4.dp, bottom = 10.dp),
@@ -68,7 +68,7 @@ fun SkillsPickerSheet(
                 onValueChange = { query = it },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
-                label = { Text("Search skills") },
+                label = { Text("搜索技能") },
             )
             Spacer(Modifier.height(8.dp))
             LazyColumn(verticalArrangement = Arrangement.spacedBy(2.dp)) {
@@ -106,7 +106,7 @@ fun SkillsPickerSheet(
                 if (filtered.isEmpty()) {
                     item {
                         Text(
-                            if (query.isBlank()) "No skills enabled." else "No skills match \"$query\".",
+                            if (query.isBlank()) "没有已启用的技能。" else "没有与“$query”匹配的技能。",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.padding(20.dp),
@@ -131,7 +131,7 @@ internal fun SkillUsedBadge(name: String, source: SkillSource? = null) {
             shape = MaterialTheme.shapes.extraSmall,
         ) {
             Text(
-                "skill · $name",
+                "技能 · $name",
                 modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
                 style = MaterialTheme.typography.labelSmall,
                 fontFamily = HarnessMono,

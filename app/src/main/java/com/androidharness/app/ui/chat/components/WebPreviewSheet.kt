@@ -340,18 +340,18 @@ private fun SourceHubView(
             Spacer(Modifier.width(10.dp))
             Column(Modifier.weight(1f)) {
                 Text(
-                    "Web & HTML Preview",
+                    "网页与 HTML 预览",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.SemiBold,
                 )
                 Text(
-                    if (isScanning) "Scanning workspace & live ports…" else "Select a source to inspect",
+                    if (isScanning) "正在扫描工作区和活动端口…" else "选择要查看的来源",
                     style = MaterialTheme.typography.labelSmall,
                     color = scheme.onSurfaceVariant,
                 )
             }
             IconButton(onClick = onClose, modifier = Modifier.size(48.dp)) {
-                Icon(Icons.Default.Close, contentDescription = "Close", tint = scheme.onSurfaceVariant)
+                Icon(Icons.Default.Close, contentDescription = "关闭", tint = scheme.onSurfaceVariant)
             }
         }
 
@@ -370,7 +370,7 @@ private fun SourceHubView(
             // 1. Workspace HTML files (only if present)
             if (workspaceHtmlFiles.isNotEmpty()) {
                 CollapsibleSection(
-                    title = "Workspace Files",
+                    title = "工作区文件",
                     count = workspaceHtmlFiles.size,
                     icon = Icons.Outlined.Folder,
                     defaultExpanded = true,
@@ -379,7 +379,7 @@ private fun SourceHubView(
                         SourceRowItem(
                             icon = Icons.Outlined.Description,
                             title = file.substringAfterLast('/'),
-                            subtitle = file.substringBeforeLast('/', "workspace root"),
+                            subtitle = file.substringBeforeLast('/', "工作区根目录"),
                             badgeText = "HTML",
                             onClick = { onSelectTarget(file) },
                         )
@@ -390,7 +390,7 @@ private fun SourceHubView(
             // 2. Chat Links (only if present in conversation)
             if (chatLinks.isNotEmpty()) {
                 CollapsibleSection(
-                    title = "Links in Chat",
+                    title = "聊天中的链接",
                     count = chatLinks.size,
                     icon = Icons.Outlined.Link,
                     defaultExpanded = true,
@@ -399,8 +399,8 @@ private fun SourceHubView(
                         SourceRowItem(
                             icon = Icons.Outlined.Language,
                             title = link,
-                            subtitle = if (LocalPortProbe.isLocalhostUrl(link)) "Local server" else "Web URL",
-                            badgeText = "OPEN",
+                            subtitle = if (LocalPortProbe.isLocalhostUrl(link)) "本地服务器" else "网页网址",
+                            badgeText = "打开",
                             onClick = { onSelectTarget(link) },
                         )
                     }
@@ -410,7 +410,7 @@ private fun SourceHubView(
             // 3. Localhost servers (only show LIVE servers)
             if (activePorts.isNotEmpty()) {
                 CollapsibleSection(
-                    title = "Live Local Servers",
+                    title = "运行中的本地服务器",
                     count = activePorts.size,
                     icon = Icons.Outlined.Sensors,
                     defaultExpanded = true,
@@ -418,7 +418,7 @@ private fun SourceHubView(
                         IconButton(onClick = onRescanPorts, modifier = Modifier.size(40.dp)) {
                             Icon(
                                 Icons.Default.Refresh,
-                                contentDescription = "Rescan ports",
+                                contentDescription = "重新扫描端口",
                                 tint = scheme.primary,
                                 modifier = Modifier.size(16.dp),
                             )
@@ -429,8 +429,8 @@ private fun SourceHubView(
                         SourceRowItem(
                             icon = Icons.Outlined.Sensors,
                             title = "http://localhost:$port",
-                            subtitle = "Active listening server on port $port",
-                            badgeText = "LIVE",
+                            subtitle = "正在监听端口 $port 的服务器",
+                            badgeText = "运行中",
                             isLive = true,
                             onClick = { onSelectTarget("http://localhost:$port") },
                         )
@@ -458,13 +458,13 @@ private fun SourceHubView(
                         )
                         Spacer(Modifier.height(8.dp))
                         Text(
-                            "No active web sources detected",
+                            "未检测到可用的网页来源",
                             style = MaterialTheme.typography.titleSmall,
                             fontWeight = FontWeight.SemiBold,
                         )
                         Spacer(Modifier.height(4.dp))
                         Text(
-                            "Start a dev server in Terminal (e.g. `python3 -m http.server 8000` or `npm run dev`), or enter an address below.",
+                            "请在终端中启动开发服务器（如 `python3 -m http.server 8000` 或 `npm run dev`），或在下方输入地址。",
                             style = MaterialTheme.typography.bodySmall,
                             color = scheme.onSurfaceVariant,
                             textAlign = androidx.compose.ui.text.style.TextAlign.Center,
@@ -482,7 +482,7 @@ private fun SourceHubView(
             ) {
                 Column(Modifier.padding(12.dp)) {
                     Text(
-                        "Enter Custom Address or Port",
+                        "输入自定义地址或端口",
                         style = MaterialTheme.typography.labelMedium,
                         fontWeight = FontWeight.SemiBold,
                     )
@@ -512,7 +512,7 @@ private fun SourceHubView(
                             },
                         ) {
                             Text(
-                                "Open",
+                                "打开",
                                 style = MaterialTheme.typography.labelMedium,
                                 color = if (customUrlInput.isNotBlank()) scheme.onPrimary else scheme.onSurfaceVariant,
                                 modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp),
@@ -722,15 +722,15 @@ private fun WebPageView(
     selectedElement?.let { selection ->
         AlertDialog(
             onDismissRequest = { selectedElement = null },
-            title = { Text("Fix selected element") },
+            title = { Text("修改所选元素") },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     Text(selection.selector, maxLines = 2, overflow = TextOverflow.Ellipsis,
                         style = MaterialTheme.typography.labelMedium, fontFamily = HarnessMono)
                     OutlinedTextField(value = elementRequest, onValueChange = { elementRequest = it },
-                        label = { Text("What should change?") }, minLines = 2, maxLines = 5,
+                        label = { Text("需要更改什么？") }, minLines = 2, maxLines = 5,
                         modifier = Modifier.fillMaxWidth())
-                    Text(if (capturingSelection) "Capturing page context…" else "Includes element details, styles, and available page context.",
+                    Text(if (capturingSelection) "正在获取页面上下文…" else "包含元素详情、样式和可用的页面上下文。",
                         style = MaterialTheme.typography.bodySmall, color = scheme.onSurfaceVariant)
                 }
             },
@@ -740,9 +740,9 @@ private fun WebPageView(
                         .take(5).joinToString("\n") { "${it.message} (${it.source}:${it.lineNumber})" }
                     selectedElement = null
                     onFixBug(selection.prompt(currentUrl, elementRequest, errors, selectionScreenshot))
-                }) { Text("Send to agent") }
+                }) { Text("发送给代理") }
             },
-            dismissButton = { TextButton(onClick = { selectedElement = null }) { Text("Cancel") } },
+            dismissButton = { TextButton(onClick = { selectedElement = null }) { Text("取消") } },
         )
     }
 
@@ -753,7 +753,7 @@ private fun WebPageView(
         browserController?.isAgentControlling ?: kotlinx.coroutines.flow.MutableStateFlow(false)
     }
     val trackedAgentControlling by controlActiveFlow.collectAsState()
-    val agentControlling = agentActivity?.let { it.status == "In progress" || it.status == "Waiting" } ?: trackedAgentControlling
+    val agentControlling = agentActivity?.let { it.status == "进行中" || it.status == "等待" } ?: trackedAgentControlling
     val trackFlow = remember(browserController) {
         browserController?.actionTrack ?: kotlinx.coroutines.flow.MutableStateFlow(emptyList())
     }
@@ -786,7 +786,7 @@ private fun WebPageView(
                     isLoading = true
                 } else {
                     isLoading = false
-                    errorMessage = "File '$t' not found in active workspace."
+                    errorMessage = "当前工作区中未找到文件“$t”。"
                 }
             } else {
                 val norm = LocalPortProbe.normalizeLocalUrl(t)
@@ -832,7 +832,7 @@ private fun WebPageView(
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     IconButton(onClick = onBackToHub) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "All Sources", tint = scheme.onSurface)
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "所有来源", tint = scheme.onSurface)
                     }
 
                     IconButton(
@@ -841,7 +841,7 @@ private fun WebPageView(
                     ) {
                         Icon(
                             Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "History Back",
+                            contentDescription = "后退",
                             tint = if (canGoBack) scheme.onSurface else scheme.onSurfaceVariant.copy(alpha = 0.3f),
                         )
                     }
@@ -852,13 +852,13 @@ private fun WebPageView(
                     ) {
                         Icon(
                             Icons.AutoMirrored.Filled.ArrowForward,
-                            contentDescription = "History Forward",
+                            contentDescription = "前进",
                             tint = if (canGoForward) scheme.onSurface else scheme.onSurfaceVariant.copy(alpha = 0.3f),
                         )
                     }
 
                     IconButton(onClick = reload) {
-                        Icon(Icons.Default.Refresh, contentDescription = "Reload", tint = scheme.onSurfaceVariant)
+                        Icon(Icons.Default.Refresh, contentDescription = "重新加载", tint = scheme.onSurfaceVariant)
                     }
                 }
 
@@ -869,7 +869,7 @@ private fun WebPageView(
                         Box {
                             Icon(
                                 Icons.Outlined.BugReport,
-                                contentDescription = "Console",
+                                contentDescription = "控制台",
                                 tint = if (consoleLogs.any { it.level == ConsoleMessage.MessageLevel.ERROR }) {
                                     scheme.error
                                 } else if (showConsole) {
@@ -891,14 +891,14 @@ private fun WebPageView(
 
                     Box {
                         IconButton(onClick = { browserToolbarMenu = true }) {
-                            Icon(Icons.Filled.MoreVert, contentDescription = "More browser actions", tint = scheme.onSurfaceVariant)
+                            Icon(Icons.Filled.MoreVert, contentDescription = "更多浏览器操作", tint = scheme.onSurfaceVariant)
                         }
                         DropdownMenu(
                             expanded = browserToolbarMenu,
                             onDismissRequest = { browserToolbarMenu = false },
                         ) {
                             DropdownMenuItem(
-                                text = { Text(if (pickingElement) "Cancel element selection" else "Select element to fix") },
+                                text = { Text(if (pickingElement) "取消元素选择" else "选择要修改的元素") },
                                 leadingIcon = { Icon(Icons.Filled.AutoFixHigh, contentDescription = null) },
                                 enabled = !isLoading && errorMessage == null && !agentControlling,
                                 onClick = {
@@ -908,7 +908,7 @@ private fun WebPageView(
                                 },
                             )
                             DropdownMenuItem(
-                                text = { Text("DevTools") },
+                                text = { Text("开发者工具") },
                                 leadingIcon = { Icon(Icons.Outlined.DeveloperMode, contentDescription = null, tint = scheme.primary) },
                                 onClick = {
                                     browserToolbarMenu = false
@@ -916,7 +916,7 @@ private fun WebPageView(
                                 },
                             )
                             DropdownMenuItem(
-                                text = { Text("Open in external browser") },
+                                text = { Text("在外部浏览器中打开") },
                                 leadingIcon = { Icon(Icons.AutoMirrored.Outlined.OpenInNew, contentDescription = null) },
                                 enabled = !isWorkspaceHtml(currentUrl),
                                 onClick = {
@@ -930,7 +930,7 @@ private fun WebPageView(
                                 },
                             )
                             DropdownMenuItem(
-                                text = { Text(if (isFullscreen) "Exit fullscreen" else "Fullscreen") },
+                                text = { Text(if (isFullscreen) "退出全屏" else "全屏") },
                                 leadingIcon = {
                                     Icon(
                                         if (isFullscreen) Icons.Outlined.FullscreenExit else Icons.Outlined.Fullscreen,
@@ -943,7 +943,7 @@ private fun WebPageView(
                                 },
                             )
                             DropdownMenuItem(
-                                text = { Text("Close") },
+                                text = { Text("关闭") },
                                 leadingIcon = { Icon(Icons.Default.Close, contentDescription = null) },
                                 onClick = {
                                     browserToolbarMenu = false
@@ -959,10 +959,10 @@ private fun WebPageView(
         if (pickingElement) {
             Surface(color = scheme.primaryContainer, modifier = Modifier.fillMaxWidth()) {
                 Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(start = 12.dp)) {
-                    Text("Tap the element you want to change", modifier = Modifier.weight(1f),
+                    Text("点按要更改的元素", modifier = Modifier.weight(1f),
                         style = MaterialTheme.typography.bodySmall, color = scheme.onPrimaryContainer)
                     IconButton(onClick = { pickingElement = false }) {
-                        Icon(Icons.Default.Close, contentDescription = "Cancel element selection")
+                        Icon(Icons.Default.Close, contentDescription = "取消元素选择")
                     }
                 }
             }
@@ -971,7 +971,7 @@ private fun WebPageView(
             ThinLinearProgress(modifier = Modifier.fillMaxWidth())
         }
 
-        // "Agent is controlling the browser" strip; tap to expand the action trail
+        // "代理正在操作浏览器" strip; tap to expand the action trail
         AnimatedVisibility(
             visible = agentActivity != null || agentControlling,
             enter = expandVertically(fastEffectsSpec()) + fadeIn(fastEffectsSpec()),
@@ -992,14 +992,14 @@ private fun WebPageView(
                         .fillMaxWidth()
                         .padding(horizontal = 12.dp, vertical = 6.dp),
                 ) {
-                    if (agentActivity?.status in listOf("In progress", "Waiting") || agentActivity == null) {
+                    if (agentActivity?.status in listOf("进行中", "等待") || agentActivity == null) {
                         AgentPulsingDot(tint = scheme.onPrimaryContainer)
                     } else {
                         Icon(Icons.Outlined.Language, null, Modifier.size(16.dp), tint = scheme.onPrimaryContainer)
                     }
                     Spacer(Modifier.width(8.dp))
                     Text(
-                        agentActivity?.let { "${it.status} · ${it.action}" } ?: "Agent is controlling the browser",
+                        agentActivity?.let { "${it.status} · ${it.action}" } ?: "代理正在操作浏览器",
                         style = MaterialTheme.typography.labelMedium,
                         fontWeight = FontWeight.Bold,
                         color = scheme.onPrimaryContainer,
@@ -1008,10 +1008,10 @@ private fun WebPageView(
                         modifier = Modifier.weight(1f),
                     )
                     if (onStopAgent != null) TextButton(onClick = onStopAgent, enabled = agentRunning,
-                        colors = androidx.compose.material3.ButtonDefaults.textButtonColors(contentColor = scheme.error)) { Text("Stop agent") }
+                        colors = androidx.compose.material3.ButtonDefaults.textButtonColors(contentColor = scheme.error)) { Text("停止代理") }
                     Icon(
                         if (showAgentTrack) Icons.Filled.KeyboardArrowDown else Icons.Filled.KeyboardArrowUp,
-                        contentDescription = if (showAgentTrack) "Hide agent activity" else "Show agent activity",
+                        contentDescription = if (showAgentTrack) "隐藏代理活动" else "显示代理活动",
                         tint = scheme.onPrimaryContainer,
                         modifier = Modifier.size(16.dp),
                     )
@@ -1098,7 +1098,7 @@ private fun WebPageView(
                             ): Boolean {
                                 browserController?.unbindActiveWebView(view ?: return true)
                                 isLoading = false
-                                errorMessage = "Browser render process terminated (infinite loop or crash). Reload to resume."
+                                errorMessage = "浏览器渲染进程已终止（死循环或崩溃）。重新加载以恢复。"
                                 return true
                             }
 
@@ -1133,7 +1133,7 @@ private fun WebPageView(
                             ) {
                                 if (request?.isForMainFrame == true) {
                                     isLoading = false
-                                    errorMessage = error?.description?.toString() ?: "Failed to connect to $target"
+                                    errorMessage = error?.description?.toString() ?: "无法连接到 $target"
                                     browserController?.notePageError(errorMessage)
                                 }
                             }
@@ -1234,7 +1234,7 @@ private fun WebPageView(
                         CircularProgressIndicator(modifier = Modifier.size(36.dp), strokeWidth = 3.dp)
                         Spacer(Modifier.height(14.dp))
                         Text(
-                            "Loading preview…",
+                            "正在加载预览…",
                             style = MaterialTheme.typography.bodyMedium,
                             fontWeight = FontWeight.Medium,
                         )
@@ -1269,7 +1269,7 @@ private fun WebPageView(
                         )
                         Spacer(Modifier.height(12.dp))
                         Text(
-                            "Cannot load page",
+                            "无法加载页面",
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold,
                         )
@@ -1288,7 +1288,7 @@ private fun WebPageView(
                                 modifier = Modifier.clickable { onBackToHub() },
                             ) {
                                 Text(
-                                    "Pick source",
+                                    "选择来源",
                                     style = MaterialTheme.typography.labelMedium,
                                     modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
                                 )
@@ -1306,7 +1306,7 @@ private fun WebPageView(
                                 ) {
                                     Icon(Icons.Filled.AutoFixHigh, contentDescription = null, tint = scheme.onErrorContainer, modifier = Modifier.size(15.dp))
                                     Spacer(Modifier.width(4.dp))
-                                    Text("Fix with Agent", color = scheme.onErrorContainer, style = MaterialTheme.typography.labelMedium)
+                                    Text("让代理修复", color = scheme.onErrorContainer, style = MaterialTheme.typography.labelMedium)
                                 }
                             }
                             Surface(
@@ -1315,7 +1315,7 @@ private fun WebPageView(
                                 modifier = Modifier.clickable { reload() },
                             ) {
                                 Text(
-                                    "Retry",
+                                    "重试",
                                     color = scheme.onPrimary,
                                     style = MaterialTheme.typography.labelMedium,
                                     modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
@@ -1352,7 +1352,7 @@ private fun WebPageView(
                                 .padding(horizontal = 10.dp, vertical = 6.dp),
                         ) {
                             Text(
-                                "JS CONSOLE (${consoleLogs.size})",
+                                "JS 控制台（${consoleLogs.size}）",
                                 style = MaterialTheme.typography.labelSmall,
                                 fontFamily = HarnessMono,
                                 fontWeight = FontWeight.Bold,
@@ -1385,7 +1385,7 @@ private fun WebPageView(
                                         )
                                         Spacer(Modifier.width(4.dp))
                                         Text(
-                                            "Fix bug in chat",
+                                            "在聊天中修复问题",
                                             style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp, fontWeight = FontWeight.Bold),
                                             color = scheme.onErrorContainer,
                                         )
@@ -1394,11 +1394,11 @@ private fun WebPageView(
                             }
 
                             IconButton(onClick = { consoleLogs.clear() }, modifier = Modifier.size(40.dp)) {
-                                Icon(Icons.Outlined.Delete, contentDescription = "Clear logs", modifier = Modifier.size(16.dp), tint = scheme.onSurfaceVariant)
+                                Icon(Icons.Outlined.Delete, contentDescription = "清空日志", modifier = Modifier.size(16.dp), tint = scheme.onSurfaceVariant)
                             }
                             Spacer(Modifier.width(2.dp))
                             IconButton(onClick = onToggleConsole, modifier = Modifier.size(40.dp)) {
-                                Icon(Icons.Default.Close, contentDescription = "Close Console", modifier = Modifier.size(16.dp), tint = scheme.onSurfaceVariant)
+                                Icon(Icons.Default.Close, contentDescription = "关闭控制台", modifier = Modifier.size(16.dp), tint = scheme.onSurfaceVariant)
                             }
                         }
                         HorizontalDivider(color = scheme.outlineVariant.copy(alpha = 0.4f))
@@ -1411,7 +1411,7 @@ private fun WebPageView(
                                 contentAlignment = Alignment.Center,
                             ) {
                                 Text(
-                                    "No console messages logged",
+                                    "暂无控制台消息",
                                     style = MaterialTheme.typography.bodySmall,
                                     color = scheme.onSurfaceVariant,
                                     fontFamily = HarnessMono,
@@ -1480,7 +1480,7 @@ private fun WebPageView(
                                                 },
                                             ) {
                                                 Text(
-                                                    "Fix",
+                                                    "修复",
                                                     style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp, fontWeight = FontWeight.Bold),
                                                     color = scheme.onErrorContainer,
                                                     modifier = Modifier.padding(horizontal = 5.dp, vertical = 2.dp),
@@ -1519,7 +1519,7 @@ private fun WebPageView(
                                 .padding(horizontal = 10.dp, vertical = 6.dp),
                         ) {
                             Text(
-                                "AGENT ACTIVITY (${agentTracks.size})",
+                                "代理活动（${agentTracks.size}）",
                                 style = MaterialTheme.typography.labelSmall,
                                 fontFamily = HarnessMono,
                                 fontWeight = FontWeight.Bold,
@@ -1529,11 +1529,11 @@ private fun WebPageView(
                                 onClick = { browserController?.clearTrack() },
                                 modifier = Modifier.size(40.dp),
                             ) {
-                                Icon(Icons.Outlined.Delete, contentDescription = "Clear trail", modifier = Modifier.size(16.dp), tint = scheme.onSurfaceVariant)
+                                Icon(Icons.Outlined.Delete, contentDescription = "清空活动记录", modifier = Modifier.size(16.dp), tint = scheme.onSurfaceVariant)
                             }
                             Spacer(Modifier.width(2.dp))
                             IconButton(onClick = { showAgentTrack = false }, modifier = Modifier.size(40.dp)) {
-                                Icon(Icons.Default.Close, contentDescription = "Close activity", modifier = Modifier.size(16.dp), tint = scheme.onSurfaceVariant)
+                                Icon(Icons.Default.Close, contentDescription = "关闭活动", modifier = Modifier.size(16.dp), tint = scheme.onSurfaceVariant)
                             }
                         }
                         HorizontalDivider(color = scheme.outlineVariant.copy(alpha = 0.4f))
@@ -1546,7 +1546,7 @@ private fun WebPageView(
                                 contentAlignment = Alignment.Center,
                             ) {
                                 Text(
-                                    "The agent has not touched this browser yet",
+                                    "代理尚未操作此浏览器",
                                     style = MaterialTheme.typography.bodySmall,
                                     color = scheme.onSurfaceVariant,
                                     fontFamily = HarnessMono,

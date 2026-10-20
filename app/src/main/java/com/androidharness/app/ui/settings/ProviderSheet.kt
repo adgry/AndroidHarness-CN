@@ -200,7 +200,7 @@ internal fun ProviderSheetContent(
         else -> brand?.baseUrl ?: baseUrl
     }
     val requiresKey = if (devChoice != null) true else brand?.needsKey ?: true
-    val selectedLabel = brand?.label ?: devChoice?.name ?: "Custom endpoint"
+    val selectedLabel = brand?.label ?: devChoice?.name ?: "自定义端点"
 
     // Offline model list from the catalog: shown instantly on step 3 when the
     // live fetch hasn't produced a list (or failed).
@@ -275,7 +275,7 @@ internal fun ProviderSheetContent(
                             modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
                         ) {
                             Text(
-                                "Refreshing provider catalog…",
+                                "正在刷新提供商目录…",
                                 style = MaterialTheme.typography.labelMedium,
                                 color = MaterialTheme.colorScheme.onSecondaryContainer,
                                 modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
@@ -286,7 +286,7 @@ internal fun ProviderSheetContent(
                         OutlinedTextField(
                             value = providerQuery,
                             onValueChange = { providerQuery = it },
-                            placeholder = { Text("Search ${devProviders.size} providers") },
+                            placeholder = { Text("搜索 ${devProviders.size} 个提供商") },
                             leadingIcon = { Icon(Icons.Outlined.Search, contentDescription = null) },
                             singleLine = true,
                             shape = RoundedCornerShape(14.dp),
@@ -352,10 +352,10 @@ internal fun ProviderSheetContent(
                                 value = type.endpointPath,
                                 onValueChange = {},
                                 readOnly = true,
-                                label = { Text("Protocol") },
+                                label = { Text("协议") },
                                 trailingIcon = {
                                     IconButton(onClick = { typeMenu = true }) {
-                                        Icon(Icons.Filled.KeyboardArrowDown, contentDescription = "Choose protocol")
+                                        Icon(Icons.Filled.KeyboardArrowDown, contentDescription = "选择协议")
                                     }
                                 },
                                 modifier = Modifier.fillMaxWidth(),
@@ -378,7 +378,7 @@ internal fun ProviderSheetContent(
                         OutlinedTextField(
                             value = baseUrl,
                             onValueChange = { baseUrl = it },
-                            label = { Text("Server address") },
+                            label = { Text("服务器地址") },
                             placeholder = { Text("https://your-server.example.com/v1") },
                             singleLine = true,
                             modifier = Modifier.fillMaxWidth(),
@@ -389,9 +389,9 @@ internal fun ProviderSheetContent(
                         OutlinedTextField(
                             value = apiKey,
                             onValueChange = { apiKey = it; fetchError = null },
-                            label = { Text("API key") },
+                            label = { Text("API 密钥") },
                             placeholder = {
-                                Text("Get one from ${effectiveBaseUrl.substringAfter("://").substringBefore('/')}")
+                                Text("可从 ${effectiveBaseUrl.substringAfter("://").substringBefore('/')}")
                             },
                             visualTransformation = PasswordVisualTransformation(),
                             singleLine = true,
@@ -399,7 +399,7 @@ internal fun ProviderSheetContent(
                             modifier = Modifier.fillMaxWidth(),
                         )
                         Text(
-                            "Stored securely on this device and used only for this provider.",
+                            "安全存储在此设备上，仅用于此提供商。",
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.padding(horizontal = 4.dp),
@@ -411,7 +411,7 @@ internal fun ProviderSheetContent(
                             modifier = Modifier.fillMaxWidth(),
                         ) {
                             Text(
-                                "$selectedLabel runs locally, so no API key is needed.",
+                                "$selectedLabel 在本地运行，无需 API 密钥。",
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSecondaryContainer,
                                 modifier = Modifier.padding(12.dp),
@@ -437,10 +437,10 @@ internal fun ProviderSheetContent(
                             enabled = !fetching && headersValid &&
                                 (!requiresKey || apiKey.isNotBlank()) &&
                                 (!isCustom || baseUrl.isNotBlank()),
-                        ) { Text(if (fetching) "Connecting…" else "Continue") }
+                        ) { Text(if (fetching) "正在连接…" else "继续") }
                     },
                     secondary = if (fetchError != null && headersValid) {
-                        { TextButton(onClick = { step = AddStep.MODEL }) { Text("Continue anyway") } }
+                        { TextButton(onClick = { step = AddStep.MODEL }) { Text("仍然继续") } }
                     } else null,
                     onCancel = onDismiss,
                 )
@@ -456,13 +456,13 @@ internal fun ProviderSheetContent(
                 ) {
                     SelectedProviderSummary(
                         label = selectedLabel,
-                        subtitle = "Choose the model this provider should use",
+                        subtitle = "选择此提供商使用的模型",
                     )
                     Spacer(Modifier.height(10.dp))
                     OutlinedTextField(
                         value = modelQuery,
                         onValueChange = { modelQuery = it },
-                        placeholder = { Text("Search models or type an ID") },
+                        placeholder = { Text("搜索模型或输入 ID") },
                         leadingIcon = { Icon(Icons.Outlined.Search, contentDescription = null) },
                         singleLine = true,
                         shape = RoundedCornerShape(14.dp),
@@ -487,7 +487,7 @@ internal fun ProviderSheetContent(
                                     entry = ModelEntry(q),
                                     providerType = effectiveType,
                                     selected = model == q,
-                                    hint = "Use custom model ID",
+                                    hint = "使用自定义模型 ID",
                                     onClick = { model = q },
                                 )
                             }
@@ -505,7 +505,7 @@ internal fun ProviderSheetContent(
                         if (displayModels == null && q.isBlank()) {
                             item {
                                 Text(
-                                    "No catalog available yet. Type a model ID above.",
+                                    "暂无可用目录，请在上方输入模型 ID。",
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                                     modifier = Modifier.padding(vertical = 18.dp),
@@ -517,7 +517,7 @@ internal fun ProviderSheetContent(
                     OutlinedTextField(
                         value = name,
                         onValueChange = { name = it },
-                        label = { Text("Profile name (optional)") },
+                        label = { Text("配置名称（可选）") },
                         placeholder = { Text(selectedLabel) },
                         singleLine = true,
                         modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
@@ -533,7 +533,7 @@ internal fun ProviderSheetContent(
                                     com.androidharness.app.llm.ProviderHeaders.normalized(headers))
                             },
                             enabled = model.isNotBlank() && headersValid,
-                        ) { Text("Save") }
+                        ) { Text("保存") }
                     },
                     secondary = null,
                     onCancel = onDismiss,
@@ -560,16 +560,16 @@ private fun ProviderFlowHeader(
     ) {
         if (step != AddStep.PROVIDER) {
             IconButton(onClick = onBack) {
-                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "返回")
             }
         }
         Column(Modifier.weight(1f)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
                     when (step) {
-                        AddStep.PROVIDER -> if (editing) "Edit provider" else "Add provider"
-                        AddStep.KEY -> "Connect $providerLabel"
-                        AddStep.MODEL -> "Choose model"
+                        AddStep.PROVIDER -> if (editing) "编辑提供商" else "添加提供商"
+                        AddStep.KEY -> "连接 $providerLabel"
+                        AddStep.MODEL -> "选择模型"
                     },
                     style = MaterialTheme.typography.titleMediumEmphasized,
                     maxLines = 1,
@@ -583,9 +583,9 @@ private fun ProviderFlowHeader(
                 ) {
                     Text(
                         when (step) {
-                            AddStep.PROVIDER -> "1 of 3"
-                            AddStep.KEY -> "2 of 3"
-                            AddStep.MODEL -> "3 of 3"
+                            AddStep.PROVIDER -> "第 1 / 3 步"
+                            AddStep.KEY -> "第 2 / 3 步"
+                            AddStep.MODEL -> "第 3 / 3 步"
                         },
                         style = MaterialTheme.typography.labelSmall,
                         color = scheme.onSurfaceVariant,
@@ -597,9 +597,9 @@ private fun ProviderFlowHeader(
             }
             Text(
                 when (step) {
-                    AddStep.PROVIDER -> "Pick a service or connect your own endpoint"
-                    AddStep.KEY -> "Add the credentials needed to reach this provider"
-                    AddStep.MODEL -> "Search the catalog or enter a model ID"
+                    AddStep.PROVIDER -> "选择服务，或连接自己的端点"
+                    AddStep.KEY -> "添加连接此提供商所需的凭据"
+                    AddStep.MODEL -> "搜索目录或输入模型 ID"
                 },
                 style = MaterialTheme.typography.bodySmall,
                 color = scheme.onSurfaceVariant,
@@ -608,7 +608,7 @@ private fun ProviderFlowHeader(
             )
         }
         IconButton(onClick = onClose) {
-            Icon(Icons.Filled.Close, contentDescription = "Close")
+            Icon(Icons.Filled.Close, contentDescription = "关闭")
         }
     }
 }
@@ -664,7 +664,7 @@ private fun StepButtons(
             .padding(horizontal = 16.dp, vertical = 10.dp),
     ) {
         Spacer(Modifier.weight(1f))
-        TextButton(onClick = onCancel) { Text("Cancel") }
+        TextButton(onClick = onCancel) { Text("取消") }
         secondary?.invoke()
         primary()
     }
@@ -713,7 +713,7 @@ private fun ModelPickRow(
             if (selected) {
                 Icon(
                     Icons.Filled.CheckCircle,
-                    contentDescription = "Selected",
+                    contentDescription = "已选择",
                     tint = scheme.primary,
                     modifier = Modifier.size(19.dp),
                 )
@@ -723,9 +723,9 @@ private fun ModelPickRow(
 }
 
 /**
- * The searchable provider directory: "Custom endpoint" first, then curated
- * brands under "Popular", then every models.dev provider the app can speak
- * to under "All providers". Divider-separated tap targets, selection shown
+ * The searchable provider directory: "自定义端点" first, then curated
+ * brands under "常用", then every models.dev provider the app can speak
+ * to under "全部提供商". Divider-separated tap targets, selection shown
  * with a trailing check.
  */
 @Composable
@@ -756,11 +756,11 @@ private fun ColumnScope.ProviderDirectory(
             .weight(1f),
         verticalArrangement = Arrangement.spacedBy(4.dp),
     ) {
-        if (q.isBlank() || "custom".contains(q)) {
+        if (q.isBlank() || "custom 自定义端点".contains(q)) {
             item(key = "custom") {
                 ProviderRow(
-                    title = "Custom endpoint",
-                    subtitle = "Connect any compatible API or local server",
+                    title = "自定义端点",
+                    subtitle = "连接兼容的 API 或本地服务器",
                     selected = customSelected,
                     custom = true,
                     onClick = onSelectCustom,
@@ -769,12 +769,12 @@ private fun ColumnScope.ProviderDirectory(
         }
         if (curated.isNotEmpty()) {
             item(key = "popular-label") {
-                DirectoryLabel(if (q.isBlank()) "Popular" else "Providers")
+                DirectoryLabel(if (q.isBlank()) "常用" else "提供商")
             }
             items(curated, key = { "brand-${it.label}" }) { b ->
                 ProviderRow(
                     title = b.label,
-                    subtitle = if (b.needsKey) "API key required" else "Runs locally without a key",
+                    subtitle = if (b.needsKey) "需要 API 密钥" else "本地运行，无需密钥",
                     selected = b.label == selectedBrand?.label,
                     onClick = { onSelectBrand(b) },
                 )
@@ -782,12 +782,12 @@ private fun ColumnScope.ProviderDirectory(
         }
         if (dev.isNotEmpty()) {
             if (q.isBlank()) {
-                item(key = "all-label") { DirectoryLabel("All providers") }
+                item(key = "all-label") { DirectoryLabel("全部提供商") }
             }
             items(dev, key = { "dev-${it.id}" }) { info ->
                 ProviderRow(
                     title = info.name,
-                    subtitle = "${info.modelCount} models",
+                    subtitle = "${info.modelCount} 个模型",
                     selected = info.id == selectedDev?.id,
                     onClick = { onSelectDev(info) },
                 )
@@ -858,7 +858,7 @@ private fun ProviderRow(
             if (selected) {
                 Icon(
                     Icons.Filled.CheckCircle,
-                    contentDescription = "Selected",
+                    contentDescription = "已选择",
                     tint = scheme.primary,
                     modifier = Modifier.size(19.dp),
                 )

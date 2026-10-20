@@ -9,8 +9,8 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
-internal enum class RootStatus(val label: String) {
-    NOT_CHECKED("Not checked"), REQUESTING("Requesting access…"), READY("Ready · UID 0"), DENIED("Access denied"), UNAVAILABLE("Unavailable")
+internal enum class RootStatus(val label: String, val displayLabel: String) {
+    NOT_CHECKED("Not checked", "未检查"), REQUESTING("Requesting access…", "正在请求权限…"), READY("Ready · UID 0", "就绪 · UID 0"), DENIED("Access denied", "访问被拒绝"), UNAVAILABLE("Unavailable", "不可用")
 }
 internal data class RootState(
     val status: RootStatus = RootStatus.NOT_CHECKED,
@@ -18,7 +18,27 @@ internal data class RootState(
     val checkedAt: Long = 0,
     val provider: RootProvider? = null,
     val providerEvidence: String? = null,
-)
+) {
+    /** Display copy stays separate from the diagnostic text sent to agent tools. */
+    val displayDetail: String get() = when (detail) {
+        "Enable root to request access." -> "启用 Root 以请求访问权限。"
+        "Waiting for your root manager." -> "正在等待 Root 管理器。"
+        "Root was denied or no working su provider is available." -> "Root 权限被拒绝，或没有可用的 su 服务。"
+        "The root service disconnected." -> "Root 服务已断开。"
+        "The root service stopped." -> "Root 服务已停止。"
+        "Root service could not start." -> "无法启动 Root 服务。"
+        "The connected runner did not verify root access." -> "已连接的执行器未能验证 Root 权限。"
+        "Root request ended before verification." -> "Root 请求在完成验证前结束。"
+        "Root access is unavailable." -> "Root 访问不可用。"
+        "No active root connection. Tap Grant root access to connect." -> "没有活动的 Root 连接，请点击“授予 Root 权限”连接。"
+        "Root connection lost during execution." -> "执行期间 Root 连接已断开。"
+        "${provider?.label ?: "Root"} · identity verified by the running command service." -> "${provider?.label ?: "Root"} · 已由运行中的命令服务验证身份。"
+        "${provider?.label} detected. Grant root access to verify." -> "已检测到 ${provider?.label}，请授予 Root 权限以验证。"
+        else -> if (detail.startsWith("Root service is connected but identity verification failed"))
+            "Root 服务已连接，但身份验证失败" + detail.removePrefix("Root service is connected but identity verification failed")
+        else detail
+    }
+}
 
 class RootManager(private val context: Context) {
     private val installedPackages: Set<String> by lazy {

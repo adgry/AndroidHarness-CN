@@ -58,13 +58,13 @@ private fun QuestionCardBody(question: QuestionRequest, onAnswer: (String) -> Un
                     Icon(Icons.Outlined.ChatBubbleOutline, null, Modifier.padding(8.dp).size(18.dp), tint = scheme.primary)
                 }
                 Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                    Text("Question for you", style = MaterialTheme.typography.labelLarge, color = scheme.onSurface)
+                    Text("需要你回答", style = MaterialTheme.typography.labelLarge, color = scheme.onSurface)
                     Text(
                         when {
-                            question.options.isEmpty() -> "Write your answer below"
-                            question.multiSelect && selected.isNotEmpty() -> "${selected.size} selected · Select all that apply"
-                            question.multiSelect -> "Select all that apply"
-                            else -> "Choose one or write your own"
+                            question.options.isEmpty() -> "请在下方填写回答"
+                            question.multiSelect && selected.isNotEmpty() -> "已选择 ${selected.size} 项 · 可多选"
+                            question.multiSelect -> "可多选"
+                            else -> "选择一项或自行填写"
                         },
                         style = MaterialTheme.typography.bodySmall,
                         color = scheme.onSurfaceVariant,
@@ -117,19 +117,19 @@ private fun QuestionCardBody(question: QuestionRequest, onAnswer: (String) -> Un
             if (writing) {
                 Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                        Text(if (selected.isEmpty()) "Your answer" else "Additional detail", Modifier.weight(1f),
+                        Text(if (selected.isEmpty()) "你的回答" else "补充详情", Modifier.weight(1f),
                             style = MaterialTheme.typography.labelMedium, color = scheme.onSurfaceVariant)
                         if (question.options.isNotEmpty()) IconButton(
                             onClick = { writtenAnswer = ""; writing = false }, enabled = !submitted,
                             modifier = Modifier.size(48.dp),
-                        ) { Icon(Icons.Filled.Close, "Remove written answer", Modifier.size(18.dp)) }
+                        ) { Icon(Icons.Filled.Close, "移除填写的回答", Modifier.size(18.dp)) }
                     }
                     OutlinedTextField(
                         value = writtenAnswer,
                         onValueChange = { writtenAnswer = it },
                         enabled = !submitted,
-                        modifier = Modifier.fillMaxWidth().semantics { contentDescription = "Written answer" },
-                        placeholder = { Text(if (selected.isEmpty()) "Write your answer…" else "Add a little more context…") },
+                        modifier = Modifier.fillMaxWidth().semantics { contentDescription = "填写的回答" },
+                        placeholder = { Text(if (selected.isEmpty()) "填写你的回答…" else "补充一些背景…") },
                         textStyle = MaterialTheme.typography.bodyMedium,
                         shape = RoundedCornerShape(12.dp),
                         minLines = 1,
@@ -142,7 +142,7 @@ private fun QuestionCardBody(question: QuestionRequest, onAnswer: (String) -> Un
                     contentPadding = PaddingValues(horizontal = 4.dp), modifier = Modifier.heightIn(min = 48.dp)) {
                     Icon(Icons.Outlined.Edit, null, Modifier.size(17.dp))
                     Spacer(Modifier.width(8.dp))
-                    Text(if (question.multiSelect && selected.isNotEmpty()) "Add a note" else "Write your own answer")
+                    Text(if (question.multiSelect && selected.isNotEmpty()) "添加备注" else "自行填写回答")
                 }
             }
 
@@ -153,7 +153,7 @@ private fun QuestionCardBody(question: QuestionRequest, onAnswer: (String) -> Un
                 shape = RoundedCornerShape(12.dp),
                 contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
             ) {
-                Text(if (submitted) "Answer sent" else "Send answer")
+                Text(if (submitted) "回答已发送" else "发送回答")
                 Spacer(Modifier.width(8.dp))
                 Icon(Icons.AutoMirrored.Filled.ArrowForward, null, Modifier.size(18.dp))
             }

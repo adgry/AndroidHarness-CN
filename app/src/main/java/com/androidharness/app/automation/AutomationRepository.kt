@@ -12,7 +12,20 @@ import java.util.UUID
 enum class AutomationSchedule { MANUAL, ONCE, HOURLY, DAILY }
 
 @Serializable
-enum class AutomationStatus { IDLE, QUEUED, RUNNING, COMPLETED, PASSED, FAILED, BLOCKED, CANCELLED, PAUSED }
+enum class AutomationStatus {
+    IDLE, QUEUED, RUNNING, COMPLETED, PASSED, FAILED, BLOCKED, CANCELLED, PAUSED;
+    val displayLabel: String get() = when (this) {
+        IDLE -> "就绪"
+        QUEUED -> "排队中"
+        RUNNING -> "运行中"
+        COMPLETED -> "已完成"
+        PASSED -> "已通过"
+        FAILED -> "失败"
+        BLOCKED -> "受阻"
+        CANCELLED -> "已取消"
+        PAUSED -> "已暂停"
+    }
+}
 
 @Serializable
 data class AutomationTask(
@@ -89,7 +102,7 @@ class AutomationRepository(context: Context) {
         val next = _tasks.value.toMutableList()
         val index = next.indexOfFirst { it.id == task.id }
         if (index >= 0) next[index] = task else next.add(0, task)
-        check(prefs.edit().putString("tasks", json.encodeToString(taskSerializer, next)).commit()) { "Could not save schedule" }
+        check(prefs.edit().putString("tasks", json.encodeToString(taskSerializer, next)).commit()) { "无法保存定时安排" }
         _tasks.value = next
     }
 

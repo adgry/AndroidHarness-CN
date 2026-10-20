@@ -30,8 +30,8 @@ import com.androidharness.app.ui.theme.LocalProgressBarStyle
 @Composable
 internal fun ProgressBarStyleSection(selectedStyle: ProgressBarStyle, onSelect: (ProgressBarStyle) -> Unit) {
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Text("Progress bar style", style = MaterialTheme.typography.bodyLarge)
-        Text("Choose how progress bars look. Applies immediately.",
+        Text("进度条样式", style = MaterialTheme.typography.bodyLarge)
+        Text("选择进度条外观，即时生效。",
             style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         BoxWithConstraints(Modifier.fillMaxWidth().selectableGroup()) {
             if (maxWidth >= 300.dp * LocalDensity.current.fontScale) {
@@ -61,7 +61,7 @@ private fun ProgressStyleChoice(style: ProgressBarStyle, isSelected: Boolean, on
         modifier = modifier.selectable(selected = isSelected, role = Role.RadioButton, onClick = onClick)) {
         Column(Modifier.heightIn(min = 80.dp).padding(12.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(if (style == ProgressBarStyle.FLAT) "Flat" else "Squiggly", Modifier.weight(1f),
+                Text(if (style == ProgressBarStyle.FLAT) "平直" else "波浪", Modifier.weight(1f),
                     style = MaterialTheme.typography.labelLarge)
                 RadioButton(selected = isSelected, onClick = null)
             }

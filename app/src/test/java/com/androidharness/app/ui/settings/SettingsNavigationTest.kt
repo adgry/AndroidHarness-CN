@@ -5,6 +5,20 @@ import org.junit.Test
 
 class SettingsNavigationTest {
     @Test
+    fun `Chinese queries find focused controls and preserve technical searches and links`() {
+        val context = matchingSettingsEntries("最大 上下文").single { !it.primary }
+        assertEquals(SettingsPage.AGENT, context.page)
+        assertEquals("最大上下文窗口", context.anchor)
+        val planning = matchingSettingsEntries("规划 模型").first { it.anchor != null }
+        assertEquals(SettingsPage.MODELS, planning.page)
+        assertEquals("双模型规划", planning.anchor)
+        assertEquals("双模型规划", settingsDeepLinkAnchor("planning"))
+        assertEquals(listOf(SettingsPage.STORAGE), matchingSettingsPages("清理 磁盘"))
+        assertTrue(SettingsPage.MODELS in matchingSettingsPages("api key"))
+        assertEquals(SettingsPage.MODELS, settingsDeepLink("planning"))
+    }
+
+    @Test
     fun `storage is searchable and supports a direct link`() {
         assertEquals(listOf(SettingsPage.STORAGE), matchingSettingsPages("cleanup disk"))
         assertEquals(SettingsPage.STORAGE, settingsDeepLink("storage"))
@@ -22,18 +36,18 @@ class SettingsNavigationTest {
 
     @Test
     fun `search returns nested settings as primary style results`() {
-        val context = matchingSettingsEntries("max context").first { it.title == "Max context window" }
+        val context = matchingSettingsEntries("max context").first { it.title == "最大上下文窗口" }
         assertEquals(SettingsPage.AGENT, context.page)
         assertFalse(context.primary)
 
-        val planning = matchingSettingsEntries("plan model").first { it.title == "Plan model" }
+        val planning = matchingSettingsEntries("plan model").first { it.title == "规划模型" }
         assertEquals(SettingsPage.MODELS, planning.page)
 
-        val lock = matchingSettingsEntries("auto lock timeout").first { it.title == "Auto-lock timeout" }
+        val lock = matchingSettingsEntries("auto lock timeout").first { it.title == "自动锁定时间" }
         assertEquals(SettingsPage.PRIVACY, lock.page)
-        val subagent = matchingSettingsEntries("subagent model").first { it.title == "Subagent model" }
+        val subagent = matchingSettingsEntries("subagent model").first { it.title == "子代理模型" }
         assertEquals(SettingsPage.SUBAGENT, subagent.page)
-        assertEquals("Subagent model", subagent.anchor)
+        assertEquals("子代理模型", subagent.anchor)
     }
 
     @Test

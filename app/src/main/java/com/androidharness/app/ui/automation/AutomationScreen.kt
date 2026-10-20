@@ -99,15 +99,15 @@ fun AutomationScreen(
     }
 
     fun act(action: () -> Unit) {
-        runCatching(action).onFailure { error = it.message ?: "Something went wrong" }
+        runCatching(action).onFailure { error = it.message ?: "出现错误" }
     }
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.surface,
         topBar = {
             AppHeader(
-                "Automation",
-                subtitle = if (projectId == null) "Run agent tasks on your schedule" else project?.name ?: "Project unavailable",
+                "自动化",
+                subtitle = if (projectId == null) "按你的时间安排运行代理任务" else project?.name ?: "项目不可用",
                 onBack = onBack,
             )
         },
@@ -148,7 +148,7 @@ fun AutomationScreen(
                                 Icon(Icons.Outlined.AutoMode, contentDescription = null)
                             }
                         },
-                    ) { Text("Tasks") }
+                    ) { Text("任务") }
                     SegmentedButton(
                         selected = showHistory,
                         onClick = { showHistory = true },
@@ -158,13 +158,13 @@ fun AutomationScreen(
                                 Icon(Icons.Outlined.History, contentDescription = null)
                             }
                         },
-                    ) { Text("History") }
+                    ) { Text("历史") }
                 }
             }
 
             item {
                 OutlinedButton(onClick = { project?.let { githubPresetProject = it.id to it.name } },
-                    enabled = project != null, modifier = Modifier.fillMaxWidth()) { Text("GitHub push preset") }
+                    enabled = project != null, modifier = Modifier.fillMaxWidth()) { Text("GitHub 推送预设") }
             }
 
             error?.let { message ->
@@ -317,15 +317,15 @@ private fun AutomationSummaryCard(
                 }
                 Column(Modifier.weight(1f)) {
                     Text(
-                        projectName ?: "No workspace selected",
+                        projectName ?: "未选择工作区",
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.SemiBold,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                     )
                     Text(
-                        if (projectName == null) "Choose a workspace to create automations"
-                        else "Automations run inside this workspace",
+                        if (projectName == null) "选择工作区以创建自动化"
+                        else "自动化在此工作区内运行",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         maxLines = 1,
@@ -341,13 +341,13 @@ private fun AutomationSummaryCard(
                 ) {
                     Icon(Icons.Filled.Add, contentDescription = null, modifier = Modifier.size(18.dp))
                     Spacer(Modifier.width(6.dp))
-                    Text("New")
+                    Text("新建")
                 }
                 DropdownMenu(showCreateMenu, { showCreateMenu = false }) {
-                    DropdownMenuItem(text = { Text("Scheduled message") },
+                    DropdownMenuItem(text = { Text("定时消息") },
                         leadingIcon = { Icon(Icons.Outlined.Schedule, null) },
                         onClick = { showCreateMenu = false; onCreate() })
-                    DropdownMenuItem(text = { Text("Automation with checks") },
+                    DropdownMenuItem(text = { Text("带检查的自动化") },
                         leadingIcon = { Icon(Icons.Outlined.AutoMode, null) },
                         onClick = { showCreateMenu = false; onCreateAutomation() })
                 }
@@ -357,9 +357,9 @@ private fun AutomationSummaryCard(
             HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
 
             Row(Modifier.fillMaxWidth()) {
-                AutomationMetric("Tasks", taskCount.toString(), Modifier.weight(1f))
-                AutomationMetric("Scheduled", scheduledCount.toString(), Modifier.weight(1f))
-                AutomationMetric("Runs", runCount.toString(), Modifier.weight(1f))
+                AutomationMetric("任务", taskCount.toString(), Modifier.weight(1f))
+                AutomationMetric("已安排", scheduledCount.toString(), Modifier.weight(1f))
+                AutomationMetric("运行次数", runCount.toString(), Modifier.weight(1f))
             }
         }
     }
@@ -386,14 +386,14 @@ private fun AutomationMetric(label: String, value: String, modifier: Modifier = 
 private fun AutomationEmptyTasks(projectAvailable: Boolean, onCreate: () -> Unit) {
     EmptyStateCard(
         icon = { Icon(Icons.Outlined.AutoMode, contentDescription = null, modifier = Modifier.size(28.dp)) },
-        title = "Create your first automation",
-        body = "Describe what you want to AI, or configure a manual, one-time, or daily automation yourself.",
+        title = "创建首个自动化",
+        body = "向 AI 描述需求，或自行配置手动、一次性或每日自动化。",
         action = if (projectAvailable) {
             {
                 FilledTonalButton(onClick = onCreate) {
                     Icon(Icons.Filled.Add, contentDescription = null, modifier = Modifier.size(18.dp))
                     Spacer(Modifier.width(8.dp))
-                    Text("New automation")
+                    Text("新建自动化")
                 }
             }
         } else null,
@@ -404,8 +404,8 @@ private fun AutomationEmptyTasks(projectAvailable: Boolean, onCreate: () -> Unit
 private fun AutomationEmptyHistory() {
     EmptyStateCard(
         icon = { Icon(Icons.Outlined.History, contentDescription = null, modifier = Modifier.size(30.dp)) },
-        title = "No runs yet",
-        body = "Completed and failed runs will appear here with their latest result.",
+        title = "暂无运行记录",
+        body = "已完成和失败的运行及其最新结果会显示在这里。",
     )
 }
 
@@ -459,20 +459,20 @@ private fun AutomationTaskCard(
     var confirmDelete by remember { mutableStateOf(false) }
     if (confirmDelete) AlertDialog(
         onDismissRequest = { confirmDelete = false },
-        title = { Text("Delete automation?") },
-        text = { Text("\u201c${task.title}\u201d will be removed and any active or scheduled runs will stop. Chat history and previous run results will stay available.") },
+        title = { Text("删除自动化？") },
+        text = { Text("“${task.title}”将被移除，所有正在执行或定时的运行会停止。聊天记录和之前的运行结果会保留。") },
         confirmButton = {
             TextButton(onClick = { confirmDelete = false; onDelete() },
                 colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error)) {
-                Text("Delete automation")
+                Text("删除自动化")
             }
         },
-        dismissButton = { TextButton(onClick = { confirmDelete = false }) { Text("Keep automation") } },
+        dismissButton = { TextButton(onClick = { confirmDelete = false }) { Text("保留自动化") } },
     )
-    if (confirmCancel) AlertDialog(onDismissRequest = { confirmCancel = false }, title = { Text("Cancel this schedule?") },
-        text = { Text("Future runs will stop. Chat history and completed work will stay available.") },
-        confirmButton = { TextButton(onClick = { confirmCancel = false; onStop() }) { Text("Cancel schedule") } },
-        dismissButton = { TextButton(onClick = { confirmCancel = false }) { Text("Keep schedule") } })
+    if (confirmCancel) AlertDialog(onDismissRequest = { confirmCancel = false }, title = { Text("取消此定时安排？") },
+        text = { Text("今后的运行将停止。聊天记录和已完成的工作会保留。") },
+        confirmButton = { TextButton(onClick = { confirmCancel = false; onStop() }) { Text("取消定时安排") } },
+        dismissButton = { TextButton(onClick = { confirmCancel = false }) { Text("保留定时安排") } })
     ElevatedCard(
         shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.elevatedCardColors(
@@ -536,7 +536,7 @@ private fun AutomationTaskCard(
                     modifier = Modifier.size(16.dp),
                 )
                 Text(
-                    if (task.githubPush != null) "GitHub · ${task.githubPush.branch}" else task.model ?: "App default AI",
+                    if (task.githubPush != null) "GitHub · ${task.githubPush.branch}" else task.model ?: "应用默认 AI",
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 1,
@@ -546,35 +546,35 @@ private fun AutomationTaskCard(
 
             androidx.compose.foundation.layout.FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 StatusPill(task.lastStatus, when {
-                    statusText.startsWith("Scheduled") -> "Scheduled"
-                    statusText.startsWith("Waiting") -> "Waiting"
+                    statusText.startsWith("计划于") -> "已安排"
+                    (statusText.startsWith("等待") || statusText.startsWith("正在等待")) -> "等待"
                     else -> statusText
                 })
                 InfoPill(
                     icon = Icons.Outlined.Schedule,
                     text = when (task.schedule) {
-                        AutomationSchedule.MANUAL -> "Manual"
-                        AutomationSchedule.ONCE -> "One time"
-                        AutomationSchedule.HOURLY -> "Every hour"
-                        AutomationSchedule.DAILY -> "%02d:%02d daily".format(task.hour, task.minute)
+                        AutomationSchedule.MANUAL -> "手动"
+                        AutomationSchedule.ONCE -> "一次性"
+                        AutomationSchedule.HOURLY -> "每小时"
+                        AutomationSchedule.DAILY -> "每天 %02d:%02d".format(task.hour, task.minute)
                     },
                 )
                 if (task.enabled && task.nextRunAt != null) {
                     InfoPill(
                         icon = Icons.Outlined.CheckCircle,
-                        text = "Next ${formatAutomationTime(requireNotNull(task.nextRunAt))}",
+                        text = "下次 ${formatAutomationTime(requireNotNull(task.nextRunAt))}",
                     )
                 }
             }
 
-            Text(if (task.unmeteredOnly) "Unmetered only" else "Any internet", style = MaterialTheme.typography.labelMedium,
+            Text(if (task.unmeteredOnly) "仅不限流量网络" else "任何网络", style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant)
-            task.targetSessionId?.let { Text("Continues an existing chat", style = MaterialTheme.typography.labelSmall,
+            task.targetSessionId?.let { Text("继续现有聊天", style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant) }
-            if (statusText.startsWith("Waiting")) Text(statusText, style = MaterialTheme.typography.bodySmall,
+            if (statusText.startsWith("等待") || statusText.startsWith("正在等待")) Text(statusText, style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.primary)
 
-            task.lastMessage?.takeIf { it.isNotBlank() && it != statusText && !statusText.startsWith("Waiting") }?.let { message ->
+            task.lastMessage?.takeIf { it.isNotBlank() && it != statusText && !(statusText.startsWith("等待") || statusText.startsWith("正在等待")) }?.let { message ->
                 Surface(
                     color = MaterialTheme.colorScheme.surfaceContainerLow,
                     shape = RoundedCornerShape(12.dp),
@@ -604,19 +604,19 @@ private fun AutomationTaskCard(
                 ) {
                     Icon(Icons.Filled.PlayArrow, contentDescription = null, modifier = Modifier.size(18.dp))
                     Spacer(Modifier.width(6.dp))
-                    Text("Run now")
+                    Text("立即运行")
                 }
                 OutlinedButton(onClick = onEdit, shape = RoundedCornerShape(12.dp),
                     contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp), modifier = Modifier.weight(1f)) {
                     Icon(Icons.Outlined.Edit, contentDescription = null, modifier = Modifier.size(18.dp))
                     Spacer(Modifier.width(6.dp))
-                    Text("Edit")
+                    Text("编辑")
                 }
             }
             if (task.schedule != AutomationSchedule.MANUAL && task.lastStatus != AutomationStatus.CANCELLED) {
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    TextButton(onClick = onToggle, modifier = Modifier.weight(1f)) { Text(if (task.enabled) "Pause" else "Resume") }
-                    TextButton(onClick = { confirmCancel = true }, modifier = Modifier.weight(1f)) { Text("Cancel") }
+                    TextButton(onClick = onToggle, modifier = Modifier.weight(1f)) { Text(if (task.enabled) "暂停" else "继续") }
+                    TextButton(onClick = { confirmCancel = true }, modifier = Modifier.weight(1f)) { Text("取消") }
                 }
             }
 
@@ -627,14 +627,14 @@ private fun AutomationTaskCard(
             ) {
                 if (task.lastSessionId != null) {
                     TextButton(onClick = onOpen, modifier = Modifier.heightIn(min = 48.dp)) {
-                        Text("Open latest run")
+                        Text("打开最近运行")
                     }
                 }
                 TextButton(onClick = { confirmDelete = true }, modifier = Modifier.heightIn(min = 48.dp),
                     colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error)) {
                     Icon(Icons.Outlined.DeleteOutline, contentDescription = null, modifier = Modifier.size(18.dp))
                     Spacer(Modifier.width(6.dp))
-                    Text("Delete")
+                    Text("删除")
                 }
             }
         }
@@ -690,13 +690,13 @@ private fun HistoryCard(
             if (entry.sessionId != null || canRunAgain) {
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     if (entry.sessionId != null) {
-                        TextButton(onClick = onOpen) { Text("Open run") }
+                        TextButton(onClick = onOpen) { Text("打开运行") }
                     }
                     if (canRunAgain) {
                         TextButton(onClick = onRunAgain) {
                             Icon(Icons.Filled.PlayArrow, contentDescription = null, modifier = Modifier.size(17.dp))
                             Spacer(Modifier.width(4.dp))
-                            Text("Run again")
+                            Text("再次运行")
                         }
                     }
                 }
@@ -718,7 +718,7 @@ private fun AutomationModelPill(model: String?) {
         ) {
             Icon(Icons.Outlined.AutoAwesome, contentDescription = null, modifier = Modifier.size(15.dp))
             Text(
-                model?.substringAfterLast('/') ?: "Unknown model",
+                model?.substringAfterLast('/') ?: "未知模型",
                 style = MaterialTheme.typography.labelMedium,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
@@ -784,15 +784,15 @@ private fun AutomationModePicker(
         horizontalArrangement = Arrangement.spacedBy(10.dp),
     ) {
         AutomationModeCard(
-            title = "Ask AI",
-            subtitle = "Describe it naturally",
+            title = "询问 AI",
+            subtitle = "用自然语言描述",
             icon = Icons.Outlined.AutoAwesome,
             selected = mode == AutomationEditorMode.ASK_AI,
             modifier = Modifier.weight(1f),
         ) { onModeChange(AutomationEditorMode.ASK_AI) }
         AutomationModeCard(
-            title = "Manual",
-            subtitle = "Configure every detail",
+            title = "手动",
+            subtitle = "配置每项细节",
             icon = Icons.Outlined.Tune,
             selected = mode == AutomationEditorMode.MANUAL,
             modifier = Modifier.weight(1f),
@@ -946,7 +946,7 @@ private fun AutomationEditorDialog(
                         }
                     }
                 }
-                .onFailure { aiError = it.message ?: "Could not ask AI." }
+                .onFailure { aiError = it.message ?: "无法询问 AI。" }
             aiBusy = false
         }
     }
@@ -983,7 +983,7 @@ private fun AutomationEditorDialog(
             ) {
                 Column(Modifier.weight(1f)) {
                     Text(
-                        if (task == null) "New automation" else "Edit automation",
+                        if (task == null) "新建自动化" else "编辑自动化",
                         style = MaterialTheme.typography.headlineSmall,
                         fontWeight = FontWeight.SemiBold,
                     )
@@ -998,7 +998,7 @@ private fun AutomationEditorDialog(
                     }
                 }
                 IconButton(onClick = onDismiss) {
-                    Icon(Icons.Filled.Close, contentDescription = "Close")
+                    Icon(Icons.Filled.Close, contentDescription = "关闭")
                 }
             }
 
@@ -1055,7 +1055,7 @@ private fun AutomationEditorDialog(
                         TextButton(
                             onClick = it,
                             colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error),
-                        ) { Text("Delete") }
+                        ) { Text("删除") }
                     }
                     Spacer(Modifier.weight(1f))
                     Button(
@@ -1076,7 +1076,7 @@ private fun AutomationEditorDialog(
                             }
                         },
                     ) {
-                        Text(if (task == null) "Create automation" else "Save changes")
+                        Text(if (task == null) "创建自动化" else "保存更改")
                     }
                 }
             }
@@ -1100,10 +1100,10 @@ private fun AutomationEditorDialog(
                 val provider = providers.firstOrNull { it.id == providerId }
                 val key = container.providers.apiKey(providerId)
                 when {
-                    provider == null -> "Unknown provider"
+                    provider == null -> "未知服务商"
                     else -> {
                         val usable = provider.effectiveApiKey(key)
-                        if (usable.isBlank()) "No API key for this provider"
+                        if (usable.isBlank()) "此服务商未配置 API 密钥"
                         else when (val result = com.androidharness.app.llm.ModelCatalog.listModels(provider, usable)) {
                             is com.androidharness.app.llm.ModelCatalog.Result.Models -> {
                                 container.providers.saveCatalog(providerId, result.models)
@@ -1195,22 +1195,22 @@ private fun AutomationModelSelector(
                 modifier = Modifier.size(20.dp),
             )
             Column(Modifier.weight(1f)) {
-                Text("Run model", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text("运行模型", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 Text(
-                    if (providerName != null && model != null) "$providerName · $model" else "Choose a provider and model",
+                    if (providerName != null && model != null) "$providerName · $model" else "选择服务商和模型",
                     style = MaterialTheme.typography.bodyMedium,
                     fontWeight = FontWeight.SemiBold,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                 )
                 Text(
-                    "Saved with this automation. Chat model changes won't affect it.",
+                    "随此自动化保存，不受聊天模型变更影响。",
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 2,
                 )
             }
-            Text("Change", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
+            Text("更改", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
         }
     }
 }
@@ -1254,12 +1254,12 @@ private fun AskAiAutomationEditor(
                         }
                         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
                             Text(
-                                "Build an automation with AI",
+                                "用 AI 创建自动化",
                                 style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.SemiBold,
                             )
                             Text(
-                                "Say what it should do and when it should run.",
+                                "描述任务内容和运行时间。",
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
@@ -1272,24 +1272,24 @@ private fun AskAiAutomationEditor(
                         verticalArrangement = Arrangement.spacedBy(8.dp),
                     ) {
                         Text(
-                            "QUICK START",
+                            "快速开始",
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                         AutomationPromptSuggestion(
-                            title = "Keep the project building",
-                            subtitle = "Every hour · find and fix build failures",
-                            onClick = { onAsk("Every hour, check the project for build failures and fix them.") },
+                            title = "保持项目可构建",
+                            subtitle = "每小时 · 查找并修复构建失败",
+                            onClick = { onAsk("每小时检查项目构建失败并修复。") },
                         )
                         AutomationPromptSuggestion(
-                            title = "Build a debug APK",
-                            subtitle = "Tomorrow at 8 PM · fix errors if needed",
-                            onClick = { onAsk("Tomorrow at 8 PM, build the debug APK and fix any build errors.") },
+                            title = "构建调试 APK",
+                            subtitle = "明晚 8 点 · 必要时修复错误",
+                            onClick = { onAsk("明晚 8 点构建调试 APK，并修复所有构建错误。") },
                         )
                         AutomationPromptSuggestion(
-                            title = "Run the test suite",
-                            subtitle = "Daily at 9 AM · fix failing tests",
-                            onClick = { onAsk("Every day at 9 AM, run the project tests and fix failures.") },
+                            title = "运行测试套件",
+                            subtitle = "每天上午 9 点 · 修复失败的测试",
+                            onClick = { onAsk("每天上午 9 点运行项目测试，并修复失败项。") },
                         )
                     }
                 }
@@ -1304,7 +1304,7 @@ private fun AskAiAutomationEditor(
                         horizontalArrangement = Arrangement.spacedBy(10.dp),
                     ) {
                         CircularProgressIndicator(modifier = Modifier.size(18.dp), strokeWidth = 2.dp)
-                        Text("Working out the automation…", style = MaterialTheme.typography.bodySmall)
+                        Text("正在规划自动化…", style = MaterialTheme.typography.bodySmall)
                     }
                 }
             }
@@ -1340,7 +1340,7 @@ private fun AskAiAutomationEditor(
                     onValueChange = onInputChange,
                     enabled = !busy,
                     placeholder = {
-                        Text(if (turns.isEmpty()) "Describe your automation…" else "Answer AI…")
+                        Text(if (turns.isEmpty()) "描述你的自动化…" else "回复 AI…")
                     },
                     minLines = 2,
                     maxLines = 2,
@@ -1350,7 +1350,7 @@ private fun AskAiAutomationEditor(
                             onClick = { onAsk(input) },
                             enabled = input.isNotBlank() && !busy,
                         ) {
-                            Icon(Icons.AutoMirrored.Filled.Send, contentDescription = "Send")
+                            Icon(Icons.AutoMirrored.Filled.Send, contentDescription = "发送")
                         }
                     },
                     modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp).heightIn(min = 88.dp),
@@ -1423,7 +1423,7 @@ private fun AutomationAiDraftCard(draft: AutomationAiDraft, onEditManually: () -
                 }
                 Spacer(Modifier.width(10.dp))
                 Column(Modifier.weight(1f)) {
-                    Text("Ready to create", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.primary)
+                    Text("可以创建", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.primary)
                     Text(draft.title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
                 }
             }
@@ -1431,7 +1431,7 @@ private fun AutomationAiDraftCard(draft: AutomationAiDraft, onEditManually: () -
                 maxLines = 5, overflow = TextOverflow.Ellipsis)
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 InfoPill(Icons.Outlined.Schedule, draftScheduleLabel(draft))
-                if (draft.checkCommand.isNotBlank()) InfoPill(Icons.Outlined.CheckCircle, "Success check")
+                if (draft.checkCommand.isNotBlank()) InfoPill(Icons.Outlined.CheckCircle, "成功检查")
             }
             if (draft.checkCommand.isNotBlank()) {
                 Surface(
@@ -1445,7 +1445,7 @@ private fun AutomationAiDraftCard(draft: AutomationAiDraft, onEditManually: () -
             }
             TextButton(onClick = onEditManually, modifier = Modifier.align(Alignment.End)) {
                 Icon(Icons.Outlined.Edit, contentDescription = null, modifier = Modifier.size(17.dp))
-                Spacer(Modifier.width(6.dp)); Text("Edit manually")
+                Spacer(Modifier.width(6.dp)); Text("手动编辑")
             }
         }
     }
@@ -1466,15 +1466,15 @@ private fun ManualAutomationEditor(
     val once = remember(onceAt, zone) { Instant.ofEpochMilli(onceAt).atZone(zone) }
 
     AutomationEditorSection(
-        title = "Task details",
-        subtitle = "What should the agent work on?",
+        title = "任务详情",
+        subtitle = "代理应完成什么任务？",
         icon = Icons.Outlined.AutoMode,
     ) {
         OutlinedTextField(
             value = title,
             onValueChange = onTitleChange,
-            label = { Text("Name") },
-            placeholder = { Text("Build debug APK") },
+            label = { Text("名称") },
+            placeholder = { Text("构建调试 APK") },
             singleLine = true,
             shape = RoundedCornerShape(14.dp),
             modifier = Modifier.fillMaxWidth(),
@@ -1482,8 +1482,8 @@ private fun ManualAutomationEditor(
         OutlinedTextField(
             value = prompt,
             onValueChange = onPromptChange,
-            label = { Text("Instructions") },
-            placeholder = { Text("Build the debug APK and fix any build errors.") },
+            label = { Text("指令") },
+            placeholder = { Text("构建调试 APK，并修复所有构建错误。") },
             minLines = 4,
             maxLines = 7,
             shape = RoundedCornerShape(14.dp),
@@ -1492,24 +1492,24 @@ private fun ManualAutomationEditor(
     }
 
     AutomationEditorSection(
-        title = "Schedule",
-        subtitle = "When should it run?",
+        title = "定时安排",
+        subtitle = "何时运行？",
         icon = Icons.Outlined.Schedule,
     ) {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
-                    ScheduleChoiceChip("Manual", schedule == AutomationSchedule.MANUAL, Modifier.weight(1f)) {
+                    ScheduleChoiceChip("手动", schedule == AutomationSchedule.MANUAL, Modifier.weight(1f)) {
                         onScheduleChange(AutomationSchedule.MANUAL)
                     }
-                    ScheduleChoiceChip("Once", schedule == AutomationSchedule.ONCE, Modifier.weight(1f)) {
+                    ScheduleChoiceChip("一次", schedule == AutomationSchedule.ONCE, Modifier.weight(1f)) {
                         onScheduleChange(AutomationSchedule.ONCE)
                     }
                 }
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
-                    ScheduleChoiceChip("Hourly", schedule == AutomationSchedule.HOURLY, Modifier.weight(1f)) {
+                    ScheduleChoiceChip("每小时", schedule == AutomationSchedule.HOURLY, Modifier.weight(1f)) {
                         onScheduleChange(AutomationSchedule.HOURLY)
                     }
-                    ScheduleChoiceChip("Daily", schedule == AutomationSchedule.DAILY, Modifier.weight(1f)) {
+                    ScheduleChoiceChip("每天", schedule == AutomationSchedule.DAILY, Modifier.weight(1f)) {
                         onScheduleChange(AutomationSchedule.DAILY)
                     }
                 }
@@ -1535,7 +1535,7 @@ private fun ManualAutomationEditor(
                     }
                 }
                 if (onceAt <= System.currentTimeMillis()) {
-                    Text("Choose a future date and time.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error)
+                    Text("请选择未来的日期和时间。", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error)
                 }
             }
             if (schedule == AutomationSchedule.HOURLY) {
@@ -1546,7 +1546,7 @@ private fun ManualAutomationEditor(
                     modifier = Modifier.fillMaxWidth(),
                 ) {
                     Text(
-                        "Runs every hour. The first scheduled run is about one hour after you create it.",
+                        "每小时运行一次，首次运行约在创建后一小时。",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.padding(12.dp),
@@ -1556,32 +1556,32 @@ private fun ManualAutomationEditor(
             if (schedule == AutomationSchedule.DAILY) {
                 Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                     OutlinedTextField(value = hour, onValueChange = { onHourChange(it.filter(Char::isDigit).take(2)) },
-                        label = { Text("Hour") }, supportingText = { Text("0 to 23") },
+                        label = { Text("小时") }, supportingText = { Text("0 至 23") },
                         keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = KeyboardType.Number),
                         singleLine = true, modifier = Modifier.weight(1f))
                     OutlinedTextField(value = minute, onValueChange = { onMinuteChange(it.filter(Char::isDigit).take(2)) },
-                        label = { Text("Minute") }, supportingText = { Text("0 to 59") },
+                        label = { Text("分钟") }, supportingText = { Text("0 至 59") },
                         keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = KeyboardType.Number),
                         singleLine = true, modifier = Modifier.weight(1f))
                 }
             }
             if (schedule != AutomationSchedule.MANUAL) {
-                Text("Android may delay background work slightly to respect system scheduling limits.",
+                Text("受系统调度限制，Android 可能略微延迟后台任务。",
                     style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
     }
 
     AutomationEditorSection(
-        title = "Success check",
-        subtitle = "Optional verification after the agent finishes.",
+        title = "成功检查",
+        subtitle = "代理完成后的可选验证。",
         icon = Icons.Outlined.CheckCircle,
     ) {
         OutlinedTextField(
             value = checkCommand,
             onValueChange = onCheckCommandChange,
-            label = { Text("Command") },
+            label = { Text("命令") },
             placeholder = { Text("./gradlew test") },
-            supportingText = { Text("Exit code 0 means success. Failures can be retried automatically.") },
+            supportingText = { Text("退出码为 0 表示成功，可自动重试失败的运行。") },
             shape = RoundedCornerShape(14.dp),
             modifier = Modifier.fillMaxWidth(),
         )
@@ -1672,10 +1672,10 @@ private fun defaultOneTimeRun(): Long =
     ZonedDateTime.now().plusHours(1).withSecond(0).withNano(0).toInstant().toEpochMilli()
 
 private fun draftScheduleLabel(draft: AutomationAiDraft): String = when (draft.schedule) {
-    AutomationSchedule.MANUAL -> "Manual"
-    AutomationSchedule.ONCE -> draft.scheduledAt?.let(::formatAutomationTime) ?: "One time"
-    AutomationSchedule.HOURLY -> "Every hour"
-    AutomationSchedule.DAILY -> "%02d:%02d daily".format(draft.hour, draft.minute)
+    AutomationSchedule.MANUAL -> "手动"
+    AutomationSchedule.ONCE -> draft.scheduledAt?.let(::formatAutomationTime) ?: "一次性"
+    AutomationSchedule.HOURLY -> "每小时"
+    AutomationSchedule.DAILY -> "每天 %02d:%02d".format(draft.hour, draft.minute)
 }
 
-private fun AutomationStatus.label() = name.lowercase().replaceFirstChar { it.uppercase() }
+private fun AutomationStatus.label() = displayLabel

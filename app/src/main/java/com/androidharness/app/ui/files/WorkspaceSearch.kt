@@ -101,8 +101,8 @@ internal object WorkspaceSearch {
     }
 
     fun expression(options: ProjectSearchOptions): Regex {
-        require(options.query.isNotEmpty()) { "Enter text to search." }
-        require(options.query.length <= 500) { "Use a search shorter than 500 characters." }
+        require(options.query.isNotEmpty()) { "请输入搜索文字。" }
+        require(options.query.length <= 500) { "搜索内容须少于 500 个字符。" }
         return Regex(if (options.regex) options.query else Regex.escape(options.query),
             if (options.matchCase) emptySet() else setOf(RegexOption.IGNORE_CASE))
     }
@@ -165,7 +165,7 @@ internal object WorkspaceSearch {
     }
 
     fun replacements(result: ProjectSearchResult, options: ProjectSearchOptions, replacement: String): List<ProjectReplacement> {
-        check(!result.limited) { "Narrow the search before replacing: these results are incomplete." }
+        check(!result.limited) { "结果不完整，请缩小搜索范围后再替换。" }
         val expression = expression(options)
         return result.files.mapNotNull { file ->
             // Literal replacement keeps dollar signs and backslashes exactly as entered. Regex uses $1 groups.
@@ -178,33 +178,33 @@ internal object WorkspaceSearch {
     /** Preflight every chosen file before the first write; recheck each one immediately before saving. */
     suspend fun apply(fs: WorkspaceFs, changes: List<ProjectReplacement>, hasDraft: suspend (String) -> Boolean,
         onSaved: suspend (ProjectReplacement) -> Unit = {}): ReplacementReceipt {
-        require(changes.isNotEmpty()) { "Select at least one file." }
+        require(changes.isNotEmpty()) { "请至少选择一个文件。" }
         for (change in changes) {
             currentCoroutineContext().ensureActive()
             if (fs is com.androidharness.app.workspace.ChatWorkspaceFs) {
-                check(fs.target(change.source.path).first.canEdit) { "${change.source.path} belongs to a read-only workspace." }
+                check(fs.target(change.source.path).first.canEdit) { "${change.source.path} 属于只读工作区。" }
             }
-            check(!hasDraft(change.source.path)) { "${change.source.path} has unsaved edits. Save or discard them, then search again." }
+            check(!hasDraft(change.source.path)) { "${change.source.path} 有未保存的编辑，请保存或放弃后重新搜索。" }
             val node = fs.resolve(change.source.path)
-            check(node.isFile && node.length <= MAX_FILE_BYTES) { "${change.source.path} changed. Search again." }
+            check(node.isFile && node.length <= MAX_FILE_BYTES) { "${change.source.path} 已更改，请重新搜索。" }
             val snapshot = EditorDiskSnapshot(node.openInputStream()?.use(::readLimited)
-                ?: error("Could not read ${change.source.path}."))
-            check(snapshot.version == change.source.version) { "${change.source.path} changed after the preview. Search again." }
+                ?: error("无法读取 ${change.source.path}。"))
+            check(snapshot.version == change.source.version) { "${change.source.path} 在预览后已更改，请重新搜索。" }
         }
         val saved = mutableListOf<String>()
         val failed = linkedMapOf<String, String>()
         for (change in changes) {
             currentCoroutineContext().ensureActive()
             try {
-                check(!hasDraft(change.source.path)) { "File has unsaved edits." }
+                check(!hasDraft(change.source.path)) { "文件有未保存的编辑。" }
                 val result = saveEditorFile(fs, change.source.path, change.source.version, EditorFileCodec.encode(change.source.decoded, change.text))
-                check(result is EditorSaveResult.Saved) { "File changed after the preview. Search again." }
+                check(result is EditorSaveResult.Saved) { "文件在预览后已更改，请重新搜索。" }
                 saved += change.source.path
                 onSaved(change)
             } catch (e: Exception) {
                 if (e is kotlinx.coroutines.CancellationException) throw e
-                failed[change.source.path] = if (change.source.path in saved) "Saved, but change tracking failed: ${e.message}"
-                    else e.message ?: "Could not save file."
+                failed[change.source.path] = if (change.source.path in saved) "已保存，但记录更改失败：${e.message}"
+                    else e.message ?: "无法保存文件。"
             }
         }
         return ReplacementReceipt(saved, failed)

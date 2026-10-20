@@ -10,7 +10,7 @@ data class CustomReasoningConfig(val levels: List<String>, val mapping: String =
 
 /** Custom vocabulary belongs to one connection and model, never to an unrelated fallback. */
 object CustomReasoning {
-    const val LEVEL_HELP = "Set the reasoning levels available in chat. Order them from lowest to highest reasoning effort. Do not configure reasoning levels the model does not support."
+    const val LEVEL_HELP = "设置聊天中可用的推理级别，按推理强度从低到高排列。请勿配置模型不支持的级别。"
     fun key(config: ProviderConfig): String {
         val target = ThinkingSpecs.routedConfig(config)
         return MessageDigest.getInstance("SHA-256")
@@ -25,6 +25,12 @@ object CustomReasoning {
         "disabled" -> "Disabled"
         "xhigh" -> "X-High"
         else -> id.replaceFirstChar { it.titlecase(Locale.ROOT) }
+    }
+
+    /** Display standard levels in Chinese while preserving custom provider vocabulary. */
+    fun displayLabel(value: String): String = when (wire(value)) {
+        "on", "enabled" -> "开启"
+        else -> native(value)?.displayLabel ?: label(value)
     }
 
     fun native(value: String): ThinkingLevel? = when (wire(value)) {

@@ -8,26 +8,35 @@ plugins {
     alias(libs.plugins.ksp)
 }
 
-// The native build needs the exact NDK version pinned below, and AGP fails
+// The native build needs the configured NDK version, and AGP fails
 // Gradle configuration outright when it is missing. Tooling runners without an
 // NDK (GitHub's default-setup CodeQL scan, which has no editable workflow to
 // install one) only trace Kotlin and Java, so drop the whole native block when
 // the NDK is absent. Real builds install the pinned NDK and keep native code.
 // AGP resolves a pinned version only from <sdk>/ndk/<version>, so a foreign
 // ANDROID_NDK_HOME (CI images export one) must not enable the native block.
-val pinnedNdk = "27.2.12479018"
 val githubBuildProperties = Properties().apply {
     rootProject.file("local.properties").takeIf { it.exists() }?.inputStream()?.use { load(it) }
 }
+val updateDefaults = Properties().apply {
+    rootProject.file("update.properties").takeIf { it.exists() }?.inputStream()?.use { load(it) }
+}
+val pinnedNdk = githubBuildProperties.getProperty("NDK_VERSION", "27.2.12479018")
 // Load only from the ignored local build settings; never from public CI variables.
 // Device Flow never embeds an OAuth client secret or auth backend.
 val githubClientId = githubBuildProperties.getProperty("GITHUB_CLIENT_ID", "")
 require(githubClientId.matches(Regex("[A-Za-z0-9]*"))) { "Invalid GitHub OAuth Client ID" }
+// Public GitHub Releases only; a blank source disables update checks in forks.
+val updateRepository = githubBuildProperties.getProperty("UPDATE_REPOSITORY", updateDefaults.getProperty("UPDATE_REPOSITORY", "")).trim()
+require(updateRepository.isEmpty() || updateRepository.matches(Regex("[A-Za-z0-9](?:[A-Za-z0-9-]{0,37}[A-Za-z0-9])?/[A-Za-z0-9_.-]{1,100}"))) {
+    "UPDATE_REPOSITORY must be empty or owner/repo"
+}
+require(updateRepository.substringAfter('/').let { it != "." && it != ".." }) { "Invalid update repository" }
+val includeUpdatePrereleases = githubBuildProperties.getProperty("UPDATE_INCLUDE_PRERELEASES", updateDefaults.getProperty("UPDATE_INCLUDE_PRERELEASES", "false")).toBooleanStrict()
+
 val hasNdk: Boolean = run {
     val sdk = System.getenv("ANDROID_HOME")?.takeIf { it.isNotBlank() }?.let { File(it) }
-        ?: rootProject.file("local.properties").takeIf { it.exists() }
-            ?.readLines()?.firstOrNull { it.trim().startsWith("sdk.dir=") }
-            ?.substringAfter("=")?.trim()?.let { File(it) }
+        ?: githubBuildProperties.getProperty("sdk.dir")?.takeIf { it.isNotBlank() }?.let { File(it) }
         ?: return@run false
     sdk.resolve("ndk/$pinnedNdk").isDirectory
 }
@@ -48,16 +57,24 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.androidharness.app"
+        applicationId = "com.androidharness.app.cn"
         minSdk = 26
         targetSdk = 36
-        versionCode = 29
-        versionName = "2.5"
+        versionCode = 30
+        versionName = "2.5.0"
         buildConfigField("String", "GITHUB_CLIENT_ID", "\"$githubClientId\"")
+        buildConfigField("String", "UPDATE_REPOSITORY", "\"$updateRepository\"")
+        buildConfigField("boolean", "UPDATE_INCLUDE_PRERELEASES", includeUpdatePrereleases.toString())
         if (hasNdk) {
             ndk { abiFilters += listOf("armeabi-v7a", "arm64-v8a", "x86", "x86_64") }
             externalNativeBuild {
-                cmake { arguments += "-DANDROID_SUPPORT_FLEXIBLE_PAGE_SIZES=ON" }
+                cmake {
+                    arguments += "-DANDROID_SUPPORT_FLEXIBLE_PAGE_SIZES=ON"
+                    // Optional local source cache; default builds retain the pinned URL/hash in CMakeLists.
+                    githubBuildProperties.getProperty("LLAMA_SOURCE_DIR")?.takeIf { it.isNotBlank() }?.let {
+                        arguments += "-DFETCHCONTENT_SOURCE_DIR_LLAMA=${rootProject.file(it).absolutePath}"
+                    }
+                }
             }
         }
         // Instrumented tests drive the real WebView (screenshots, history,
@@ -67,6 +84,14 @@ android {
     }
 
     signingConfigs {
+        if (githubBuildProperties.getProperty("RELEASE_STORE_FILE", "").isNotBlank()) {
+            create("chineseRelease") {
+                storeFile = rootProject.file(githubBuildProperties.getProperty("RELEASE_STORE_FILE"))
+                storePassword = githubBuildProperties.getProperty("RELEASE_STORE_PASSWORD")
+                keyAlias = githubBuildProperties.getProperty("RELEASE_KEY_ALIAS")
+                keyPassword = githubBuildProperties.getProperty("RELEASE_KEY_PASSWORD")
+            }
+        }
         getByName("debug") {
             // Prefer the stable debug key kept in the gitignored signing-keys/
             // folder. AGP's default path is machine-dependent (it resolved to
@@ -82,10 +107,8 @@ android {
 
     buildTypes {
         release {
-            // Local alpha distribution: signed with the debug keystore so the
-            // APK installs without a release keystore. Swap to a dedicated
-            // signing config before any public/Play distribution.
-            signingConfig = signingConfigs.getByName("debug")
+            // Public builds use a dedicated, stable fork key. No debug-key fallback.
+            signingConfig = signingConfigs.findByName("chineseRelease")
             isMinifyEnabled = false
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }

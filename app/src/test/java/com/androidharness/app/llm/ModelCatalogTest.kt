@@ -25,7 +25,7 @@ class ModelCatalogTest {
         val options = RequestOptions(thinking = com.androidharness.app.agent.ThinkingLevel.MAX,
             modelCatalogs = mapOf(config.id to listOf(entry)))
         val resolved = options.resolveThinking(config)
-        assertEquals("Max", resolved.label)
+        assertEquals("最高", resolved.label)
         assertEquals("max", resolved.effort)
         assertEquals(listOf("Low", "High", "Max"), com.androidharness.app.agent.CustomReasoning.defaultLevels(resolved.spec))
         val body = OpenAiCompatProvider(client, ProviderFactory.json).buildRequestBody(config, "fixture", emptyList(), emptyList(), options)

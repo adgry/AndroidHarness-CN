@@ -20,13 +20,13 @@ internal fun ProjectorDialog(model: LocalModelSpec, manager: LocalModelManager, 
     var error by remember { mutableStateOf<String?>(null) }
     val scope = rememberCoroutineScope()
     val uri = LocalUriHandler.current
-    AlertDialog(onDismissRequest = { if (!busy) onDismiss() }, title = { Text("Image support") }, text = {
+    AlertDialog(onDismissRequest = { if (!busy) onDismiss() }, title = { Text("图像支持") }, text = {
         Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Text(model.title, style = MaterialTheme.typography.titleSmall)
-            Text("For a model that supports images, add its matching vision file (often called mmproj). Find it on the model's download page.", style = MaterialTheme.typography.bodySmall)
-            model.projector?.let { Text("Added: ${it.filename.substringAfterLast('/')}", style = MaterialTheme.typography.bodySmall) }
-            if (!model.localFile) TextButton(onClick = { uri.openUri(model.modelPage) }, enabled = !busy) { Text("Open model page") }
-            OutlinedTextField(link, { link = it }, label = { Text("Vision file link (.gguf)") }, enabled = !busy, modifier = Modifier.fillMaxWidth(), maxLines = 3)
+            Text("对于支持图像的模型，请添加配套的视觉文件（通常称为 mmproj），可在模型下载页面找到。", style = MaterialTheme.typography.bodySmall)
+            model.projector?.let { Text("已添加：${it.filename.substringAfterLast('/')}", style = MaterialTheme.typography.bodySmall) }
+            if (!model.localFile) TextButton(onClick = { uri.openUri(model.modelPage) }, enabled = !busy) { Text("打开模型页面") }
+            OutlinedTextField(link, { link = it }, label = { Text("视觉文件链接（.gguf）") }, enabled = !busy, modifier = Modifier.fillMaxWidth(), maxLines = 3)
             if (busy) AppLinearProgressIndicator(Modifier.fillMaxWidth())
             error?.let { Text(it, color = MaterialTheme.colorScheme.error) }
         }
@@ -38,5 +38,5 @@ internal fun ProjectorDialog(model: LocalModelSpec, manager: LocalModelManager, 
             catch (e: Exception) { error = e.message }
             finally { busy = false }
         }
-    }) { Text("Add vision file") } }, dismissButton = { TextButton(enabled = !busy, onClick = onDismiss) { Text("Cancel") } })
+    }) { Text("添加视觉文件") } }, dismissButton = { TextButton(enabled = !busy, onClick = onDismiss) { Text("取消") } })
 }

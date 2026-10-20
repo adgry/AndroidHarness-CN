@@ -42,13 +42,13 @@ internal fun ShizukuDisabledWarning(controller: ShizukuWarningController) {
 
     AlertDialog(
         onDismissRequest = ::dismiss,
-        title = { Text("Shizuku is disabled") },
+        title = { Text("Shizuku 已停用") },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 Text(
-                    "Shizuku is no longer available. Its server may have stopped or been killed " +
-                        "in the background, or this app's access may have been revoked. " +
-                        "Start Shizuku and allow AndroidHarness access to use it again.",
+                    "Shizuku 已不可用。服务可能已停止、被后台终止，" +
+                        "或此应用的访问权限已被撤销。" +
+                        "请启动 Shizuku 并授权 AndroidHarness，以恢复使用。",
                 )
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
@@ -59,10 +59,10 @@ internal fun ShizukuDisabledWarning(controller: ShizukuWarningController) {
                     ),
                 ) {
                     Checkbox(checked = neverShowAgain, onCheckedChange = null)
-                    Text("Never show this message again")
+                    Text("不再显示此提示")
                 }
             }
         },
-        confirmButton = { TextButton(onClick = ::dismiss) { Text("OK") } },
+        confirmButton = { TextButton(onClick = ::dismiss) { Text("确定") } },
     )
 }

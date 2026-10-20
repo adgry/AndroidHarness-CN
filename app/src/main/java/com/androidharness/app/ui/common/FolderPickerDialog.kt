@@ -50,8 +50,8 @@ import java.io.File
 
 /**
  * In-app folder browser for attaching a real path as a workspace, the
- * "Folder path (full shell)" flow without typing. Folders only, parent-row
- * navigation, "Use this folder" to confirm.
+ * "文件夹路径（完整 Shell）" flow without typing. Folders only, parent-row
+ * navigation, "使用此文件夹" to confirm.
  *
  * Listing real storage needs privilege: direct `File` listing when All-files
  * access is granted, otherwise an `ls` through the Shizuku shell tier. With
@@ -105,13 +105,13 @@ fun FolderPickerDialog(
                     ) {
                         Icon(
                             Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Up",
+                            contentDescription = "上一级",
                             tint = if (currentDir != root) scheme.onSurface
                             else scheme.onSurfaceVariant.copy(alpha = 0.4f),
                         )
                     }
                     Column(Modifier.weight(1f)) {
-                        Text("Choose a folder", style = MaterialTheme.typography.titleMediumEmphasized)
+                        Text("选择文件夹", style = MaterialTheme.typography.titleMediumEmphasized)
                         Text(
                             currentDir,
                             style = MaterialTheme.typography.labelSmall,
@@ -122,7 +122,7 @@ fun FolderPickerDialog(
                         )
                     }
                     IconButton(onClick = onDismiss) {
-                        Icon(Icons.Filled.Close, contentDescription = "Close")
+                        Icon(Icons.Filled.Close, contentDescription = "关闭")
                     }
                 }
                 HorizontalDivider(color = scheme.outlineVariant.copy(alpha = 0.5f))
@@ -136,25 +136,25 @@ fun FolderPickerDialog(
                             .padding(24.dp),
                     ) {
                         Text(
-                            "Storage access needed",
+                            "需要存储访问权限",
                             style = MaterialTheme.typography.titleSmallEmphasized,
                         )
                         Text(
-                            "Browsing device folders needs one of these permissions. " +
-                                "Grant either to use the in-app file manager.",
+                            "浏览设备文件夹需要下列任一权限。" +
+                                "授予其中一项即可使用应用内文件管理器。",
                             style = MaterialTheme.typography.bodySmall,
                             color = scheme.onSurfaceVariant,
                         )
                         Button(
                             onClick = storageAccess.request,
                             modifier = Modifier.fillMaxWidth(),
-                        ) { Text("Grant storage access") }
+                        ) { Text("授予存储访问权限") }
                         OutlinedButton(
                             onClick = {
                                 container.shizuku.requestPermission()
                             },
                             modifier = Modifier.fillMaxWidth(),
-                        ) { Text("Use Shizuku instead") }
+                        ) { Text("改用 Shizuku") }
                         TextButton(
                             onClick = {
                                 storageAccess.refresh()
@@ -162,7 +162,7 @@ fun FolderPickerDialog(
                                 permTick++
                             },
                             modifier = Modifier.fillMaxWidth(),
-                        ) { Text("I've granted it, check again") }
+                        ) { Text("已授权，重新检查") }
                     }
                 } else {
                     // ----- Folder list -----
@@ -212,7 +212,7 @@ fun FolderPickerDialog(
                         if (entries.isEmpty()) {
                             item {
                                 Text(
-                                    "No folders here.",
+                                    "此处没有文件夹。",
                                     style = MaterialTheme.typography.bodySmall,
                                     color = scheme.onSurfaceVariant,
                                     modifier = Modifier.padding(20.dp),
@@ -245,7 +245,7 @@ fun FolderPickerDialog(
                         Button(onClick = {
                             onPick(currentDir)
                             onDismiss()
-                        }) { Text("Use this folder") }
+                        }) { Text("使用此文件夹") }
                     }
                 }
             }

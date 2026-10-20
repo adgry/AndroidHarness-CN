@@ -57,7 +57,7 @@ internal fun StorageSection(container: AppContainer) {
             inventory = container.storage.scan()
             selected = selected.intersect(inventory!!.candidates.map { it.id }.toSet())
         } catch (e: CancellationException) { throw e }
-        catch (e: Exception) { error = e.message ?: "Couldn't measure storage. Try again." }
+        catch (e: Exception) { error = e.message ?: "无法统计存储用量，请重试。" }
         finally { scanning = false }
     }
     LaunchedEffect(Unit) { scan() }
@@ -66,10 +66,10 @@ internal fun StorageSection(container: AppContainer) {
     LaunchedEffect(tab, reviewing) { withFrameNanos { }; heading.bringIntoView() }
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Row(Modifier.fillMaxWidth().bringIntoViewRequester(heading), verticalAlignment = Alignment.CenterVertically) {
-            Text(if (reviewing) "Review cleanup" else "Storage on this device", style = MaterialTheme.typography.titleMedium,
+            Text(if (reviewing) "检查清理项" else "此设备上的存储", style = MaterialTheme.typography.titleMedium,
                 modifier = Modifier.weight(1f))
             IconButton(onClick = { scope.launch { scan() } }, enabled = !busy && confirmation == null) {
-                Icon(Icons.Outlined.Refresh, "Refresh storage")
+                Icon(Icons.Outlined.Refresh, "刷新存储用量")
             }
         }
         if (busy) AppLinearProgressIndicator(Modifier.fillMaxWidth())
@@ -77,11 +77,11 @@ internal fun StorageSection(container: AppContainer) {
         report?.let { Text(it, color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.bodySmall) }
         val data = inventory
         if (data == null) {
-            Text(if (scanning) "Measuring files…" else "Storage is unavailable.", style = MaterialTheme.typography.bodyMedium)
-            if (!scanning) OutlinedButton(onClick = { scope.launch { scan() } }) { Text("Try again") }
+            Text(if (scanning) "正在统计文件…" else "存储不可用。", style = MaterialTheme.typography.bodyMedium)
+            if (!scanning) OutlinedButton(onClick = { scope.launch { scan() } }) { Text("重试") }
         } else if (reviewing) {
-            Text("Only select caches and build folders you can regenerate. Every path is checked again before deletion.", style = MaterialTheme.typography.bodySmall)
-            if (data.candidates.isEmpty()) Text("Nothing safe to clean right now.", style = MaterialTheme.typography.bodyMedium)
+            Text("仅选择可以重新生成的缓存和构建目录。删除前会再次检查每个路径。", style = MaterialTheme.typography.bodySmall)
+            if (data.candidates.isEmpty()) Text("目前没有可安全清理的内容。", style = MaterialTheme.typography.bodyMedium)
             data.candidates.groupBy { it.group }.forEach { (group, items) ->
                 Text(group, style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
                 SettingsPanel(Modifier.fillMaxWidth()) {
@@ -103,20 +103,20 @@ internal fun StorageSection(container: AppContainer) {
                     }
                 }
             }
-            StorageRow(Icons.Outlined.Inventory2, "Unused managed packages", "Unknown ownership or workspace requirements stay protected", "Details") {
-                detail = "Managed packages" to "New installs record files, dependencies and requirements. In Shared, release a requirement only when that workspace no longer needs the tool. A package is eligible for cleanup only when no recorded requirements or installed dependents remain and its owned files are unchanged. Older installations with missing metadata remain protected."
+            StorageRow(Icons.Outlined.Inventory2, "未使用的托管软件包", "归属不明或工作区需求不明确的内容会受保护", "详情") {
+                detail = "托管软件包" to "新安装会记录文件、依赖和使用需求。在“共享”中，仅当工作区不再需要工具时才释放需求。只有不再有已记录需求和已安装的依赖方，且所属文件未改变的软件包才可清理。缺少元数据的旧安装会继续受保护。"
             }
-            StorageRow(Icons.Outlined.Shield, "Always kept", "Source folders, required dependencies, models, history, undo checkpoints and runtime deployment", "") {
-                detail = "Always kept" to "Cleanup only touches the exact paths you select. Required or unverifiable packages, source folders, models, recovery data and runtime staging stay protected."
+            StorageRow(Icons.Outlined.Shield, "始终保留", "源码目录、必需依赖、模型、历史记录、撤销检查点和运行时部署", "") {
+                detail = "始终保留" to "清理仅涉及你选择的确切路径。必需或无法验证的软件包、源码目录、模型、恢复数据和运行时暂存内容会受保护。"
             }
             val chosen = data.candidates.filter { it.id in selected }
             Button(onClick = { confirmation = chosen }, enabled = chosen.isNotEmpty() && !busy, modifier = Modifier.fillMaxWidth()) {
-                Text("Review ${storageSize(chosen.sumOf { it.bytes })}")
+                Text("检查 ${storageSize(chosen.sumOf { it.bytes })}")
             }
-            TextButton(onClick = { reviewing = false }, enabled = !busy) { Text("Back to storage") }
+            TextButton(onClick = { reviewing = false }, enabled = !busy) { Text("返回存储") }
         } else {
             val tabs: @Composable () -> Unit = {
-                listOf("Overview", "Shared", "Workspaces").forEachIndexed { i, title ->
+                listOf("概览", "共享", "工作区").forEachIndexed { i, title ->
                     Tab(selected = tab == i, onClick = { tab = i }, text = { Text(title, maxLines = 1, softWrap = false) })
                 }
             }
@@ -129,9 +129,9 @@ internal fun StorageSection(container: AppContainer) {
                     Surface(color = MaterialTheme.colorScheme.surfaceContainerHigh, shape = RoundedCornerShape(14.dp)) {
                         Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(5.dp)) {
                             Text(storageSize(data.bytes), style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.SemiBold)
-                            Text("Measured files · shared tools counted once", style = MaterialTheme.typography.bodySmall)
-                            Text(if (data.candidates.isEmpty()) "Nothing safe to clean right now" else
-                                "${storageSize(data.candidates.sumOf { it.bytes })} available to review", style = MaterialTheme.typography.labelLarge,
+                            Text("已统计文件 · 共享工具仅计一次", style = MaterialTheme.typography.bodySmall)
+                            Text(if (data.candidates.isEmpty()) "目前没有可安全清理的内容" else
+                                "可检查 ${storageSize(data.candidates.sumOf { it.bytes })}", style = MaterialTheme.typography.labelLarge,
                                 color = MaterialTheme.colorScheme.primary)
                         }
                     }
@@ -145,10 +145,10 @@ internal fun StorageSection(container: AppContainer) {
                                         0 -> tab = 1
                                         2 -> tab = 2
                                         else -> detail = usage.title to when (index) {
-                                            1 -> "npm and pip use a shared download cache for local workspaces in each execution tier. Project installations and configuration stay in their folders. Gradle caches found under the toolchain home are measured and retained. Project-local overrides still apply. Legacy caches are measured and kept."
-                                            3 -> "Installed model files stay on this device. Manage individual models in Settings → Local models."
-                                            4 -> "Chat databases include messages, undo checkpoints and file recovery snapshots. Images and saved task state are included. Cleanup preserves these files."
-                                            else -> "Includes settings, other app caches and the staged toolchain archive required for privileged execution. This cleanup keeps them."
+                                            1 -> "npm 和 pip 在每个执行层级为本地工作区使用共享下载缓存。项目安装和配置保留在各自目录中。工具链主目录下的 Gradle 缓存会统计并保留。项目本地覆盖设置仍生效。旧缓存会统计并保留。"
+                                            3 -> "已安装的模型文件保留在此设备上。请在“设置 → 本地模型”中管理。"
+                                            4 -> "聊天数据库包含消息、撤销检查点、文件恢复快照、图片和已保存的任务状态。清理会保留这些文件。"
+                                            else -> "包含设置、其他应用缓存和特权执行所需的工具链暂存归档。本次清理会保留这些内容。"
                                         }
                                     }
                                 }
@@ -156,22 +156,22 @@ internal fun StorageSection(container: AppContainer) {
                             }
                         }
                     }
-                    Button(onClick = { reviewing = true; selected = data.candidates.filter { it.group == "Downloads" }.map { it.id }.toSet() },
-                        enabled = !busy, modifier = Modifier.fillMaxWidth()) { Text("Review cleanup") }
+                    Button(onClick = { reviewing = true; selected = data.candidates.filter { it.id.startsWith("download:") }.map { it.id }.toSet() },
+                        enabled = !busy, modifier = Modifier.fillMaxWidth()) { Text("检查清理项") }
                 }
                 1 -> {
-                    Text("One local toolchain, available across workspaces. Shell/root use their own required runtime and cache.", style = MaterialTheme.typography.bodySmall)
-                    StorageRow(Icons.Outlined.Download, "Shared download caches", "npm · pip · existing Gradle home", "Details") {
-                        detail = "Shared caches" to "Downloads can be reused across local workspaces without merging project configuration, node_modules or Python environments. App and privileged execution have separate caches because Android separates their permissions. The privileged cache is not measured here."
+                    Text("一个本地工具链供所有工作区使用。shell/root 使用各自必需的运行时和缓存。", style = MaterialTheme.typography.bodySmall)
+                    StorageRow(Icons.Outlined.Download, "共享下载缓存", "npm · pip · 现有 Gradle 主目录", "详情") {
+                        detail = "共享缓存" to "下载内容可在本地工作区间复用，无需合并项目配置、node_modules 或 Python 环境。Android 将应用与特权执行的权限分离，因此两者使用独立缓存。此处不统计特权缓存。"
                     }
-                    if (data.packages.isEmpty()) Text("No Linux packages installed.", style = MaterialTheme.typography.bodyMedium)
+                    if (data.packages.isEmpty()) Text("未安装 Linux 软件包。", style = MaterialTheme.typography.bodyMedium)
                     SettingsPanel(Modifier.fillMaxWidth()) {
                         Column {
                             data.packages.forEachIndexed { index, name ->
                                 val tool = data.managedTools[name]
                                 StorageRow(Icons.Outlined.Inventory2, name,
-                                    data.protections[name] ?: "No recorded requirements · review cleanup",
-                                    if (tool?.complete == true) storageSize(tool.files.sumOf { it.size }) else "Unknown") {
+                                    data.protections[name] ?: "无已记录需求 · 检查清理项",
+                                    if (tool?.complete == true) storageSize(tool.files.sumOf { it.size }) else "未知") {
                                     toolDetail = name
                                 }
                                 if (index < data.packages.lastIndex) HorizontalDivider()
@@ -180,21 +180,21 @@ internal fun StorageSection(container: AppContainer) {
                     }
                 }
                 2 -> {
-                    Text("Workspace totals exclude shared tools. Aliases and nested folders count once in the measured total.", style = MaterialTheme.typography.bodySmall)
-                    if (data.workspaces.isEmpty()) Text("No saved workspaces.")
+                    Text("工作区总量不包含共享工具。别名和嵌套目录仅统计一次。", style = MaterialTheme.typography.bodySmall)
+                    if (data.workspaces.isEmpty()) Text("没有已保存的工作区。")
                     data.workspaces.forEach { workspace ->
                         SettingsPanel(Modifier.fillMaxWidth()) {
                             StorageRow(Icons.Outlined.Folder, workspace.name, workspace.note,
-                                workspace.bytes?.let(::storageSize) ?: "Not measured") {
+                                workspace.bytes?.let(::storageSize) ?: "未统计") {
                                 detail = workspace.name to (workspace.path.takeIf { it.isNotEmpty() }?.let {
-                                    "$it\n\n${workspace.note}. Shared tools and download caches are measured separately. Eligible old Gradle outputs can be selected in Review cleanup."
+                                    "$it\n\n${workspace.note}。共享工具和下载缓存会单独统计。可在“检查清理项”中选择符合条件的旧 Gradle 构建产物。"
                                 } ?: workspace.note)
                             }
                         }
                     }
                 }
             }
-            Text("Logical file sizes, not Android's disk allocation. ${if (data.incomplete) "Some files could not be measured. " else ""}Picker-only folders, SSH hosts and the privileged runtime are excluded. Links are not followed.",
+            Text("显示逻辑文件大小，不代表 Android 的磁盘分配量。${if (data.incomplete) "部分文件无法统计。" else ""}不包含仅可通过文件选择器访问的文件夹、SSH 主机和特权运行时，也不跟随链接。",
                 style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }
@@ -204,45 +204,45 @@ internal fun StorageSection(container: AppContainer) {
         AlertDialog(onDismissRequest = { toolDetail = null }, title = { Text(name) },
             text = {
                 Column(Modifier.heightIn(max = 350.dp).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text(protection ?: "No recorded requirements or installed dependents. Eligible files appear in Review cleanup.")
-                    Text("Recorded requirements are separate from project configuration. Releasing one keeps the shared install until you explicitly clean it up.", style = MaterialTheme.typography.bodySmall)
-                    if (tool == null) Text("This older install has no file manifest. Ownership, size and workspace usage are unknown; removal stays protected.", style = MaterialTheme.typography.bodySmall)
+                    Text(protection ?: "无已记录需求或已安装的依赖方。符合条件的文件显示在“检查清理项”中。")
+                    Text("已记录的需求与项目配置相互独立。释放需求后，共享安装会保留，直到你主动清理。", style = MaterialTheme.typography.bodySmall)
+                    if (tool == null) Text("此旧安装没有文件清单。归属、大小和工作区使用情况未知，将继续受保护，无法移除。", style = MaterialTheme.typography.bodySmall)
                     else {
-                        if (!tool.complete) Text("Some owned files could not be verified. This package stays protected.", style = MaterialTheme.typography.bodySmall)
-                        if (tool.depends.isNotEmpty()) Text("Dependencies: ${tool.depends.joinToString()}", style = MaterialTheme.typography.bodySmall)
+                        if (!tool.complete) Text("部分所属文件无法验证，此软件包会继续受保护。", style = MaterialTheme.typography.bodySmall)
+                        if (tool.depends.isNotEmpty()) Text("依赖：${tool.depends.joinToString()}", style = MaterialTheme.typography.bodySmall)
                         tool.requirements.sorted().forEach { owner ->
                             Text(owner, style = MaterialTheme.typography.bodySmall)
-                            if (protection != "Required by the app toolchain") OutlinedButton(onClick = { release = name to owner }, enabled = !busy) { Text("Release requirement") }
+                            if (!isRequiredToolchainProtection(protection)) OutlinedButton(onClick = { release = name to owner }, enabled = !busy) { Text("释放需求") }
                         }
-                        Text("Recorded uses may not include commands started outside Harness. Keep a requirement for any workspace that still uses this tool.", style = MaterialTheme.typography.bodySmall)
+                        Text("记录的使用情况可能不包含 Harness 外部启动的命令。仍使用此工具的工作区应保留需求。", style = MaterialTheme.typography.bodySmall)
                     }
                 }
-            }, confirmButton = { TextButton(onClick = { toolDetail = null }) { Text("Done") } })
+            }, confirmButton = { TextButton(onClick = { toolDetail = null }) { Text("完成") } })
     }
     release?.let { (name, owner) ->
-        AlertDialog(onDismissRequest = { release = null }, title = { Text("Release $name requirement?") },
-            text = { Text("$owner\n\nRelease this recorded requirement only if it no longer needs $name. Other requirements and the installed tool stay kept. Project configuration is not changed.") },
+        AlertDialog(onDismissRequest = { release = null }, title = { Text("释放 $name 的需求？") },
+            text = { Text("$owner\n\n仅当不再需要 $name 时才释放此记录的需求。其他需求和已安装的工具会保留，项目配置不会更改。") },
             confirmButton = { TextButton(enabled = !busy, onClick = {
                 scope.launch {
                     try { container.linuxEnv.releasePackageRequirement(name, owner); release = null; scan() }
                     catch (e: CancellationException) { throw e }
                     catch (e: Exception) { error = e.message; release = null }
                 }
-            }) { Text("Release requirement") } },
-            dismissButton = { TextButton(onClick = { release = null }) { Text("Cancel") } })
+            }) { Text("释放需求") } },
+            dismissButton = { TextButton(onClick = { release = null }) { Text("取消") } })
     }
     detail?.let { (title, body) ->
         AlertDialog(onDismissRequest = { detail = null }, title = { Text(title) }, text = { Text(body) },
-            confirmButton = { TextButton(onClick = { detail = null }) { Text("Done") } })
+            confirmButton = { TextButton(onClick = { detail = null }) { Text("完成") } })
     }
     confirmation?.let { chosen ->
         AlertDialog(onDismissRequest = { if (!cleaning) confirmation = null },
-            title = { Text("Free ${storageSize(chosen.sumOf { it.bytes })}?") },
+            title = { Text("释放 ${storageSize(chosen.sumOf { it.bytes })}？") },
             text = {
                 Column(Modifier.heightIn(max = 320.dp).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text("Delete only these reviewed files. Caches will download again; builds may need to run again.")
+                    Text("仅删除这些已检查的文件。缓存将重新下载，构建可能需要重新运行。")
                     chosen.forEach { Text("${it.title} · ${storageSize(it.bytes)}\n${candidatePath(it)}", style = MaterialTheme.typography.bodySmall) }
-                    Text("Changed or linked files are skipped. Source folders, models and recovery data stay kept.")
+                    Text("跳过已更改的文件和链接，保留源码目录、模型和恢复数据。")
                 }
             },
             confirmButton = {
@@ -251,16 +251,16 @@ internal fun StorageSection(container: AppContainer) {
                     scope.launch {
                         try {
                             val result = container.storage.clean(chosen)
-                            report = "Removed ${storageSize(result.removedBytes)} from ${result.removedFiles} files" +
-                                if (result.skipped > 0) " · ${result.skipped} changed or unavailable items skipped" else ""
+                            report = "已从 ${result.removedFiles} 个文件释放 ${storageSize(result.removedBytes)}" +
+                                if (result.skipped > 0) " · 已跳过 ${result.skipped} 个已更改或不可用的项目" else ""
                             confirmation = null; selected = emptySet(); reviewing = false
                             scan()
                         } catch (e: CancellationException) { throw e }
-                        catch (e: Exception) { error = e.message ?: "Cleanup failed. Scan again."; confirmation = null }
+                        catch (e: Exception) { error = e.message ?: "清理失败，请重新扫描。"; confirmation = null }
                         finally { cleaning = false }
                     }
-                }) { Text(if (cleaning) "Cleaning…" else "Free ${storageSize(chosen.sumOf { it.bytes })}") }
-            }, dismissButton = { TextButton(enabled = !cleaning, onClick = { confirmation = null }) { Text("Cancel") } })
+                }) { Text(if (cleaning) "正在清理…" else "释放 ${storageSize(chosen.sumOf { it.bytes })}") }
+            }, dismissButton = { TextButton(enabled = !cleaning, onClick = { confirmation = null }) { Text("取消") } })
     }
 }
 

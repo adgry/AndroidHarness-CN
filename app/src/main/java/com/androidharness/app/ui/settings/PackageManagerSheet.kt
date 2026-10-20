@@ -60,18 +60,18 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 private val POPULAR_PACKAGES = listOf(
-    "ripgrep" to "Ultra-fast line-oriented regex search (rg)",
-    "jq" to "Lightweight command-line JSON processor",
-    "tree" to "Recursive visual directory listing",
-    "tmux" to "Terminal multiplexer with split panes & sessions",
-    "curl" to "Command-line tool for transferring data with URLs",
-    "clang" to "C and C++ programming language compiler toolchain",
-    "rust" to "Rust systems programming language & cargo",
-    "htop" to "Interactive process monitor & resource viewer",
-    "neovim" to "Extensible Vim-fork modal code editor",
-    "openjdk-17" to "Java Development Kit version 17",
-    "diffutils" to "GNU diff and cmp utilities",
-    "strace" to "System call tracer & debugging utility",
+    "ripgrep" to "高速逐行正则搜索（rg）",
+    "jq" to "轻量级命令行 JSON 处理器",
+    "tree" to "递归显示目录树",
+    "tmux" to "支持分屏与会话的终端复用器",
+    "curl" to "通过 URL 传输数据的命令行工具",
+    "clang" to "C 和 C++ 编译工具链",
+    "rust" to "Rust 系统编程语言与 cargo",
+    "htop" to "交互式进程监视器与资源查看器",
+    "neovim" to "可扩展的 Vim 分支模态代码编辑器",
+    "openjdk-17" to "Java 开发工具包 17",
+    "diffutils" to "GNU diff 与 cmp 工具",
+    "strace" to "系统调用跟踪与调试工具",
 )
 
 /**
@@ -111,7 +111,7 @@ fun PackageManagerSheet(
             } catch (e: kotlinx.coroutines.CancellationException) {
                 throw e
             } catch (e: Exception) {
-                errorMessage = e.message ?: "Failed to install $name"
+                errorMessage = e.message ?: "安装 $name 失败"
             } finally {
                 installedList = linuxEnv.installedPackages()
                 requestedPackage = null
@@ -159,9 +159,9 @@ fun PackageManagerSheet(
                 )
                 Spacer(Modifier.width(10.dp))
                 Column(Modifier.weight(1f)) {
-                    Text("Linux Packages", style = MaterialTheme.typography.titleMedium)
+                    Text("Linux 软件包", style = MaterialTheme.typography.titleMedium)
                     Text(
-                        "${installedList.size} installed · Termux repository",
+                        "已安装 ${installedList.size} 个 · Termux 软件源",
                         style = MaterialTheme.typography.bodySmall,
                         color = scheme.onSurfaceVariant,
                     )
@@ -206,7 +206,7 @@ fun PackageManagerSheet(
                         ) {
                             Icon(
                                 Icons.Outlined.Close,
-                                contentDescription = "Dismiss",
+                                contentDescription = "关闭",
                                 tint = scheme.error,
                                 modifier = Modifier.size(17.dp),
                             )
@@ -219,14 +219,14 @@ fun PackageManagerSheet(
             OutlinedTextField(
                 value = query,
                 onValueChange = { query = it },
-                placeholder = { Text("Search packages…") },
+                placeholder = { Text("搜索软件包…") },
                 leadingIcon = {
                     Icon(Icons.Outlined.Search, contentDescription = null, tint = scheme.onSurfaceVariant)
                 },
                 trailingIcon = {
                     if (query.isNotEmpty()) {
                         IconButton(onClick = { query = "" }) {
-                            Icon(Icons.Outlined.Close, contentDescription = "Clear search", tint = scheme.onSurfaceVariant)
+                            Icon(Icons.Outlined.Close, contentDescription = "清空搜索", tint = scheme.onSurfaceVariant)
                         }
                     }
                 },
@@ -249,7 +249,7 @@ fun PackageManagerSheet(
                     if (searching) {
                         item {
                             Text(
-                                "Searching repository…",
+                                "正在搜索软件源…",
                                 style = MaterialTheme.typography.bodySmall,
                                 color = scheme.onSurfaceVariant,
                                 modifier = Modifier.padding(vertical = 16.dp),
@@ -258,7 +258,7 @@ fun PackageManagerSheet(
                     } else if (searchResults.isEmpty()) {
                         item {
                             Text(
-                                "No packages found matching \"$query\".",
+                                "没有与 \"$query\" 匹配的软件包。",
                                 style = MaterialTheme.typography.bodySmall,
                                 color = scheme.onSurfaceVariant,
                                 modifier = Modifier.padding(vertical = 16.dp),
@@ -284,7 +284,7 @@ fun PackageManagerSheet(
                     // Default browse mode: Popular Tools
                     item {
                         Text(
-                            "POPULAR TOOLS",
+                            "常用工具",
                             style = MaterialTheme.typography.labelSmall,
                             color = scheme.primary,
                             fontWeight = FontWeight.SemiBold,
@@ -311,7 +311,7 @@ fun PackageManagerSheet(
                     item {
                         Spacer(Modifier.height(8.dp))
                         Text(
-                            "ALL INSTALLED (${installedList.size})",
+                            "全部已安装（${installedList.size}）",
                             style = MaterialTheme.typography.labelSmall,
                             color = scheme.onSurfaceVariant,
                             fontWeight = FontWeight.SemiBold,
@@ -402,7 +402,7 @@ private fun PackageItemRow(
             Spacer(Modifier.width(10.dp))
 
             if (isInstalling) {
-                Text("Installing…", style = MaterialTheme.typography.labelMedium, color = scheme.primary)
+                Text("正在安装…", style = MaterialTheme.typography.labelMedium, color = scheme.primary)
             } else if (isInstalled) {
                 Surface(
                     color = scheme.primaryContainer.copy(alpha = 0.5f),
@@ -420,7 +420,7 @@ private fun PackageItemRow(
                         )
                         Spacer(Modifier.width(4.dp))
                         Text(
-                            "Installed",
+                            "已安装",
                             style = MaterialTheme.typography.labelSmall,
                             color = scheme.primary,
                         )
@@ -435,7 +435,7 @@ private fun PackageItemRow(
                     ) {
                         Icon(
                             Icons.Outlined.Storage,
-                            contentDescription = "Review shared storage",
+                            contentDescription = "查看共享存储",
                             tint = scheme.onSurfaceVariant,
                             modifier = Modifier.size(17.dp),
                         )
@@ -453,7 +453,7 @@ private fun PackageItemRow(
                         modifier = Modifier.size(14.dp),
                     )
                     Spacer(Modifier.width(4.dp))
-                    Text("Install", style = MaterialTheme.typography.labelMedium)
+                    Text("安装", style = MaterialTheme.typography.labelMedium)
                 }
             }
         }
@@ -486,7 +486,7 @@ private fun InstalledPackageRow(
             )
             if (isCore) {
                 Text(
-                    "required",
+                    "必需",
                     style = MaterialTheme.typography.labelSmall,
                     color = scheme.outline,
                 )
@@ -498,7 +498,7 @@ private fun InstalledPackageRow(
                 ) {
                     Icon(
                         Icons.Outlined.Storage,
-                        contentDescription = "Review shared storage for $name",
+                        contentDescription = "查看 $name 的共享存储",
                         tint = scheme.error.copy(alpha = 0.7f),
                         modifier = Modifier.size(17.dp),
                     )

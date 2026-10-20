@@ -28,7 +28,7 @@ internal fun SubagentModelSection(container: AppContainer, settings: AppSettings
     val selected = providers.firstOrNull { it.id == settings.subagentProviderId }
     val pickerProviderId = settings.subagentProviderId ?: settings.activeProviderId ?: providers.firstOrNull()?.id
 
-    SettingsAnchor("Subagent model") {
+    SettingsAnchor("子代理模型") {
         SettingsPanel(Modifier.fillMaxWidth()) {
             Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 Row(
@@ -37,27 +37,27 @@ internal fun SubagentModelSection(container: AppContainer, settings: AppSettings
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
                     Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                        Text("Subagent model", style = MaterialTheme.typography.titleSmall)
+                        Text("子代理模型", style = MaterialTheme.typography.titleSmall)
                         Text(
                             when {
-                                settings.subagentProviderId == null -> "Use main agent model"
-                                selected == null -> "Selected provider unavailable"
+                                settings.subagentProviderId == null -> "使用主代理模型"
+                                selected == null -> "所选提供商不可用"
                                 else -> "${selected.name} · ${settings.subagentModel ?: selected.model}"
                             },
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                     }
-                    Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = "Choose subagent model")
+                    Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = "选择子代理模型")
                 }
                 Text(
-                    "Choose a provider and model for all subagents. The main agent keeps its current model.",
+                    "为所有子代理选择提供商和模型。主代理保留当前模型。",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
                 if (settings.subagentProviderId != null) {
                     TextButton(onClick = { scope.launch { container.settings.setSubagentModel(null, null) } }) {
-                        Text("Use main agent model")
+                        Text("使用主代理模型")
                     }
                 }
             }
@@ -78,10 +78,10 @@ internal fun SubagentModelSection(container: AppContainer, settings: AppSettings
             val provider = providers.firstOrNull { it.id == providerId }
             val key = container.providers.apiKey(providerId)
             when {
-                provider == null -> "Unknown provider"
+                provider == null -> "未知提供商"
                 else -> {
                     val usable = provider.effectiveApiKey(key)
-                    if (usable.isBlank()) "No API key for this provider"
+                    if (usable.isBlank()) "此提供商未配置 API 密钥"
                     else when (val result = ModelCatalog.listModels(provider, usable)) {
                         is ModelCatalog.Result.Models -> {
                             container.providers.saveCatalog(providerId, result.models)

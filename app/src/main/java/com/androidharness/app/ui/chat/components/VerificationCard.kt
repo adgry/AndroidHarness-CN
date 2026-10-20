@@ -26,13 +26,13 @@ internal fun VerificationCard(checks: List<VerificationCheck>) {
     val colors = LocalStatusColors.current
     var expanded by rememberSaveable(checks) { mutableStateOf(false) }
     val failed = checks.count { it.status == CheckStatus.FAILED }
-    val summary = if (checks.isEmpty()) "Verification · Checks not run" else
-        "Verification · " + checks.groupingBy { it.status }.eachCount().entries.joinToString(" · ") { (status, count) ->
+    val summary = if (checks.isEmpty()) "验证 · 未运行检查" else
+        "验证 · " + checks.groupingBy { it.status }.eachCount().entries.joinToString(" · ") { (status, count) ->
             "$count " + when (status) {
-                CheckStatus.PASSED -> "passed"
-                CheckStatus.FAILED -> "failed"
-                CheckStatus.UNKNOWN -> "unconfirmed"
-                CheckStatus.STALE -> "need recheck"
+                CheckStatus.PASSED -> "已通过"
+                CheckStatus.FAILED -> "失败"
+                CheckStatus.UNKNOWN -> "未确认"
+                CheckStatus.STALE -> "需要复查"
             }
         }
     Column(Modifier.fillMaxWidth().padding(top = 8.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -40,14 +40,14 @@ internal fun VerificationCard(checks: List<VerificationCheck>) {
             color = if (failed > 0) scheme.error else scheme.onSurfaceVariant,
             modifier = Modifier.fillMaxWidth().clickable { expanded = !expanded }.padding(vertical = 8.dp))
         if (expanded) {
-            if (checks.isEmpty()) Text("No build, test, or lint result recorded for this turn.",
+            if (checks.isEmpty()) Text("此轮未记录构建、测试或 Lint 结果。",
                 style = MaterialTheme.typography.bodySmall, color = scheme.onSurfaceVariant)
             checks.forEach { check ->
                 val label = when (check.status) {
-                    CheckStatus.PASSED -> "Passed"
-                    CheckStatus.FAILED -> "Failed"
-                    CheckStatus.UNKNOWN -> "Unconfirmed"
-                    CheckStatus.STALE -> "Recheck needed"
+                    CheckStatus.PASSED -> "已通过"
+                    CheckStatus.FAILED -> "失败"
+                    CheckStatus.UNKNOWN -> "未确认"
+                    CheckStatus.STALE -> "需要复查"
                 }
                 Text(label, style = MaterialTheme.typography.labelMedium, color = when (check.status) {
                     CheckStatus.PASSED -> colors.success

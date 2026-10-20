@@ -62,22 +62,22 @@ fun ProjectsScreen(container: AppContainer, onBack: () -> Unit, onOpenProject: (
         }
     }
 
-    Scaffold(topBar = { AppHeader("Projects", onBack = onBack) }) { padding ->
+    Scaffold(topBar = { AppHeader("项目", onBack = onBack) }) { padding ->
         LazyColumn(Modifier.fillMaxSize().padding(padding), state = rememberLazyListState(),
             contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp)) {
             items(projects, key = { it.id }) { project ->
                 val count = counts[project.id] ?: 0
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Box(Modifier.weight(1f)) {
-                        ProjectRow(project.name, "${container.workspace.describe(project).kindLabel} · $count ${if (count == 1) "chat" else "chats"}",
+                        ProjectRow(project.name, "${container.workspace.describe(project).kindLabel} · $count 个聊天",
                             Icons.Outlined.Folder, onClick = { onOpenProject(project.id) })
                     }
                     if (project.kind != com.androidharness.app.workspace.WorkspaceManager.KIND_APP) {
                         var menu by remember { mutableStateOf(false) }
                         Box {
-                            IconButton(onClick = { menu = true }) { Icon(Icons.Outlined.MoreHoriz, "Actions for project ${project.name}") }
+                            IconButton(onClick = { menu = true }) { Icon(Icons.Outlined.MoreHoriz, "项目 ${project.name} 的操作") }
                             DropdownMenu(menu, { menu = false }) {
-                                DropdownMenuItem(text = { Text("Delete project", color = MaterialTheme.colorScheme.error) },
+                                DropdownMenuItem(text = { Text("删除项目", color = MaterialTheme.colorScheme.error) },
                                     leadingIcon = { Icon(Icons.Outlined.DeleteOutline, null) },
                                     onClick = { menu = false; deleting = project })
                             }
@@ -87,7 +87,7 @@ fun ProjectsScreen(container: AppContainer, onBack: () -> Unit, onOpenProject: (
             }
             item {
                 HorizontalDivider(Modifier.padding(vertical = 12.dp))
-                ProjectRow("Add project", icon = Icons.Outlined.Add, onClick = {
+                ProjectRow("添加项目", icon = Icons.Outlined.Add, onClick = {
                     scope.launch {
                         container.workspace.currentProjectOnce()
                         adding = true
@@ -209,56 +209,56 @@ fun ProjectScreen(
     val ssh = remember(project) { project?.let { runCatching { container.workspace.fsFor(it) }.getOrNull() as? com.androidharness.app.workspace.SshFs } }
     Scaffold(topBar = {
         Column {
-            AppHeader(project?.name ?: "Project", subtitle = project?.let { container.workspace.describe(it).kindLabel }, onBack = onBack,
-                actions = { IconButton(onClick = { refresh++ }) { Icon(Icons.Outlined.Refresh, "Refresh project") } })
+            AppHeader(project?.name ?: "项目", subtitle = project?.let { container.workspace.describe(it).kindLabel }, onBack = onBack,
+                actions = { IconButton(onClick = { refresh++ }) { Icon(Icons.Outlined.Refresh, "刷新项目") } })
             com.androidharness.app.ui.common.SshWorkspaceBar(container, ssh, includeStatusBarPadding = false)
         }
     }) { padding ->
         LazyColumn(Modifier.fillMaxSize().padding(padding), state = rememberLazyListState(),
             contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp)) {
             if (project == null) {
-                item { Text("This project is unavailable. Your chats are still in All chats.", modifier = Modifier.padding(12.dp)) }
+                item { Text("此项目不可用。你的聊天仍保留在“所有聊天”中。", modifier = Modifier.padding(12.dp)) }
             } else {
                 item {
-                    ProjectRow("Repository", repository ?: "Connect or manage repository", Icons.Outlined.AccountTree,
+                    ProjectRow("仓库", repository ?: "连接或管理仓库", Icons.Outlined.AccountTree,
                         onClick = { showRepository = true })
                     Column(Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                        Text(git?.branch?.let { "Branch · $it" } ?: git?.note ?: "Checking repository…",
+                        Text(git?.branch?.let { "分支 · $it" } ?: git?.note ?: "正在检查仓库…",
                             style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                        git?.changedFiles?.let { count -> Text(if (count == 0) "Working tree clean" else "$count changed ${if (count == 1) "file" else "files"}",
+                        git?.changedFiles?.let { count -> Text(if (count == 0) "工作区无更改" else "$count 个文件已更改",
                             style = MaterialTheme.typography.bodySmall) }
                         if (git?.branch != null && git?.note != null) Text(git!!.note!!, style = MaterialTheme.typography.bodySmall)
                     }
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         OutlinedButton(onClick = onOpenFiles, modifier = Modifier.weight(1f)) {
-                            Icon(Icons.Outlined.FolderOpen, null, Modifier.size(18.dp)); Spacer(Modifier.width(6.dp)); Text("Files")
+                            Icon(Icons.Outlined.FolderOpen, null, Modifier.size(18.dp)); Spacer(Modifier.width(6.dp)); Text("文件")
                         }
                         OutlinedButton(onClick = onOpenTerminal, modifier = Modifier.weight(1f)) {
-                            Icon(Icons.Outlined.Terminal, null, Modifier.size(18.dp)); Spacer(Modifier.width(6.dp)); Text("Terminal")
+                            Icon(Icons.Outlined.Terminal, null, Modifier.size(18.dp)); Spacer(Modifier.width(6.dp)); Text("终端")
                         }
                     }
                     val check = checks[projectId]
-                    ProjectRow("Build & Test", check?.let {
+                    ProjectRow("构建与测试", check?.let {
                         val status = when (it.status) {
-                            com.androidharness.app.data.ProjectCheckStatus.RUNNING -> "Running"
-                            com.androidharness.app.data.ProjectCheckStatus.PASSED -> "Passed"
-                            com.androidharness.app.data.ProjectCheckStatus.FAILED -> "Failed"
-                            com.androidharness.app.data.ProjectCheckStatus.INTERRUPTED -> "Interrupted"
+                            com.androidharness.app.data.ProjectCheckStatus.RUNNING -> "运行中"
+                            com.androidharness.app.data.ProjectCheckStatus.PASSED -> "已通过"
+                            com.androidharness.app.data.ProjectCheckStatus.FAILED -> "失败"
+                            com.androidharness.app.data.ProjectCheckStatus.INTERRUPTED -> "已中断"
                         }
-                        "Last check · ${it.name} · $status · ${formatRelativeTime(it.updatedAt)}"
-                    } ?: "No checks run yet", Icons.Outlined.Build, onClick = onOpenBuildTest)
-                    ProjectRow("Preview", when {
-                        serverPreview != null || backgroundPreview != null -> "Running · $preview"
-                        serverRunning -> "Server running · Open Build & Test"
-                        staticPreview != null -> "Open $staticPreview"
-                        else -> "Run your project from Build & Test"
+                        "上次检查 · ${it.name} · $status · ${formatRelativeTime(it.updatedAt)}"
+                    } ?: "尚未运行检查", Icons.Outlined.Build, onClick = onOpenBuildTest)
+                    ProjectRow("预览", when {
+                        serverPreview != null || backgroundPreview != null -> "运行中 · $preview"
+                        serverRunning -> "服务器运行中 · 打开构建与测试"
+                        staticPreview != null -> "打开 $staticPreview"
+                        else -> "从“构建与测试”运行项目"
                     }, Icons.Outlined.Language, onClick = { if (preview != null) openPreview = preview else onOpenBuildTest() })
                     Row(Modifier.fillMaxWidth().padding(vertical = 12.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         FilterChip(tab == 0, { tab = 0 }, label = {
-                            Text("Chats", style = MaterialTheme.typography.labelLarge, maxLines = 1)
+                            Text("聊天", style = MaterialTheme.typography.labelLarge, maxLines = 1)
                         }, modifier = Modifier.weight(0.4f))
                         FilterChip(tab == 1, { tab = 1 }, label = {
-                            Text("Automations", style = MaterialTheme.typography.labelLarge, maxLines = 1)
+                            Text("自动化", style = MaterialTheme.typography.labelLarge, maxLines = 1)
                         }, modifier = Modifier.weight(0.6f))
                     }
                 }
@@ -267,27 +267,27 @@ fun ProjectScreen(
                         Button(onClick = { onNewChat(projectId) }, enabled = !creatingChat,
                             modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) {
                             Icon(Icons.Outlined.Add, null, Modifier.size(18.dp)); Spacer(Modifier.width(8.dp))
-                            Text(if (creatingChat) "Creating…" else "New chat")
+                            Text(if (creatingChat) "正在创建…" else "新聊天")
                         }
                     }
-                    if (chats.isEmpty()) item { Text("No chats yet. Start one in this project.", color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(12.dp)) }
+                    if (chats.isEmpty()) item { Text("暂无聊天，在此项目中开始新聊天吧。", color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(12.dp)) }
                     items(chats, key = { it.id }) { session ->
-                        ProjectRow(session.title, if (session.id in running) "Running" else formatRelativeTime(session.updatedAt),
+                        ProjectRow(session.title, if (session.id in running) "运行中" else formatRelativeTime(session.updatedAt),
                             Icons.Outlined.ChatBubbleOutline, onClick = { onOpenChat(session.id) })
                     }
                 } else {
-                    if (projectTasks.isEmpty()) item { Text("No automations yet.", color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(12.dp)) }
+                    if (projectTasks.isEmpty()) item { Text("暂无自动化。", color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(12.dp)) }
                     items(projectTasks, key = { it.id }) { task ->
                         ProjectRow(task.title, task.projectStatus(), Icons.Outlined.Schedule,
                             onClick = { onAutomation(task.id, false) })
                     }
-                    item { ProjectRow("Add automation", icon = Icons.Outlined.Add, onClick = { onAutomation(null, true) }) }
-                    if (projectTasks.isNotEmpty()) item { ProjectRow("Manage automations", icon = Icons.Outlined.AutoMode, onClick = { onAutomation(null, false) }) }
+                    item { ProjectRow("添加自动化", icon = Icons.Outlined.Add, onClick = { onAutomation(null, true) }) }
+                    if (projectTasks.isNotEmpty()) item { ProjectRow("管理自动化", icon = Icons.Outlined.AutoMode, onClick = { onAutomation(null, false) }) }
                 }
                 item {
                     HorizontalDivider(Modifier.padding(vertical = 12.dp))
-                    ProjectRow("Project memory", icon = Icons.Outlined.Description, onClick = onMemory)
-                    ProjectRow("Project details", icon = Icons.Outlined.FolderOpen, onClick = { showDetails = true })
+                    ProjectRow("项目记忆", icon = Icons.Outlined.Description, onClick = onMemory)
+                    ProjectRow("项目详情", icon = Icons.Outlined.FolderOpen, onClick = { showDetails = true })
                 }
             }
         }
@@ -301,10 +301,10 @@ fun ProjectScreen(
 }
 
 private fun AutomationTask.projectStatus(): String = when {
-    activeRun != null -> "${lastStatus.name.lowercase().replaceFirstChar { it.titlecase() }} · This project"
-    !enabled -> "Paused · This project"
-    schedule == com.androidharness.app.automation.AutomationSchedule.MANUAL -> "Manual · This project"
-    else -> "Scheduled · This project"
+    activeRun != null -> "${lastStatus.displayLabel} · 此项目"
+    !enabled -> "已暂停 · 此项目"
+    schedule == com.androidharness.app.automation.AutomationSchedule.MANUAL -> "手动 · 此项目"
+    else -> "已定时 · 此项目"
 }
 
 @Composable
@@ -327,20 +327,20 @@ private fun ProjectDetailsDialog(container: AppContainer, project: ProjectEntity
     var error by remember { mutableStateOf<String?>(null) }
     var saving by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
-    AlertDialog(onDismissRequest = { if (!saving) onDismiss() }, title = { Text("Project details") }, text = {
+    AlertDialog(onDismissRequest = { if (!saving) onDismiss() }, title = { Text("项目详情") }, text = {
         Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            OutlinedTextField(name, { if (it.length <= 100) name = it }, label = { Text("Project name") },
+            OutlinedTextField(name, { if (it.length <= 100) name = it }, label = { Text("项目名称") },
                 enabled = !saving, singleLine = true, modifier = Modifier.fillMaxWidth())
-            Text("Workspace", style = MaterialTheme.typography.labelMedium)
-            SelectionContainer { Text(runCatching { container.workspace.fsFor(project).displayPath }.getOrDefault("Unavailable"),
+            Text("工作区", style = MaterialTheme.typography.labelMedium)
+            SelectionContainer { Text(runCatching { container.workspace.fsFor(project).displayPath }.getOrDefault("不可用"),
                 style = MaterialTheme.typography.bodySmall) }
             if (project.kind != com.androidharness.app.workspace.WorkspaceManager.KIND_APP) {
                 HorizontalDivider()
                 TextButton(onClick = onDelete, enabled = !saving,
                     colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error)) {
-                    Icon(Icons.Outlined.DeleteOutline, null, Modifier.size(18.dp)); Spacer(Modifier.width(8.dp)); Text("Delete project")
+                    Icon(Icons.Outlined.DeleteOutline, null, Modifier.size(18.dp)); Spacer(Modifier.width(8.dp)); Text("删除项目")
                 }
-            } else Text("The app workspace cannot be deleted.", style = MaterialTheme.typography.bodySmall)
+            } else Text("无法删除应用工作区。", style = MaterialTheme.typography.bodySmall)
             error?.let { Text(it, color = MaterialTheme.colorScheme.error) }
         }
     }, confirmButton = {
@@ -352,6 +352,6 @@ private fun ProjectDetailsDialog(container: AppContainer, project: ProjectEntity
                 catch (e: Exception) { error = e.message }
                 finally { saving = false }
             }
-        }) { Text(if (saving) "Saving…" else "Save") }
-    }, dismissButton = { TextButton(enabled = !saving, onClick = onDismiss) { Text("Cancel") } })
+        }) { Text(if (saving) "正在保存…" else "保存") }
+    }, dismissButton = { TextButton(enabled = !saving, onClick = onDismiss) { Text("取消") } })
 }

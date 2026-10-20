@@ -60,6 +60,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.androidharness.app.data.update.UpdateManager
+import com.androidharness.app.data.update.UpdateRelease
 import com.androidharness.app.ui.chat.MarkdownText
 import com.androidharness.app.ui.theme.HarnessMono
 import java.io.File
@@ -77,25 +78,23 @@ fun UpdateDialog(
     onOpenSystemInstaller: (File) -> Unit = {},
     onOpenUnknownSources: () -> Unit = {},
 ) {
-    var lastRelease by remember { mutableStateOf<UpdateManager.LatestRelease?>(null) }
     val currentRelease = when (step) {
         is UpdateManager.Step.Available -> step.release
         is UpdateManager.Step.Downloading -> step.release
         is UpdateManager.Step.Installing -> step.release
         is UpdateManager.Step.Error -> step.release
+        is UpdateManager.Step.AwaitingPermission -> step.release
         else -> null
     }
-    LaunchedEffect(currentRelease) {
-        if (currentRelease != null) lastRelease = currentRelease
-    }
-    val release = currentRelease ?: lastRelease
+    val release = currentRelease
 
     val visible = when (step) {
         is UpdateManager.Step.Available -> true
         is UpdateManager.Step.Downloading -> true
         is UpdateManager.Step.Installing -> true
         is UpdateManager.Step.Done -> true
-        is UpdateManager.Step.Error -> release != null
+        is UpdateManager.Step.Error -> true
+        is UpdateManager.Step.AwaitingPermission -> true
         else -> false
     }
     if (!visible) return
@@ -168,7 +167,7 @@ fun UpdateDialog(
 @Composable
 private fun UpdateHeader(
     step: UpdateManager.Step,
-    release: UpdateManager.LatestRelease?,
+    release: UpdateRelease?,
     isBusy: Boolean,
     onDismiss: () -> Unit,
 ) {
@@ -217,7 +216,7 @@ private fun UpdateHeader(
                 color = MaterialTheme.colorScheme.onSurface,
             )
             Text(
-                text = "GitHub Releases",
+                text = "GitHub 版本发布",
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -229,7 +228,7 @@ private fun UpdateHeader(
             ) {
                 Icon(
                     imageVector = Icons.Filled.Close,
-                    contentDescription = "Close",
+                    contentDescription = "关闭",
                     tint = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.size(18.dp),
                 )
@@ -241,7 +240,7 @@ private fun UpdateHeader(
 @Composable
 private fun UpdateBodyContent(
     step: UpdateManager.Step,
-    release: UpdateManager.LatestRelease?,
+    release: UpdateRelease?,
 ) {
     when (step) {
         is UpdateManager.Step.Available -> {
@@ -258,6 +257,9 @@ private fun UpdateBodyContent(
         is UpdateManager.Step.Done -> {
             DoneContent(step, release)
         }
+        is UpdateManager.Step.AwaitingPermission -> {
+            Text(UpdateManager.NEED_INSTALL_PERMISSION, style = MaterialTheme.typography.bodyMedium)
+        }
         is UpdateManager.Step.Error -> {
             ErrorContent(step, release)
         }
@@ -266,7 +268,7 @@ private fun UpdateBodyContent(
 }
 
 @Composable
-private fun ReleaseAvailableContent(release: UpdateManager.LatestRelease) {
+private fun ReleaseAvailableContent(release: UpdateRelease) {
     val context = LocalContext.current
 
     Surface(
@@ -344,7 +346,7 @@ private fun ReleaseAvailableContent(release: UpdateManager.LatestRelease) {
     }
 
     Text(
-        text = "What's new",
+        text = "更新内容",
         style = MaterialTheme.typography.titleSmall,
         fontWeight = FontWeight.SemiBold,
         color = MaterialTheme.colorScheme.onSurface,
@@ -359,7 +361,7 @@ private fun ReleaseAvailableContent(release: UpdateManager.LatestRelease) {
             modifier = Modifier.fillMaxWidth(),
         ) {
             Text(
-                text = "No release notes provided.",
+                text = "此版本未提供更新说明。",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(16.dp),
@@ -377,10 +379,10 @@ private fun ReleaseAvailableContent(release: UpdateManager.LatestRelease) {
                     text = body,
                     onOpenUrl = { url ->
                         val finalUrl = if (!url.startsWith("http://") && !url.startsWith("https://")) {
-                            "https://github.com/Sanuu7/AndroidHarness/blob/main/$url"
+                            "${release.htmlUrl.substringBefore("/releases/")}/blob/HEAD/$url"
                         } else url
                         runCatching {
-                            context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(finalUrl)))
+                            if (finalUrl.startsWith("https://")) context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(finalUrl)))
                         }
                     },
                 )
@@ -403,7 +405,7 @@ private fun DownloadProgressContent(step: UpdateManager.Step.Downloading) {
         verticalArrangement = Arrangement.spacedBy(14.dp),
     ) {
         Text(
-            text = "Fetching APK asset from GitHub Releases…",
+            text = "正在从 GitHub 下载安装包…",
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurface,
         )
@@ -441,7 +443,7 @@ private fun DownloadProgressContent(step: UpdateManager.Step.Downloading) {
 }
 
 @Composable
-private fun InstallingContent(step: UpdateManager.Step.Installing, release: UpdateManager.LatestRelease?) {
+private fun InstallingContent(step: UpdateManager.Step.Installing, release: UpdateRelease?) {
     Surface(
         shape = RoundedCornerShape(16.dp),
         color = MaterialTheme.colorScheme.surfaceContainerLowest,
@@ -460,7 +462,7 @@ private fun InstallingContent(step: UpdateManager.Step.Installing, release: Upda
             Spacer(Modifier.width(16.dp))
             Column(Modifier.weight(1f)) {
                 Text(
-                    text = if (step.viaShizuku) "Installing via Shizuku…" else "Opening system installer…",
+                    text = if (step.viaShizuku) "正在通过 Shizuku 安装…" else "正在打开系统安装器…",
                     style = MaterialTheme.typography.titleSmall,
                     fontWeight = FontWeight.SemiBold,
                     color = MaterialTheme.colorScheme.onSurface,
@@ -468,9 +470,9 @@ private fun InstallingContent(step: UpdateManager.Step.Installing, release: Upda
                 Spacer(Modifier.height(4.dp))
                 Text(
                     text = if (step.viaShizuku) {
-                        "Shizuku is installing ${release?.tag ?: "update"} silently. The app will restart when done."
+                        "Shizuku 正在安装 ${release?.tag ?: "新版本"}。安装期间应用可能退出，请稍后重新打开。"
                     } else {
-                        "Confirm the package installer prompt to finish updating."
+                        "请在系统安装器中确认安装，以完成更新。"
                     },
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -481,7 +483,7 @@ private fun InstallingContent(step: UpdateManager.Step.Installing, release: Upda
 }
 
 @Composable
-private fun DoneContent(step: UpdateManager.Step.Done, release: UpdateManager.LatestRelease?) {
+private fun DoneContent(step: UpdateManager.Step.Done, release: UpdateRelease?) {
     Surface(
         shape = RoundedCornerShape(16.dp),
         color = MaterialTheme.colorScheme.surfaceContainerLowest,
@@ -509,7 +511,7 @@ private fun DoneContent(step: UpdateManager.Step.Done, release: UpdateManager.La
             Spacer(Modifier.width(16.dp))
             Column(Modifier.weight(1f)) {
                 Text(
-                    text = if (step.viaShizuku) "Installation complete!" else "Ready to install",
+                    text = if (step.viaShizuku) "安装完成" else "准备安装",
                     style = MaterialTheme.typography.titleSmall,
                     fontWeight = FontWeight.SemiBold,
                     color = MaterialTheme.colorScheme.onSurface,
@@ -517,9 +519,9 @@ private fun DoneContent(step: UpdateManager.Step.Done, release: UpdateManager.La
                 Spacer(Modifier.height(4.dp))
                 Text(
                     text = if (step.viaShizuku) {
-                        "${release?.tag ?: "Update"} was installed via Shizuku."
+                        "${release?.tag ?: "新版本"} 已通过 Shizuku 安装。"
                     } else {
-                        "APK staged. Follow installer instructions."
+                        "安装包已准备好，请按系统提示完成安装。"
                     },
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -530,7 +532,7 @@ private fun DoneContent(step: UpdateManager.Step.Done, release: UpdateManager.La
 }
 
 @Composable
-private fun ErrorContent(step: UpdateManager.Step.Error, release: UpdateManager.LatestRelease?) {
+private fun ErrorContent(step: UpdateManager.Step.Error, release: UpdateRelease?) {
     Surface(
         shape = RoundedCornerShape(16.dp),
         color = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.5f),
@@ -550,7 +552,7 @@ private fun ErrorContent(step: UpdateManager.Step.Error, release: UpdateManager.
             Spacer(Modifier.width(14.dp))
             Column(Modifier.weight(1f)) {
                 Text(
-                    text = "Something went wrong",
+                    text = "更新遇到问题",
                     style = MaterialTheme.typography.titleSmall,
                     fontWeight = FontWeight.SemiBold,
                     color = MaterialTheme.colorScheme.onErrorContainer,
@@ -566,14 +568,14 @@ private fun ErrorContent(step: UpdateManager.Step.Error, release: UpdateManager.
     }
     if (release != null) {
         Spacer(Modifier.height(8.dp))
-        LinkLine(release.htmlUrl, "Open release on GitHub →")
+        LinkLine(release.htmlUrl, "在 GitHub 查看此版本 →")
     }
 }
 
 @Composable
 private fun UpdateActions(
     step: UpdateManager.Step,
-    release: UpdateManager.LatestRelease?,
+    release: UpdateRelease?,
     onDismiss: () -> Unit,
     onUpdate: () -> Unit,
 ) {
@@ -588,7 +590,7 @@ private fun UpdateActions(
                     onClick = onDismiss,
                     shape = RoundedCornerShape(12.dp),
                 ) {
-                    Text("Later")
+                    Text("稍后再说")
                 }
                 Spacer(Modifier.width(10.dp))
                 Button(
@@ -601,13 +603,13 @@ private fun UpdateActions(
                         modifier = Modifier.size(18.dp),
                     )
                     Spacer(Modifier.width(6.dp))
-                    Text("Update to ${release?.tag ?: "latest"}")
+                    Text("更新至 ${release?.tag ?: "最新版本"}")
                 }
             }
 
             is UpdateManager.Step.Downloading -> {
                 Text(
-                    "Downloading…",
+                    "正在下载…",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -615,7 +617,7 @@ private fun UpdateActions(
 
             is UpdateManager.Step.Installing -> {
                 Text(
-                    "Installing update…",
+                    "正在安装更新…",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -626,23 +628,23 @@ private fun UpdateActions(
                     onClick = onDismiss,
                     shape = RoundedCornerShape(12.dp),
                 ) {
-                    Text("Done")
+                    Text("完成")
                 }
             }
 
-            is UpdateManager.Step.Error -> {
+            is UpdateManager.Step.Error, is UpdateManager.Step.AwaitingPermission -> {
                 OutlinedButton(
                     onClick = onDismiss,
                     shape = RoundedCornerShape(12.dp),
                 ) {
-                    Text("Close")
+                    Text("关闭")
                 }
                 Spacer(Modifier.width(10.dp))
                 Button(
                     onClick = onUpdate,
                     shape = RoundedCornerShape(12.dp),
                 ) {
-                    Text(if (step.message == UpdateManager.NEED_INSTALL_PERMISSION) "Try again" else "Retry")
+                    Text(if (step is UpdateManager.Step.AwaitingPermission) "允许安装" else "重试")
                 }
             }
 
@@ -651,22 +653,23 @@ private fun UpdateActions(
                     onClick = onDismiss,
                     shape = RoundedCornerShape(12.dp),
                 ) {
-                    Text("Close")
+                    Text("关闭")
                 }
             }
         }
     }
 }
 
-private fun titleFor(step: UpdateManager.Step, r: UpdateManager.LatestRelease?): String = when (step) {
-    is UpdateManager.Step.Checking -> "Checking for updates…"
-    is UpdateManager.Step.UpToDate -> "You're up to date"
-    is UpdateManager.Step.Available -> "Update available"
-    is UpdateManager.Step.Downloading -> "Downloading update"
-    is UpdateManager.Step.Installing -> if (step.viaShizuku) "Installing via Shizuku…" else "Opening installer…"
-    is UpdateManager.Step.Done -> if (step.viaShizuku) "Installed!" else "Handed to installer"
-    is UpdateManager.Step.Error -> "Something went wrong"
-    else -> "Update"
+private fun titleFor(step: UpdateManager.Step, r: UpdateRelease?): String = when (step) {
+    is UpdateManager.Step.Checking -> "正在检查更新…"
+    is UpdateManager.Step.UpToDate -> "未发现可安装的新版本"
+    is UpdateManager.Step.Available -> "发现新版本"
+    is UpdateManager.Step.Downloading -> "正在下载更新"
+    is UpdateManager.Step.Installing -> if (step.viaShizuku) "正在通过 Shizuku 安装…" else "正在打开安装器…"
+    is UpdateManager.Step.Done -> if (step.viaShizuku) "安装完成" else "已交给系统安装器"
+    is UpdateManager.Step.Error -> "更新遇到问题"
+    is UpdateManager.Step.AwaitingPermission -> "需要安装权限"
+    else -> "软件更新"
 }
 
 @Composable

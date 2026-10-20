@@ -128,24 +128,24 @@ class RunManager(
 
     /** Maintenance holds the same gate as run starts and workspace mutations. */
     suspend fun <T> withIdleStorage(action: suspend () -> T): T = workspaceGuard.withLock {
-        check(runningSessionIds.value.isEmpty()) { "Wait for running tasks to finish before cleaning storage." }
+        check(runningSessionIds.value.isEmpty()) { "请等待运行中的任务结束后再清理存储。" }
         action()
     }
 
     /** Uses the same gate as run starts so a removed chat cannot start working mid-delete. */
     suspend fun <T> withIdleProject(projectId: String, action: suspend () -> T): T = workspaceGuard.withLock {
         check(workspace.projectChats(projectId).none { isRunning(it.id) || hasPendingFollowUp(it.id) }) {
-            "Stop running tasks in this project before deleting it."
+            "请先停止此项目中运行的任务，再删除项目。"
         }
         action()
     }
 
     suspend fun assignWorkspace(sessionId: String, projectId: String) = workspaceGuard.withLock {
         if (sessions.session(sessionId)?.projectId == projectId) return@withLock
-        check(!isRunning(sessionId)) { "Wait for this chat's task to finish before changing its workspace." }
-        check(!controls.flow(sessionId).value.resumable) { "Resume or stop this chat's saved task before changing its workspace." }
+        check(!isRunning(sessionId)) { "请等待此聊天中的任务结束后再更改工作区。" }
+        check(!controls.flow(sessionId).value.resumable) { "请先恢复或停止此聊天中已保存的任务，再更改工作区。" }
         check(checkpoints.turnsWithCheckpoints(sessionId).isEmpty() && sessions.fileChangesFor(sessionId).first().isEmpty()) {
-            "This chat has saved file changes. Start a new chat to work in another workspace."
+            "此聊天保存了文件更改。请新建聊天以使用其他工作区。"
         }
         workspace.assignSession(sessionId, projectId)
     }
@@ -157,16 +157,16 @@ class RunManager(
 
     suspend fun assignWorkspaces(sessionId: String, selection: ChatWorkspaceSelection) = workspaceGuard.withLock {
         selection.validated()
-        check(!isRunning(sessionId)) { "Wait for this chat's task to finish before changing workspace access." }
-        check(!controls.flow(sessionId).value.resumable) { "Resume or stop this chat's saved task before changing workspace access." }
-        val saved = requireNotNull(sessions.session(sessionId)) { "This chat no longer exists." }
+        check(!isRunning(sessionId)) { "请等待此聊天中的任务结束后再更改工作区访问权限。" }
+        check(!controls.flow(sessionId).value.resumable) { "请先恢复或停止此聊天中已保存的任务，再更改工作区访问权限。" }
+        val saved = requireNotNull(sessions.session(sessionId)) { "此聊天已不存在。" }
         val prior = saved.workspaceSelectionJson?.let { runCatching { ChatWorkspaceSelection.decode(it) }.getOrNull() }
             ?: saved.projectId?.let(ChatWorkspaceSelection::single)
         if (prior == selection) return@withLock
         val hasChanges = checkpoints.turnsWithCheckpoints(sessionId).isNotEmpty() || sessions.fileChangesFor(sessionId).first().isNotEmpty()
         if (hasChanges) {
             check(prior != null && prior.primaryId == selection.primaryId && selection.grants.map { it.projectId }.containsAll(prior.grants.map { it.projectId })) {
-                "This chat has saved file changes. Keep its primary and existing workspaces so undo stays available; you can add workspaces or change access."
+                "此聊天保存了文件更改。请保留主工作区和现有工作区，以便继续撤销；你可以添加工作区或更改访问权限。"
             }
         }
         workspace.assignSelection(sessionId, selection)
@@ -242,17 +242,17 @@ class RunManager(
 
     /** What the run notification should say right now. */
     fun actionText(s: LiveRunState): String? = when {
-        s.pendingQuestion != null -> "Waiting for your answer"
-        s.pendingApproval != null -> "Waiting for your approval"
-        s.installingEnvironment != null -> "Installing Linux environment"
-        s.pendingEnvironment != null -> "Linux environment needs your attention"
+        s.pendingQuestion != null -> "等待你的回答"
+        s.pendingApproval != null -> "等待你的批准"
+        s.installingEnvironment != null -> "正在安装 Linux 环境"
+        s.pendingEnvironment != null -> "Linux 环境需要处理"
         s.retryStatus != null -> s.retryStatus
         s.runningCalls.isNotEmpty() -> s.currentToolAction ?: describeToolCall(s.runningCalls.last())
-        s.codeDrafts.values.any { it.stage == CodeDraftStage.GENERATING } -> "Generating code…"
-        s.streamingThinking != null && s.streamingText.isNullOrEmpty() -> "Thinking…"
-        s.streamingText != null -> "Writing response…"
+        s.codeDrafts.values.any { it.stage == CodeDraftStage.GENERATING } -> "正在生成代码…"
+        s.streamingThinking != null && s.streamingText.isNullOrEmpty() -> "正在思考…"
+        s.streamingText != null -> "正在撰写回复…"
         s.currentToolAction != null -> s.currentToolAction
-        s.running -> "Working…"
+        s.running -> "正在处理…"
         else -> null
     }
 
@@ -321,7 +321,7 @@ class RunManager(
         )
         if (onlyIfIdle && isRunning(sid)) throw RunBusyException()
         if (resume && automationRunId != null) {
-            check(controls.flow(sid).value.automationRunId == automationRunId) { "This chat has moved on. Open it to review the interrupted schedule." }
+            check(controls.flow(sid).value.automationRunId == automationRunId) { "此聊天已有后续进展，请打开聊天查看中断的计划任务。" }
         }
         synchronized(lock) { jobs[sid] }?.let { previous ->
             previous.cancel()
@@ -332,24 +332,24 @@ class RunManager(
         val customLevels = if (reasoningPrefs.sameModelAcrossChats) reasoningPrefs.customThinkingLevels else
             com.androidharness.app.data.ChatModelSelection.decode(sessions.session(sid)?.modelSelectionJson)?.customThinkingLevels.orEmpty()
         check(allowModelFallback || runConfig.model == config.model) {
-            "This chat's model is no longer available. Choose another model in the picker."
+            "此聊天的模型已不可用，请在选择器中选择其他模型。"
         }
         val assignedWorkspace = workspace.forSession(sid)
         require(workspaceOverride == null || workspaceOverride.displayPath == assignedWorkspace.displayPath) {
-            "This chat's workspace changed while preparing the request. Send the message again."
+            "准备请求期间，此聊天的工作区发生变化，请重新发送消息。"
         }
         val runWorkspace = workspaceOverride ?: assignedWorkspace
         if (replacementMessageId != null) {
-            check(!resume) { "Cannot replace a message while resuming" }
+            check(!resume) { "恢复任务时无法替换消息" }
             check(!workspaceBusy(runWorkspace, except = sid)) {
-                "Pause other tasks in this workspace before editing or retrying a message"
+                "请先暂停此工作区中的其他任务，再编辑或重试消息"
             }
             rewindAndTruncate(sid, replacementMessageId)
         }
         val runId = if (followUpRunId == null) followUps.begin(sid)
             else followUps.advance(sid, followUpRunId) ?: return sid
         val prior = controls.flow(sid).value
-        require(!resume || prior.workspacePath == runWorkspace.displayPath) { "Open the original workspace to resume this task" }
+        require(!resume || prior.workspacePath == runWorkspace.displayPath) { "请打开原工作区以恢复此任务" }
         val turnId = if (resume) prior.turnId else UUID.randomUUID().toString()
         val record = controls.update(sid) { it.copy(
             status = "running", reason = null, provider = runConfig, workspacePath = runWorkspace.displayPath,
@@ -407,7 +407,7 @@ class RunManager(
         }
         runningSessionIds.update { it + sid }
         acquireKeepalive()
-        RuntimeNotifier.update("Working…")
+        RuntimeNotifier.update("正在处理…")
 
         val history = with(sessions) {
             RunRecovery.context(historyFor(sid).second.withoutSubagentTurns(), record)
@@ -443,7 +443,7 @@ class RunManager(
                 }
                 // Mirror blocking prompts into RuntimeNotifier so the foreground
                 // service can post answerable notifications while backgrounded.
-                val sessionTitle = runCatching { sessions.session(sid)?.title }.getOrNull() ?: "Chat"
+                val sessionTitle = runCatching { sessions.session(sid)?.title }.getOrNull() ?: "聊天"
                 promptJob = launch {
                     live.map { pendingPromptsOf(it, sessionTitle) }
                         .distinctUntilChanged()
@@ -501,7 +501,7 @@ class RunManager(
                             )
                             budget.add(event.inputTokens, event.outputTokens, price)
                             if (record.limits.cost > 0 && price == null) {
-                                controls.update(sid) { it.copy(reason = "Cost unavailable for this model") }
+                                controls.update(sid) { it.copy(reason = "此模型暂无费用信息") }
                             }
                         }
                         handleEvent(sid, event)
@@ -518,7 +518,7 @@ class RunManager(
                 live.update { it.copy(cancelled = true) }
                 throw ce
             } catch (e: Exception) {
-                live.update { it.copy(error = e.message ?: "Unexpected error") }
+                live.update { it.copy(error = e.message ?: "发生意外错误") }
             } finally {
                 kotlinx.coroutines.withContext(kotlinx.coroutines.NonCancellable) {
                 compactionSnapshots.remove(sid)
@@ -528,12 +528,12 @@ class RunManager(
                 val cancelled = live.value.cancelled
                 if (record.initialPromptId.startsWith("telegram-")) runCatching {
                     remoteCompletions.save(RunCompletion(record.initialPromptId, sid, turnId, completed, cancelled,
-                        if (completed || cancelled) null else controls.flow(sid).value.reason ?: live.value.error ?: "Task interrupted"))
-                }.onFailure { live.update { it.copy(error = "Could not save the remote run outcome. Open this chat to review its results.") } }
+                        if (completed || cancelled) null else controls.flow(sid).value.reason ?: live.value.error ?: "任务已中断"))
+                }.onFailure { live.update { it.copy(error = "无法保存远程运行结果，请打开此聊天查看。") } }
                 runCatching { controls.update(sid) { it.copy(status = if (completed || cancelled) "idle" else "paused", completed = completed,
-                    reason = if (completed || cancelled) null else it.reason ?: live.value.error ?: "Task interrupted",
+                    reason = if (completed || cancelled) null else it.reason ?: live.value.error ?: "任务已中断",
                     usedTokens = usage.first, usedCost = usage.second, elapsedMs = usage.third) } }
-                    .onFailure { failure -> live.update { it.copy(error = "Could not save progress: ${failure.message}") } }
+                    .onFailure { failure -> live.update { it.copy(error = "无法保存进度：${failure.message}") } }
                 RuntimeNotifier.setSessionPrompts(sid, emptyList())
                 val planText = if (mode == AgentMode.PLAN && completed) {
                     runCatching {
@@ -575,7 +575,7 @@ class RunManager(
                 }
                 try {
                     val result = if (notifyOnFinish) notifyFinished(sid, if (completed) live.value.error else
-                        controls.flow(sid).value.reason ?: "Task paused") else null
+                        controls.flow(sid).value.reason ?: "任务已暂停") else null
                     end = RunFollowUps.End(sid, runId,
                         finishedNotification = completed && (!notifyOnFinish || result?.ok == true),
                         recoverableInterruption = !completed && !cancelled && recoverableInterruption)
@@ -609,7 +609,7 @@ class RunManager(
                                 followUpRunId = ended.runId, allowModelFallback = saved.allowModelFallback)
                         } catch (ce: CancellationException) { throw ce }
                         catch (e: Exception) {
-                            val reason = "Could not ${if (action is RunFollowUps.Action.Continue) "continue task" else "send queued message"}: ${e.message}"
+                            val reason = "无法${if (action is RunFollowUps.Action.Continue) "继续任务" else "发送排队消息"}：${e.message}"
                             controls.update(sid) { it.copy(status = "paused", reason = reason) }
                             stateOf(sid).update { it.copy(error = reason) }
                             if (notifyOnFinish) notifyFinished(sid, reason)
@@ -827,7 +827,7 @@ class RunManager(
             is AgentEvent.Retrying -> {
                 val seconds = (event.delayMs / 1000.0).let { if (it < 1) "<1" else "%.0f".format(it) }
                 live.update {
-                    it.copy(retryStatus = "Retrying in ${seconds}s (attempt ${event.attempt}): ${event.reason}", codeDrafts = emptyMap())
+                    it.copy(retryStatus = "将在 ${seconds} 秒后重试（第 ${event.attempt} 次）：${event.reason}", codeDrafts = emptyMap())
                 }
             }
 
@@ -952,14 +952,14 @@ class RunManager(
                     pending.response.complete(true)
                 } else {
                     val msg = (linuxEnv.state.value as? com.androidharness.app.data.env.EnvState.Failed)
-                        ?.message ?: "Install did not complete"
-                    live.update { it.copy(error = "Linux environment install failed: $msg") }
+                        ?.message ?: "安装未完成"
+                    live.update { it.copy(error = "Linux 环境安装失败：$msg") }
                     pending.response.complete(false)
                 }
             } catch (ce: CancellationException) {
                 throw ce
             } catch (e: Exception) {
-                live.update { it.copy(error = "Linux environment install failed: ${e.message}") }
+                live.update { it.copy(error = "Linux 环境安装失败：${e.message}") }
                 pending.response.complete(false)
             } finally {
                 live.update { if (it.installingEnvironment === pending) it.copy(installingEnvironment = null) else it }
@@ -1059,7 +1059,7 @@ class RunManager(
                 controls.update(sessionId) { it.copy(automationRunId = null) }
                 val prompt = saved.queue.firstOrNull() ?: return@withLock
                 try {
-                    val config = saved.provider ?: error("Saved provider is unavailable")
+                    val config = saved.provider ?: error("已保存的服务商不可用")
                     startRunLocked(sessionId, prompt.text, emptyList(), config, apiKey,
                         settings.settings.first().permissionMode, AgentMode.valueOf(saved.mode), saved.maxOutput,
                         saved.maxContext, ThinkingLevel.valueOf(saved.thinking), saved.maxIterations,
@@ -1067,7 +1067,7 @@ class RunManager(
                         allowModelFallback = saved.allowModelFallback)
                 } catch (ce: CancellationException) { throw ce }
                 catch (e: Exception) {
-                    val reason = "Could not send queued message: ${e.message}"
+                    val reason = "无法发送排队消息：${e.message}"
                     controls.update(sessionId) { it.copy(status = "paused", reason = reason) }
                     stateOf(sessionId).update { it.copy(error = reason) }
                 }
@@ -1075,13 +1075,13 @@ class RunManager(
         }
 
     suspend fun resumeTask(sessionId: String, apiKey: String, automationRunId: String? = null, notifyOnFinish: Boolean = true) {
-        check(!isRunning(sessionId)) { "Task is already running" }
+        check(!isRunning(sessionId)) { "任务已在运行" }
         val saved = controls.flow(sessionId).value
-        check(saved.resumable) { "No interrupted task to resume" }
-        val config = saved.provider ?: error("Saved provider is unavailable")
+        check(saved.resumable) { "没有可恢复的中断任务" }
+        val config = saved.provider ?: error("已保存的服务商不可用")
         TaskBudget(saved.limits, saved.usedTokens, saved.usedCost, saved.elapsedMs).check()
         val fs = workspace.forSession(sessionId)
-        require(fs.displayPath == saved.workspacePath) { "The original workspace has changed" }
+        require(fs.displayPath == saved.workspacePath) { "原工作区已更改" }
         startRun(sessionId, "", emptyList(), config, apiKey, settings.settings.first().permissionMode,
             AgentMode.valueOf(saved.mode), saved.maxOutput, saved.maxContext,
             ThinkingLevel.valueOf(saved.thinking), saved.maxIterations, workspaceOverride = fs, resume = true,
@@ -1102,15 +1102,15 @@ class RunManager(
         stopAndJoin(sessionId)
         val msgs = sessions.messages(sessionId)
         val index = msgs.indexOfFirst { it.id == messageId }
-        check(index >= 0) { "This message no longer exists. Refresh the chat before retrying." }
-        check(msgs[index].role == Role.USER) { "Only user messages can be resent" }
+        check(index >= 0) { "此消息已不存在，请刷新聊天后重试。" }
+        check(msgs[index].role == Role.USER) { "只能重新发送用户消息" }
         // distinct turns from the edited message onward, newest first
         val turnIds = msgs.drop(index).mapNotNull { it.turnId }.distinct().reversed()
         val fs = workspace.forSession(sessionId)
-        check(!workspaceBusy(fs, except = sessionId)) { "Pause other tasks in these workspaces before editing or retrying a message." }
+        check(!workspaceBusy(fs, except = sessionId)) { "请先暂停这些工作区中的其他任务，再编辑或重试消息。" }
         for (tid in turnIds) {
             val result = checkpoints.rewind(sessionId, tid, fs)
-            check(result.failed == 0) { "Some files could not be restored. History and failed checkpoints were kept; retry undo." }
+            check(result.failed == 0) { "部分文件无法恢复。历史记录和失败的检查点已保留，请重试撤销。" }
         }
         sessions.truncateFrom(sessionId, messageId)
     }
@@ -1126,7 +1126,7 @@ class RunManager(
     suspend fun rewindFromTurn(sessionId: String, turnId: String): RewindSummary = kotlinx.coroutines.withContext(Dispatchers.IO) { workspaceGuard.withLock {
         val fs = workspace.forSession(sessionId)
         check(!workspaceBusy(fs)) {
-            "Pause tasks in this workspace before undoing changes"
+            "请先暂停此工作区中的任务，再撤销更改"
         }
         val ordered = checkpoints.turnsOrdered(sessionId)
         val idx = ordered.indexOfFirst { it.turnId == turnId }
@@ -1183,24 +1183,24 @@ class RunManager(
     ) = kotlinx.coroutines.withContext(Dispatchers.IO) { workspaceGuard.withLock {
         val fs = workspace.forSession(sessionId)
         check(!workspaceBusy(fs)) {
-            "Pause tasks in this workspace before undoing changes"
+            "请先暂停此工作区中的任务，再撤销更改"
         }
-        check(change.hasBase) { "The original file content is unavailable" }
+        check(change.hasBase) { "原始文件内容不可用" }
         val node = fs.resolve(change.relPath)
-        check(!node.exists || (node.isFile && !node.isBinary() && node.length <= 1000000)) { "File cannot be safely restored" }
+        check(!node.exists || (node.isFile && !node.isBinary() && node.length <= 1000000)) { "无法安全恢复文件" }
         val current = if (node.exists) node.readText() else ""
-        check(node.exists == expectedExists && current == expected) { "File changed since this preview. Reopen it before undoing." }
+        check(node.exists == expectedExists && current == expected) { "文件在预览后已更改，请重新打开后再撤销。" }
         val base = if (change.isNew) "" else change.baseGzip?.let {
             java.util.zip.GZIPInputStream(it.inputStream()).bufferedReader(Charsets.UTF_8).use { reader -> reader.readText() }
-        } ?: error("The original file content is unavailable")
+        } ?: error("原始文件内容不可用")
         val restored = if (section == null) base else {
-            check(section in com.androidharness.app.core.Diff.undoSections(base, current)) { "Section no longer matches" }
+            check(section in com.androidharness.app.core.Diff.undoSections(base, current)) { "此片段已不再匹配" }
             com.androidharness.app.core.Diff.undoSection(current, expected, section)
         }
         // Retain a checkpoint of the undo itself so this action is recoverable too.
         checkpoints.snapshot(sessionId, "undo-${UUID.randomUUID()}", fs, change.relPath)
         if (section == null && change.isNew) {
-            check(!node.exists || node.delete()) { "Could not remove the new file" }
+            check(!node.exists || node.delete()) { "无法删除新文件" }
         } else node.writeText(restored)
         repoMap?.invalidate(change.relPath)
         sessions.refreshFileChangeAfterRewind(sessionId, change.relPath, node.exists, if (node.exists) restored else null)
@@ -1229,18 +1229,18 @@ class RunManager(
     fun releaseKeepalive() {
         if (keepaliveCount.decrementAndGet() <= 0) {
             keepaliveCount.set(0)
-            RuntimeNotifier.update("Running in background")
+            RuntimeNotifier.update("正在后台运行")
             runCatching { AgentService.releaseKeepalive(context) }
         }
     }
 
     private suspend fun notifyFinished(sessionId: String, error: String?): RunResultNotification {
-        val title = runCatching { sessions.session(sessionId)?.title }.getOrNull() ?: "Chat"
+        val title = runCatching { sessions.session(sessionId)?.title }.getOrNull() ?: "聊天"
         val result = RunResultNotification(
             sessionId = sessionId,
             title = title,
             ok = error == null,
-            summary = if (error == null) "Run finished" else "Stopped: ${error.take(120)}",
+            summary = if (error == null) "运行已结束" else "已停止：${error.take(120)}",
         )
         RuntimeNotifier.notifyResult(result)
         return result
@@ -1280,12 +1280,12 @@ class RunManager(
                         kind = PendingPrompt.Kind.ENVIRONMENT,
                         sessionTitle = sessionTitle,
                         headline =
-                            if (e.repair) "Repair the Linux environment (missing: ${e.missingTool})"
-                            else "Install the Linux environment to run: ${e.command.take(120)}",
+                            if (e.repair) "修复 Linux 环境（缺少：${e.missingTool}）"
+                            else "安装 Linux 环境以运行：${e.command.take(120)}",
                     ))
                 }
             }
     }
 }
 
-class RunBusyException : IllegalStateException("Waiting for this chat to finish")
+class RunBusyException : IllegalStateException("等待此聊天中的任务结束")

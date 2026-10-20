@@ -192,7 +192,7 @@ class SessionRepository(
     /** Create an assigned chat without changing the default or any other chat. */
     suspend fun createProjectSession(projectId: String): String = db.withTransaction {
         requireNotNull(db.dao().project(projectId)) { "This project is no longer available." }
-        createSession("New chat", projectId)
+        createSession("新聊天", projectId)
     }
 
     suspend fun artifacts(sessionId: String): List<com.androidharness.app.artifacts.ChatArtifact> =
@@ -246,7 +246,7 @@ class SessionRepository(
 
     /**
      * Forks a chat from an assistant message into a fresh session.
-     * The new session title is "Fork of <parent.title>".
+     * The new session title is "分支：<parent.title>"; existing English fork titles remain valid.
      *
      * In the new session transcript:
      * - The prior history (before this fork turn) is stored as compaction context
@@ -306,10 +306,10 @@ class SessionRepository(
                 }
             }
 
-            val forkTitle = if (parent.title.startsWith("Fork of ")) {
+            val forkTitle = if (parent.title.startsWith("Fork of ") || parent.title.startsWith("分支：")) {
                 parent.title
             } else {
-                "Fork of ${parent.title}"
+                "分支：${parent.title}"
             }
 
             val newSessionId = UUID.randomUUID().toString()

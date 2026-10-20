@@ -35,7 +35,7 @@ internal fun GitHubDialog(title: String, busy: Boolean, onDismiss: () -> Unit,
                     verticalArrangement = Arrangement.spacedBy(12.dp), content = content)
                 footer()
                 if (busy) AppLinearProgressIndicator(Modifier.fillMaxWidth().padding(top = 8.dp))
-                TextButton(onClick = onDismiss, enabled = !busy, modifier = Modifier.fillMaxWidth()) { Text("Close") }
+                TextButton(onClick = onDismiss, enabled = !busy, modifier = Modifier.fillMaxWidth()) { Text("关闭") }
             }
         }
     }
@@ -64,29 +64,29 @@ fun GitHubImportDialog(container: AppContainer, onDismiss: () -> Unit, onImporte
             finally { busy = false }
         }
     }
-    GitHubDialog("Import from GitHub", busy, onDismiss) {
-        Text("Clone a repository into its own private workspace. Public repositories can be imported without signing in.",
+    GitHubDialog("从 GitHub 导入", busy, onDismiss) {
+        Text("将仓库克隆到独立的私有工作区。无需登录即可导入公开仓库。",
             style = MaterialTheme.typography.bodySmall)
         if (!gitToolsReady) {
-            Text("Install Git tools once to import repositories on this device.", style = MaterialTheme.typography.bodySmall)
+            Text("在此设备上安装一次 Git 工具，即可导入仓库。", style = MaterialTheme.typography.bodySmall)
             OutlinedButton(onClick = {
-                busy = true; message = "Installing Git tools…"
+                busy = true; message = "正在安装 Git 工具…"
                 scope.launch {
                     try {
                         container.linuxEnv.install(container.linuxEnv.corePackages).getOrThrow()
-                        check(container.linuxEnv.gitToolsReady) { (container.linuxEnv.state.value as? com.androidharness.app.data.env.EnvState.Failed)?.message ?: "Git tools could not be installed. Retry the installation." }
-                        message = "Git tools ready."
+                        check(container.linuxEnv.gitToolsReady) { (container.linuxEnv.state.value as? com.androidharness.app.data.env.EnvState.Failed)?.message ?: "无法安装 Git 工具，请重试。" }
+                        message = "Git 工具已就绪。"
                     }
                     catch (e: CancellationException) { throw e }
                     catch (e: Exception) { message = container.github.safeMessage(e) }
                     finally { busy = false }
                 }
-            }, enabled = !busy, modifier = Modifier.fillMaxWidth()) { Text("Install Git tools") }
+            }, enabled = !busy, modifier = Modifier.fillMaxWidth()) { Text("安装 Git 工具") }
         }
-        OutlinedTextField(input, onValueChange = { input = it }, label = { Text("Repository URL or owner/repository") },
+        OutlinedTextField(input, onValueChange = { input = it }, label = { Text("仓库网址或 owner/repository") },
             enabled = !busy, modifier = Modifier.fillMaxWidth())
         Button(onClick = {
-            busy = true; message = "Importing repository…"
+            busy = true; message = "正在导入仓库…"
             scope.launch {
                 try {
                     var projectId: String? = null
@@ -98,11 +98,11 @@ fun GitHubImportDialog(container: AppContainer, onDismiss: () -> Unit, onImporte
                 catch (e: Exception) { message = container.github.safeMessage(e) }
                 finally { busy = false }
             }
-        }, enabled = !busy && gitToolsReady && input.isNotBlank(), modifier = Modifier.fillMaxWidth()) { Text("Import repository") }
+        }, enabled = !busy && gitToolsReady && input.isNotBlank(), modifier = Modifier.fillMaxWidth()) { Text("导入仓库") }
         message?.let { Text(it, style = MaterialTheme.typography.bodySmall) }
         HorizontalDivider()
         OutlinedButton(onClick = ::load, enabled = !busy && more, modifier = Modifier.fillMaxWidth()) {
-            Text(if (repos.isEmpty()) "Browse my repositories" else "Load more repositories")
+            Text(if (repos.isEmpty()) "浏览我的仓库" else "加载更多仓库")
         }
         repos.forEach { repo ->
             OutlinedButton(onClick = { input = repo }, enabled = !busy, modifier = Modifier.fillMaxWidth()) { Text(repo) }
@@ -118,12 +118,12 @@ fun GitHubWorkspaceDialog(container: AppContainer, projectId: String, projectNam
     if (connection.login == null) {
         AlertDialog(
             onDismissRequest = onDismiss,
-            title = { Text("Sign in to GitHub") },
-            text = { Text("You haven't connected GitHub yet. Sign in with GitHub or add a personal access token in Settings to import private repositories and publish your work.") },
+            title = { Text("登录 GitHub") },
+            text = { Text("尚未连接 GitHub。请登录 GitHub，或在设置中添加个人访问令牌，以导入私有仓库和发布作品。") },
             confirmButton = {
-                TextButton(onClick = { onDismiss(); onOpenSettings() }) { Text("Sign in") }
+                TextButton(onClick = { onDismiss(); onOpenSettings() }) { Text("登录") }
             },
-            dismissButton = { TextButton(onClick = onDismiss) { Text("Close") } },
+            dismissButton = { TextButton(onClick = onDismiss) { Text("关闭") } },
         )
     } else {
         GitHubPublishDialog(container, projectId, projectName, onDismiss)
@@ -155,7 +155,7 @@ fun GitHubPublishDialog(container: AppContainer, projectId: String, projectName:
         paths = emptySet()
         directory = ""
         val project = container.workspace.projects.first().firstOrNull { it.id == projectId }
-            ?: error("This workspace was removed.")
+            ?: error("此工作区已移除。")
         val captured = container.workspace.fsFor(project)
         fs = captured
         if (!container.linuxEnv.gitToolsReady) return
@@ -203,7 +203,7 @@ fun GitHubPublishDialog(container: AppContainer, projectId: String, projectName:
         GitHubImportDialog(container, onDismiss = { importing = false }, onImported = onDismiss)
         return
     }
-    GitHubDialog("Commit & push", busy, onDismiss, footer = {
+    GitHubDialog("提交并推送", busy, onDismiss, footer = {
         state?.takeIf { it.changes.isNotEmpty() }?.let { snapshot ->
             GitHubCommitFooter(paths.size, snapshot.changes.size, commitMessage, { commitMessage = it }, !busy) {
                 act {
@@ -217,40 +217,40 @@ fun GitHubPublishDialog(container: AppContainer, projectId: String, projectName:
         if (environment !is com.androidharness.app.data.env.EnvState.Ready || !container.linuxEnv.gitToolsReady) {
             OutlinedButton(onClick = { act {
                 container.linuxEnv.install(container.linuxEnv.corePackages).getOrThrow()
-                check(container.linuxEnv.gitToolsReady) { (container.linuxEnv.state.value as? com.androidharness.app.data.env.EnvState.Failed)?.message ?: "Git tools could not be installed. Retry the installation." }
-                refresh(); message = "Git tools ready."
-            } }, enabled = !busy, modifier = Modifier.fillMaxWidth()) { Text("Install or repair Git tools") }
+                check(container.linuxEnv.gitToolsReady) { (container.linuxEnv.state.value as? com.androidharness.app.data.env.EnvState.Failed)?.message ?: "无法安装 Git 工具，请重试。" }
+                refresh(); message = "Git 工具已就绪。"
+            } }, enabled = !busy, modifier = Modifier.fillMaxWidth()) { Text("安装或修复 Git 工具") }
         }
         state?.let { snapshot ->
             Text(snapshot.remoteUrl.removePrefix("https://github.com/").removeSuffix(".git"))
-            Text("Branch: ${snapshot.branch}", style = MaterialTheme.typography.bodySmall)
-            Text("${snapshot.changes.size} changed files · app history excluded", style = MaterialTheme.typography.bodySmall)
+            Text("分支：${snapshot.branch}", style = MaterialTheme.typography.bodySmall)
+            Text("${snapshot.changes.size} 个文件已更改 · 不含应用历史", style = MaterialTheme.typography.bodySmall)
             if (snapshot.changes.isNotEmpty()) {
                 GitHubChangePicker(snapshot.changes, paths, directory, { directory = it }, { paths = it }, !busy)
-            } else Text("No uncommitted changes. You can push existing local commits.", style = MaterialTheme.typography.bodySmall)
+            } else Text("没有未提交的更改，可推送现有本地提交。", style = MaterialTheme.typography.bodySmall)
             OutlinedButton(onClick = { act {
                 message = container.githubRepositories.publish(requireNotNull(fs), snapshot, emptySet(), "", false)
                 refresh()
-            } }, enabled = !busy && snapshot.head.isNotBlank(), modifier = Modifier.fillMaxWidth()) { Text("Push existing commits") }
-            OutlinedButton(onClick = { preset = true }, enabled = !busy, modifier = Modifier.fillMaxWidth()) { Text("Save reusable push preset") }
+            } }, enabled = !busy && snapshot.head.isNotBlank(), modifier = Modifier.fillMaxWidth()) { Text("推送现有提交") }
+            OutlinedButton(onClick = { preset = true }, enabled = !busy, modifier = Modifier.fillMaxWidth()) { Text("保存可复用的推送预设") }
         }
         if (state == null && !busy) {
-            OutlinedButton(onClick = { importing = true }, modifier = Modifier.fillMaxWidth()) { Text("Import from GitHub") }
-            OutlinedTextField(repositoryInput, onValueChange = { repositoryInput = it }, label = { Text("Existing GitHub repository") },
+            OutlinedButton(onClick = { importing = true }, modifier = Modifier.fillMaxWidth()) { Text("从 GitHub 导入") }
+            OutlinedTextField(repositoryInput, onValueChange = { repositoryInput = it }, label = { Text("现有 GitHub 仓库") },
                 modifier = Modifier.fillMaxWidth())
             OutlinedButton(onClick = { act {
                 container.githubRepositories.connect(requireNotNull(fs), repositoryInput)
-                refresh(); message = "Repository connected."
+                refresh(); message = "仓库已连接。"
             } }, enabled = fs?.shellRoot != null && container.linuxEnv.gitToolsReady && repositoryInput.isNotBlank(),
-                modifier = Modifier.fillMaxWidth()) { Text("Connect repository") }
+                modifier = Modifier.fillMaxWidth()) { Text("连接仓库") }
         }
         OutlinedButton(onClick = { act { refresh(); message = null } }, enabled = !busy,
-            modifier = Modifier.fillMaxWidth()) { Text("Refresh repository") }
+            modifier = Modifier.fillMaxWidth()) { Text("刷新仓库") }
         message?.let { Text(it, style = MaterialTheme.typography.bodySmall) }
     }
     if (preset && state != null) GitHubPushPresetDialog(container, projectId, projectName,
         initial = GitHubPushPreset(requireNotNull(state).remoteUrl, requireNotNull(state).branch,
-            commitMessage.ifBlank { "Update from AndroidHarness" }, paths.toList()), onDismiss = { preset = false })
+            commitMessage.ifBlank { "来自 AndroidHarness 的更新" }, paths.toList()), onDismiss = { preset = false })
 }
 
 @OptIn(ExperimentalLayoutApi::class)
@@ -259,8 +259,8 @@ fun GitHubPushPresetDialog(container: AppContainer, projectId: String, projectNa
     onDismiss: () -> Unit, initial: GitHubPushPreset? = null, task: AutomationTask? = null) {
     val scope = rememberCoroutineScope()
     var snapshot by remember { mutableStateOf(initial ?: task?.githubPush) }
-    var title by remember { mutableStateOf(task?.title ?: "Push $projectName to GitHub") }
-    var commitMessage by remember { mutableStateOf(initial?.commitMessage ?: task?.githubPush?.commitMessage ?: "Update from AndroidHarness") }
+    var title by remember { mutableStateOf(task?.title ?: "将 $projectName 推送到 GitHub") }
+    var commitMessage by remember { mutableStateOf(initial?.commitMessage ?: task?.githubPush?.commitMessage ?: "来自 AndroidHarness 的更新") }
     var schedule by remember { mutableStateOf(task?.schedule ?: AutomationSchedule.MANUAL) }
     var hour by remember { mutableStateOf((task?.hour ?: 8).toString()) }
     var minute by remember { mutableStateOf((task?.minute ?: 0).toString()) }
@@ -276,44 +276,44 @@ fun GitHubPushPresetDialog(container: AppContainer, projectId: String, projectNa
             } catch (e: Exception) { message = container.github.safeMessage(e) } finally { busy = false }
         }
     }
-    GitHubDialog(if (task == null) "GitHub push preset" else "Edit GitHub push preset", busy, onDismiss) {
+    GitHubDialog(if (task == null) "GitHub 推送预设" else "编辑 GitHub 推送预设", busy, onDismiss) {
         Text("$projectName · ${snapshot?.branch.orEmpty()}", style = MaterialTheme.typography.titleMedium)
         snapshot?.let { Text(it.remoteUrl, style = MaterialTheme.typography.bodySmall) }
-        Text("Reuse this repository and branch in Automation. The preset runs Git directly, checks the push, and stops if a task is working in this workspace. It uses your current GitHub connection.",
+        Text("在自动化中复用此仓库和分支。预设会直接运行 Git、检查推送结果，并在工作区有任务运行时停止。它使用你当前的 GitHub 连接。",
             style = MaterialTheme.typography.bodySmall)
-        OutlinedTextField(title, onValueChange = { title = it }, label = { Text("Preset name") }, modifier = Modifier.fillMaxWidth())
-        OutlinedTextField(commitMessage, onValueChange = { commitMessage = it }, label = { Text("Commit message") }, modifier = Modifier.fillMaxWidth())
+        OutlinedTextField(title, onValueChange = { title = it }, label = { Text("预设名称") }, modifier = Modifier.fillMaxWidth())
+        OutlinedTextField(commitMessage, onValueChange = { commitMessage = it }, label = { Text("提交说明") }, modifier = Modifier.fillMaxWidth())
         Row(Modifier.fillMaxWidth().clickable { allChanges = !allChanges }, verticalAlignment = Alignment.CenterVertically) {
             Checkbox(allChanges, onCheckedChange = null)
-            Text("Include all future changes in this workspace", modifier = Modifier.weight(1f))
+            Text("包含此工作区今后的所有更改", modifier = Modifier.weight(1f))
         }
-        if (!allChanges) Text("Selected paths: ${snapshot?.paths?.joinToString(", ")?.ifBlank { "No paths selected. Enable future changes or select files in Commit & push." }}",
+        if (!allChanges) Text("所选路径：${snapshot?.paths?.joinToString(", ")?.ifBlank { "尚未选择路径。请启用今后的更改，或在“提交并推送”中选择文件。" }}",
             style = MaterialTheme.typography.bodySmall)
-        Text("Schedule", style = MaterialTheme.typography.titleSmall)
+        Text("定时安排", style = MaterialTheme.typography.titleSmall)
         FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             listOf(AutomationSchedule.MANUAL, AutomationSchedule.HOURLY, AutomationSchedule.DAILY).forEach { choice ->
                 FilterChip(selected = schedule == choice, onClick = { schedule = choice }, label = { Text(choice.name.lowercase().replaceFirstChar { it.uppercase() }) })
             }
         }
         if (schedule == AutomationSchedule.DAILY) {
-            OutlinedTextField(hour, onValueChange = { hour = it.filter(Char::isDigit).take(2) }, label = { Text("Hour (0–23)") }, modifier = Modifier.fillMaxWidth())
-            OutlinedTextField(minute, onValueChange = { minute = it.filter(Char::isDigit).take(2) }, label = { Text("Minute (0–59)") }, modifier = Modifier.fillMaxWidth())
+            OutlinedTextField(hour, onValueChange = { hour = it.filter(Char::isDigit).take(2) }, label = { Text("小时（0–23）") }, modifier = Modifier.fillMaxWidth())
+            OutlinedTextField(minute, onValueChange = { minute = it.filter(Char::isDigit).take(2) }, label = { Text("分钟（0–59）") }, modifier = Modifier.fillMaxWidth())
         }
-        if (schedule != AutomationSchedule.MANUAL) Text("Android may delay scheduled work. Failed or blocked pushes stay visible in Automation history.", style = MaterialTheme.typography.bodySmall)
+        if (schedule != AutomationSchedule.MANUAL) Text("Android 可能延迟定时任务。失败或受阻的推送仍会显示在自动化历史中。", style = MaterialTheme.typography.bodySmall)
         Button(onClick = {
             busy = true
             scope.launch {
                 try {
                     val saved = requireNotNull(snapshot).copy(commitMessage = commitMessage.trim(), paths = if (allChanges) emptyList() else requireNotNull(snapshot).paths)
-                    val base = task ?: AutomationTask(title = title, prompt = "Publish reviewed changes to GitHub", projectId = projectId, projectName = projectName)
+                    val base = task ?: AutomationTask(title = title, prompt = "将已审阅的更改发布到 GitHub", projectId = projectId, projectName = projectName)
                     container.automation.save(base.copy(title = title.trim(), githubPush = saved, schedule = schedule,
                         hour = hour.toIntOrNull() ?: -1, minute = minute.toIntOrNull() ?: -1, enabled = true))
                     onDismiss()
                 } catch (e: Exception) { message = container.github.safeMessage(e) } finally { busy = false }
             }
         }, enabled = !busy && snapshot != null && title.isNotBlank() && commitMessage.isNotBlank() &&
-            (allChanges || snapshot?.paths?.isNotEmpty() == true), modifier = Modifier.fillMaxWidth()) { Text("Save push preset") }
-        if (task != null) TextButton(onClick = { container.automation.delete(task.id); onDismiss() }, modifier = Modifier.fillMaxWidth()) { Text("Delete preset") }
+            (allChanges || snapshot?.paths?.isNotEmpty() == true), modifier = Modifier.fillMaxWidth()) { Text("保存推送预设") }
+        if (task != null) TextButton(onClick = { container.automation.delete(task.id); onDismiss() }, modifier = Modifier.fillMaxWidth()) { Text("删除预设") }
         message?.let { Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error) }
     }
 }

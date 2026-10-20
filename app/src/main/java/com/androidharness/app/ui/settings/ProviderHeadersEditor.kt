@@ -33,13 +33,13 @@ internal fun ProviderHeadersEditor(rows: List<ProviderHeaderDraft>, onChange: (L
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
         HorizontalDivider()
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-            Text("Custom headers", style = MaterialTheme.typography.titleSmall, modifier = Modifier.weight(1f))
+            Text("自定义请求头", style = MaterialTheme.typography.titleSmall, modifier = Modifier.weight(1f))
             if (rows.isNotEmpty()) Text("${rows.size}", style = MaterialTheme.typography.labelMedium, color = scheme.onSurfaceVariant)
             TextButton(onClick = { onChange(rows + ProviderHeaderDraft(ProviderHeader("", ""))) },
                 enabled = rows.size < ProviderHeaders.MAX_HEADERS) {
                 Icon(Icons.Filled.Add, contentDescription = null, modifier = Modifier.size(18.dp))
                 Spacer(Modifier.width(4.dp))
-                Text("Add header")
+                Text("添加请求头")
             }
         }
         rows.forEachIndexed { index, row ->
@@ -54,40 +54,40 @@ internal fun ProviderHeadersEditor(rows: List<ProviderHeaderDraft>, onChange: (L
                         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                             Row(Modifier.weight(1f).heightIn(min = 48.dp).toggleable(row.header.enabled, role = Role.Checkbox,
                                 onValueChange = { update(row.header.copy(enabled = it)) })
-                                .semantics { contentDescription = "Enable header ${index + 1}" },
+                                .semantics { contentDescription = "启用第 ${index + 1} 个请求头" },
                                 verticalAlignment = Alignment.CenterVertically) {
                                 Checkbox(checked = row.header.enabled, onCheckedChange = null)
                                 Spacer(Modifier.width(8.dp))
-                                Text("Enabled", style = MaterialTheme.typography.labelMedium)
+                                Text("已启用", style = MaterialTheme.typography.labelMedium)
                             }
                             IconButton(onClick = { onChange(rows.filterNot { it.id == row.id }) }) {
-                                Icon(Icons.Outlined.Delete, contentDescription = "Remove header ${index + 1}")
+                                Icon(Icons.Outlined.Delete, contentDescription = "移除第 ${index + 1} 个请求头")
                             }
                         }
                         OutlinedTextField(value = row.header.name, onValueChange = { update(row.header.copy(name = it)) },
-                            label = { Text("Header name") }, placeholder = { Text("X-Client-Type") }, singleLine = true,
+                            label = { Text("请求头名称") }, placeholder = { Text("X-Client-Type") }, singleLine = true,
                             modifier = Modifier.fillMaxWidth().focusRequester(focus)
-                                .semantics { contentDescription = "Header ${index + 1} name" })
+                                .semantics { contentDescription = "第 ${index + 1} 个请求头名称" })
                         OutlinedTextField(value = row.header.value, onValueChange = { update(row.header.copy(value = it)) },
-                            label = { Text("Value") }, singleLine = true,
+                            label = { Text("值") }, singleLine = true,
                             visualTransformation = if (visible) VisualTransformation.None else PasswordVisualTransformation(),
                             trailingIcon = { IconButton(onClick = { visible = !visible }) {
                                 Icon(if (visible) Icons.Outlined.VisibilityOff else Icons.Outlined.Visibility,
-                                    contentDescription = if (visible) "Hide header ${index + 1} value" else "Show header ${index + 1} value")
+                                    contentDescription = if (visible) "隐藏第 ${index + 1} 个请求头的值" else "显示第 ${index + 1} 个请求头的值")
                             } },
-                            modifier = Modifier.fillMaxWidth().semantics { contentDescription = "Header ${index + 1} value" })
+                            modifier = Modifier.fillMaxWidth().semantics { contentDescription = "第 ${index + 1} 个请求头的值" })
                     }
                 }
             }
         }
         val error = ProviderHeaders.error(rows.map { it.header })
-        Text(error ?: "Sent only to this provider. Values are stored securely.",
+        Text(error ?: "仅发送给此提供商，值会安全存储。",
             style = MaterialTheme.typography.labelSmall, color = if (error == null) scheme.onSurfaceVariant else scheme.error)
         if (rows.isNotEmpty()) {
-            TextButton(onClick = { preview = !preview }) { Text(if (preview) "Hide request headers" else "Request headers") }
+            TextButton(onClick = { preview = !preview }) { Text(if (preview) "收起请求头" else "请求头") }
             if (preview) {
                 val enabled = rows.filter { it.header.enabled && it.header.name.isNotBlank() }
-                Text(if (enabled.isEmpty()) "No custom headers enabled" else enabled.joinToString("\n") { "${it.header.name.trim()}: ••••••••" },
+                Text(if (enabled.isEmpty()) "未启用自定义请求头" else enabled.joinToString("\n") { "${it.header.name.trim()}: ••••••••" },
                     style = MaterialTheme.typography.bodySmall, color = scheme.onSurfaceVariant)
             }
         }

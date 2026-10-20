@@ -46,16 +46,16 @@ internal class SharedToolStore(private val root: File, private val prefix: File)
 
     fun reason(name: String, installed: Set<String>, required: Set<String>): String? {
         val all = all()
-        if (name in required) return "Required by the app toolchain"
-        if (installed.any { all[it] == null }) return "Older packages have unknown dependencies and file ownership"
-        val record = all[name] ?: return "File ownership is unknown"
-        if (!record.complete) return "File ownership could not be verified"
-        if (record.requirements.isNotEmpty()) return "Kept for ${record.requirements.joinToString()}"
+        if (name in required) return "应用工具链需要此软件包"
+        if (installed.any { all[it] == null }) return "旧软件包的依赖关系和文件归属未知"
+        val record = all[name] ?: return "文件归属未知"
+        if (!record.complete) return "无法验证文件归属"
+        if (record.requirements.isNotEmpty()) return "为 ${record.requirements.joinToString()} 保留"
         val dependents = installed.filter { it != name && name in all[it]?.depends.orEmpty() }
-        if (dependents.isNotEmpty()) return "Required by ${dependents.joinToString()}"
+        if (dependents.isNotEmpty()) return "${dependents.joinToString()} 需要此软件包"
         if (all.filterKeys { it in installed && it != name }.values.any { other ->
                 other.ownedPaths.any { path -> record.files.any { it.path == path } }
-            }) return "Shares files with another installed package"
+            }) return "与其他已安装软件包共用文件"
         return null
     }
 
@@ -63,7 +63,7 @@ internal class SharedToolStore(private val root: File, private val prefix: File)
         if (reason(name, installed, required) != null) return null
         val record = all()[name] ?: return null
         if (record.files.isEmpty() || !unchanged(record)) return null
-        return StorageCandidate("package:$name", name, "No recorded requirements or installed dependents", "Managed packages",
+        return StorageCandidate("package:$name", name, "无已记录的需求，也无已安装的软件包依赖它", "受管理的软件包",
             prefix.parentFile!!, prefix, record.files, packageName = name)
     }
 
@@ -79,16 +79,16 @@ internal class SharedToolStore(private val root: File, private val prefix: File)
     /** Quarantine first; a process death rolls back on next launch unless the installed marker committed. */
     suspend fun remove(candidate: StorageCandidate, installed: Set<String>, required: Set<String>, commit: () -> Unit): Long {
         val name = requireNotNull(candidate.packageName)
-        check(reason(name, installed, required) == null) { "Package requirements changed. Scan again." }
+        check(reason(name, installed, required) == null) { "软件包需求已更改，请重新扫描。" }
         val record = requireNotNull(all()[name])
-        check(record.files == candidate.stamps && unchanged(record)) { "Package files changed. Scan again." }
-        check(!journal.exists()) { "A prior package removal needs recovery. Restart the app." }
+        check(record.files == candidate.stamps && unchanged(record)) { "软件包文件已更改，请重新扫描。" }
+        check(!journal.exists()) { "之前的软件包移除操作需要恢复，请重启应用。" }
         write(journal, json.encodeToString(record))
         try {
             for (stamp in record.files) {
                 val source = File(prefix, stamp.path)
-                check(StorageFiles.contained(prefix, source)) { "Package path changed." }
-                check(StorageFiles.snapshot(prefix, source).single().copy(path = stamp.path) == stamp) { "Package files changed." }
+                check(StorageFiles.contained(prefix, source)) { "软件包路径已更改。" }
+                check(StorageFiles.snapshot(prefix, source).single().copy(path = stamp.path) == stamp) { "软件包文件已更改。" }
                 val destination = File(quarantine, stamp.path)
                 destination.parentFile!!.mkdirs()
                 Files.move(source.toPath(), destination.toPath(), ATOMIC_MOVE)
@@ -106,16 +106,16 @@ internal class SharedToolStore(private val root: File, private val prefix: File)
         if (!journal.exists()) return
         val record = json.decodeFromString<ManagedTool>(journal.readText())
         for (stamp in record.files) {
-            check(stamp.path.isNotEmpty() && !File(stamp.path).isAbsolute && stamp.path.split('/', '\\').none { it == ".." || it == "." }) { "Invalid package recovery path." }
+            check(stamp.path.isNotEmpty() && !File(stamp.path).isAbsolute && stamp.path.split('/', '\\').none { it == ".." || it == "." }) { "软件包恢复路径无效。" }
             val saved = File(quarantine, stamp.path)
-            check(StorageFiles.contained(root, saved)) { "Package recovery storage changed." }
+            check(StorageFiles.contained(root, saved)) { "软件包恢复存储位置已更改。" }
             if (!saved.exists()) continue
             if (record.name in installed) {
                 val destination = File(prefix, stamp.path)
-                check(StorageFiles.contained(prefix, destination) && !destination.exists()) { "Package recovery path is occupied." }
+                check(StorageFiles.contained(prefix, destination) && !destination.exists()) { "软件包恢复路径已被占用。" }
                 destination.parentFile!!.mkdirs()
                 Files.move(saved.toPath(), destination.toPath(), ATOMIC_MOVE)
-            } else check(saved.delete()) { "Could not finish package removal." }
+            } else check(saved.delete()) { "无法完成软件包移除。" }
         }
         check(quarantine.deleteRecursively() || !quarantine.exists())
         check(journal.delete())

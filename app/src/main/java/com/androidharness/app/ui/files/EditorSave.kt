@@ -18,10 +18,10 @@ internal sealed interface EditorSaveResult {
 /** Caller holds RunManager's workspace gate so an agent cannot start between check and write. */
 internal fun saveEditorFile(fs: WorkspaceFs, path: String, expectedVersion: String, bytes: ByteArray): EditorSaveResult {
     val node = fs.resolve(path)
-    check(!node.exists || node.isFile) { "This path is now a folder. Your edits have been kept." }
-    check(!node.exists || node.length <= 16_000_000L) { "The saved file is now too large to compare. Your edits have been kept." }
+    check(!node.exists || node.isFile) { "此路径现已变为文件夹，你的编辑已保留。" }
+    check(!node.exists || node.length <= 16_000_000L) { "已保存的文件现已过大，无法比较。你的编辑已保留。" }
     val current = EditorDiskSnapshot(if (node.exists) node.openInputStream()?.use { it.readBytes() }
-        ?: error("Could not read the saved file. Your edits have been kept.") else null)
+        ?: error("无法读取已保存的文件，你的编辑已保留。") else null)
     if (current.version != expectedVersion) return EditorSaveResult.Conflict(current)
     node.writeBytes(bytes)
     return EditorSaveResult.Saved(EditorDiskSnapshot(bytes), current)

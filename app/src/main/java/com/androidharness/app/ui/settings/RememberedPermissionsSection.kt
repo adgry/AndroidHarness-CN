@@ -17,19 +17,19 @@ internal fun RememberedPermissionsSection(container: AppContainer) {
     SecureScreenEffect(container, selected.isNotEmpty())
     SettingsPanel(Modifier.fillMaxWidth()) {
         Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            Text("Remembered permissions", style = MaterialTheme.typography.titleSmall)
-            Text("Current workspace only. “Always” lasts until the active run ends. Revoking asks again when approval is required; it cannot stop an action already approved. Full auto and Full access can still bypass these prompts.",
+            Text("已记住的权限", style = MaterialTheme.typography.titleSmall)
+            Text("仅适用于当前工作区。“始终允许”持续到当前运行结束。撤销后，需要审批时会再次询问，但无法停止已批准的操作。全自动和完全访问模式仍可跳过这些提示。",
                 style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            if (selected.isEmpty()) Text("No remembered permissions", style = MaterialTheme.typography.bodyMedium)
+            if (selected.isEmpty()) Text("没有已记住的权限", style = MaterialTheme.typography.bodyMedium)
             selected.forEach { grant ->
                 HorizontalDivider()
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     Column(Modifier.weight(1f)) {
                         Text(grant.key.replaceFirst("#", ": "), style = MaterialTheme.typography.bodyMedium)
-                        Text("Run ${grant.sessionId.take(8)}", style = MaterialTheme.typography.labelSmall,
+                        Text("运行 ${grant.sessionId.take(8)}", style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
-                    TextButton(onClick = { container.runManager.revokeGrant(grant) }) { Text("Revoke") }
+                    TextButton(onClick = { container.runManager.revokeGrant(grant) }) { Text("撤销") }
                 }
             }
         }

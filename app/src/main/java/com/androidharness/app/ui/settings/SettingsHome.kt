@@ -40,11 +40,11 @@ internal fun SettingsHome(
         OutlinedTextField(
             value = query,
             onValueChange = onQueryChange,
-            placeholder = { Text("Search settings") },
+            placeholder = { Text("搜索设置") },
             leadingIcon = { Icon(Icons.Outlined.Search, contentDescription = null) },
             trailingIcon = {
                 if (query.isNotEmpty()) IconButton(onClick = { onQueryChange("") }) {
-                    Icon(Icons.Filled.Close, contentDescription = "Clear search")
+                    Icon(Icons.Filled.Close, contentDescription = "清空搜索")
                 }
             },
             singleLine = true,
@@ -62,8 +62,8 @@ internal fun SettingsHome(
                 verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 Icon(Icons.Outlined.Search, null, tint = colors.onSurfaceVariant, modifier = Modifier.size(32.dp))
-                Text("No matching settings", style = MaterialTheme.typography.titleMedium)
-                Text("Try “theme”, “voice” or “permissions”.", style = MaterialTheme.typography.bodyMedium, color = colors.onSurfaceVariant)
+                Text("没有匹配的设置", style = MaterialTheme.typography.titleMedium)
+                Text("试试“主题”“语音”或“权限”。", style = MaterialTheme.typography.bodyMedium, color = colors.onSurfaceVariant)
             }
         }
         results.groupBy { it.page.group }.forEach { (group, entries) ->
@@ -124,21 +124,21 @@ internal fun DesktopSettingsNavigation(
     val scheme = MaterialTheme.colorScheme
     val results = remember(query) { matchingSettingsEntries(query) }
     Surface(modifier, color = scheme.surfaceContainerLow, contentColor = scheme.onSurface) {
-        Column(Modifier.fillMaxSize().semantics { contentDescription = "Settings categories" }) {
+        Column(Modifier.fillMaxSize().semantics { contentDescription = "设置分类" }) {
             OutlinedTextField(query, onQueryChange, singleLine = true,
-                placeholder = { Text("Search settings", style = MaterialTheme.typography.bodySmall) },
+                placeholder = { Text("搜索设置", style = MaterialTheme.typography.bodySmall) },
                 leadingIcon = { Icon(Icons.Outlined.Search, null, Modifier.size(18.dp)) },
                 trailingIcon = { if (query.isNotBlank()) IconButton(onClick = { onQueryChange("") }) {
-                    Icon(Icons.Filled.Close, "Clear search", Modifier.size(18.dp))
+                    Icon(Icons.Filled.Close, "清空搜索", Modifier.size(18.dp))
                 } },
                 textStyle = MaterialTheme.typography.bodySmall,
                 shape = MaterialTheme.shapes.medium,
                 modifier = Modifier.fillMaxWidth().padding(12.dp))
             LazyColumn(Modifier.weight(1f), contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp)) {
-                if (results.isEmpty()) item { Text("No matching settings", Modifier.padding(12.dp),
+                if (results.isEmpty()) item { Text("没有匹配的设置", Modifier.padding(12.dp),
                     style = MaterialTheme.typography.bodySmall, color = scheme.onSurfaceVariant) }
                 results.groupBy { it.page.group }.toList().sortedBy { (group, _) ->
-                    when (group) { "Personalize" -> 0; "Your assistant" -> 1; else -> 2 }
+                    when (group) { "个性化" -> 0; "你的助手" -> 1; else -> 2 }
                 }.forEach { (group, entries) ->
                     item { Text(group, Modifier.padding(start = 12.dp, top = 16.dp, bottom = 6.dp),
                         style = MaterialTheme.typography.labelSmall, color = scheme.onSurfaceVariant) }
@@ -233,9 +233,9 @@ internal fun ThemeChoice(
 ) {
     val colors = MaterialTheme.colorScheme
     val label = when (mode) {
-        com.androidharness.app.data.ThemeMode.SYSTEM -> "System"
-        com.androidharness.app.data.ThemeMode.LIGHT -> "Light"
-        com.androidharness.app.data.ThemeMode.DARK -> "Dark"
+        com.androidharness.app.data.ThemeMode.SYSTEM -> "跟随系统"
+        com.androidharness.app.data.ThemeMode.LIGHT -> "浅色"
+        com.androidharness.app.data.ThemeMode.DARK -> "深色"
         com.androidharness.app.data.ThemeMode.AMOLED -> "AMOLED"
     }
     Surface(
@@ -263,7 +263,7 @@ internal fun ThemeChoice(
             }
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                 Text(label, modifier = Modifier.weight(1f), style = MaterialTheme.typography.labelLarge)
-                if (selected) Icon(Icons.Outlined.CheckCircle, "Selected", tint = colors.primary, modifier = Modifier.size(18.dp))
+                if (selected) Icon(Icons.Outlined.CheckCircle, "已选择", tint = colors.primary, modifier = Modifier.size(18.dp))
             }
         }
     }

@@ -37,8 +37,8 @@ import com.androidharness.app.ui.chat.MarkdownText
 @Composable
 internal fun ResponseContextChip(title: String, onRemove: () -> Unit) {
     InputChip(selected = false, onClick = onRemove,
-        label = { Text("Response · $title", maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis) },
-        trailingIcon = { Icon(Icons.Filled.Close, "Remove response context", Modifier.size(14.dp)) },
+        label = { Text("回复 · $title", maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis) },
+        trailingIcon = { Icon(Icons.Filled.Close, "移除回复上下文", Modifier.size(14.dp)) },
         modifier = Modifier.padding(horizontal = 10.dp).widthIn(max = 340.dp))
 }
 
@@ -54,12 +54,12 @@ internal fun RichResponseContent(text: String, streaming: Boolean, onOpenUrl: ((
                 is RichResponse.Part.Content -> ResponseNode(part.node, onOpenUrl, if (streaming) null else onFollowUp)
                 RichResponse.Part.Pending -> Row(Modifier.fillMaxWidth().padding(vertical = 12.dp), verticalAlignment = Alignment.CenterVertically) {
                     CircularProgressIndicator(Modifier.size(16.dp), strokeWidth = 2.dp)
-                    Spacer(Modifier.width(10.dp)); Text("Preparing visual…", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Spacer(Modifier.width(10.dp)); Text("正在准备可视内容…", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
                 RichResponse.Part.Unavailable -> ResponsePanel {
-                    Text("This content couldn’t be displayed", style = MaterialTheme.typography.titleSmall)
-                    Text("You can ask for a simpler version or a text explanation.", style = MaterialTheme.typography.bodySmall)
-                    onFollowUp?.let { TextButton(onClick = { it(RichResponse.followUp("Please show this as a clear text explanation.", "Response content", "A rich content block couldn’t be displayed.")) }) { Text("Ask for a text version") } }
+                    Text("无法显示此内容", style = MaterialTheme.typography.titleSmall)
+                    Text("可请求更简单的版本或文字说明。", style = MaterialTheme.typography.bodySmall)
+                    onFollowUp?.let { TextButton(onClick = { it(RichResponse.followUp("Please show this as a clear text explanation.", "Response content", "A rich content block couldn’t be displayed.")) }) { Text("请求文字版本") } }
                 }
             }
         } }
@@ -126,7 +126,7 @@ private fun ResponseNode(node: RichResponse.Node, onOpenUrl: ((String) -> Unit)?
                     }
                 }
                 onFollowUp?.let { follow -> val option = node.options[selected.coerceIn(node.options.indices)]
-                    OutlinedButton(onClick = { follow(RichResponse.followUp(option.prompt.ifBlank { "Tell me more about ${option.label}." }, node.title, "Selected: ${option.label}\n${option.description}")) }, Modifier.fillMaxWidth()) { Text("Discuss selection") }
+                    OutlinedButton(onClick = { follow(RichResponse.followUp(option.prompt.ifBlank { "Tell me more about ${option.label}." }, node.title, "Selected: ${option.label}\n${option.description}")) }, Modifier.fillMaxWidth()) { Text("讨论所选项") }
                 }
             }
         }
@@ -148,7 +148,7 @@ private fun ResponseNode(node: RichResponse.Node, onOpenUrl: ((String) -> Unit)?
                 onFollowUp?.let { follow -> TextButton(onClick = {
                     val state = node.items.mapIndexed { i, step -> "${if (checked[i]) "Done" else "Remaining"}: ${step.title}" }.joinToString("\n")
                     follow(RichResponse.followUp("Help me with the next step.", node.title, state))
-                }) { Text("Continue from here") } }
+                }) { Text("从此处继续") } }
             }
         }
         is RichResponse.Node.Details -> {
@@ -156,7 +156,7 @@ private fun ResponseNode(node: RichResponse.Node, onOpenUrl: ((String) -> Unit)?
             ResponsePanel {
                 Row(Modifier.fillMaxWidth().heightIn(min = 44.dp).clickable { expanded = !expanded }, verticalAlignment = Alignment.CenterVertically) {
                     Text(node.title, Modifier.weight(1f), style = MaterialTheme.typography.titleSmall)
-                    Icon(if (expanded) Icons.Filled.KeyboardArrowUp else Icons.Filled.KeyboardArrowDown, if (expanded) "Collapse details" else "Expand details")
+                    Icon(if (expanded) Icons.Filled.KeyboardArrowUp else Icons.Filled.KeyboardArrowDown, if (expanded) "收起详情" else "展开详情")
                 }
                 if (expanded) SelectionContainer { MarkdownText(node.text, onOpenUrl = onOpenUrl) }
             }
@@ -168,7 +168,7 @@ private fun ResponseNode(node: RichResponse.Node, onOpenUrl: ((String) -> Unit)?
                     if (node.text.isNotBlank()) Text(node.text, style = MaterialTheme.typography.bodySmall, color = colors.onSurfaceVariant)
                     Text(java.net.URI(node.url).host, style = MaterialTheme.typography.labelSmall, color = colors.primary)
                 }
-                Icon(Icons.AutoMirrored.Outlined.OpenInNew, "Open link", Modifier.padding(start = 8.dp).size(18.dp))
+                Icon(Icons.AutoMirrored.Outlined.OpenInNew, "打开链接", Modifier.padding(start = 8.dp).size(18.dp))
             }
         }
         is RichResponse.Node.Preview -> InlineResponsePreview(node, onFollowUp)
@@ -204,7 +204,7 @@ private fun ResponseChart(chart: RichResponse.Node.Chart) {
     ResponsePanel {
         Text(chart.title, style = MaterialTheme.typography.titleSmall)
         Text("${point.label} · ${RichResponse.number(point.value)} ${chart.unit}".trim(), style = MaterialTheme.typography.bodyMedium, color = colors.primary)
-        Canvas(Modifier.fillMaxWidth().height(150.dp).semantics { contentDescription = "${chart.title}. ${chart.points.size} values. Use Show data for all values." }
+        Canvas(Modifier.fillMaxWidth().height(150.dp).semantics { contentDescription = "${chart.title}。${chart.points.size} 个数值。使用“显示数据”查看全部数值。" }
             .pointerInput(chart) { detectTapGestures { tap -> selected = ((tap.x / size.width.coerceAtLeast(1)) * chart.points.size).toInt().coerceIn(chart.points.indices) } }) {
             val cell = size.width / chart.points.size
             fun y(value: Double) = (size.height - 12.dp.toPx()) * (1 - ((value - low) / range).toFloat()) + 6.dp.toPx()
@@ -226,7 +226,7 @@ private fun ResponseChart(chart: RichResponse.Node.Chart) {
             if (chart.points.size > 1) Text(chart.points.last().label, style = MaterialTheme.typography.labelSmall)
         }
         if (chart.caption.isNotBlank()) Text(chart.caption, style = MaterialTheme.typography.bodySmall, color = colors.onSurfaceVariant)
-        TextButton(onClick = { data = !data }) { Text(if (data) "Hide data" else "Show data") }
+        TextButton(onClick = { data = !data }) { Text(if (data) "隐藏数据" else "显示数据") }
         if (data) chart.points.forEachIndexed { i, p ->
             Row(Modifier.fillMaxWidth().heightIn(min = 44.dp).selectable(selected == i, role = Role.RadioButton, onClick = { selected = i }).padding(vertical = 6.dp)) {
                 Text(p.label, Modifier.weight(1f), style = MaterialTheme.typography.bodyMedium)

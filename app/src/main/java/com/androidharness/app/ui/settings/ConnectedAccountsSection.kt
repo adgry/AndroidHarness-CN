@@ -27,9 +27,10 @@ internal fun ConnectedAccountsSection(container: AppContainer) {
         catch (e: Exception) {
             selectionError = when {
                 e is java.io.IOException && e.message?.startsWith("ChatGPT") == true -> e.message
-                e.message in setOf("This account did not offer any models.", "Reconnect ChatGPT to use this account.",
-                    "Choose a model offered by this account.") -> e.message
-                else -> "Could not update this account. Check your connection and try again."
+                e.message == "This account did not offer any models." -> "此账号未提供任何模型。"
+                e.message == "Reconnect ChatGPT to use this account." -> "请重新连接 ChatGPT 以使用此账号。"
+                e.message == "Choose a model offered by this account." -> "请选择此账号提供的模型。"
+                else -> "无法更新此账号。请检查网络连接后重试。"
             }
         }
     } }
@@ -58,15 +59,15 @@ internal fun ConnectedAccountsSection(container: AppContainer) {
     )
     if (state.showWelcome) AlertDialog(
         onDismissRequest = { update { container.chatGpt.dismissWelcome() } },
-        title = { Text("You're using your ChatGPT plan") },
-        text = { Text("Eligible requests in AndroidHarness use your ChatGPT plan or credits. Review usage and manage this app's access in ChatGPT settings.") },
-        confirmButton = { TextButton(onClick = { update { container.chatGpt.dismissWelcome() } }) { Text("Got it") } },
+        title = { Text("你正在使用 ChatGPT 套餐") },
+        text = { Text("AndroidHarness 中符合条件的请求会使用你的 ChatGPT 套餐或点数。可在 ChatGPT 设置中查看用量并管理此应用的访问权限。") },
+        confirmButton = { TextButton(onClick = { update { container.chatGpt.dismissWelcome() } }) { Text("知道了") } },
     )
     pendingSignOut?.let { id -> AlertDialog(
         onDismissRequest = { pendingSignOut = null },
-        title = { Text("Sign out of this account?") },
-        text = { Text("This disconnects the account from AndroidHarness and removes it from automatic switching. You can sign in again later.") },
-        confirmButton = { TextButton(onClick = { container.chatGpt.signOut(id); pendingSignOut = null }) { Text("Sign out") } },
-        dismissButton = { TextButton(onClick = { pendingSignOut = null }) { Text("Cancel") } },
+        title = { Text("退出此账号？") },
+        text = { Text("这会断开该账号与 AndroidHarness 的连接，并将其从自动切换中移除。之后可以重新登录。") },
+        confirmButton = { TextButton(onClick = { container.chatGpt.signOut(id); pendingSignOut = null }) { Text("退出登录") } },
+        dismissButton = { TextButton(onClick = { pendingSignOut = null }) { Text("取消") } },
     ) }
 }

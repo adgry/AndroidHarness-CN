@@ -36,11 +36,11 @@ import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 
 enum class PermissionMode(val label: String) {
-    CONFIRM_ALL("Confirm everything"),
-    CONFIRM_RISKY("Confirm risky actions"),
-    FULL_AUTO("Full auto"),
+    CONFIRM_ALL("确认所有操作"),
+    CONFIRM_RISKY("确认风险操作"),
+    FULL_AUTO("全自动"),
     /** Every sandbox layer off: no approvals, no shell denylist, no path containment. */
-    FULL_ACCESS("Full access"),
+    FULL_ACCESS("完全访问"),
 }
 
 /** ACT executes tools; PLAN only allows inspection and must end with a plan. */

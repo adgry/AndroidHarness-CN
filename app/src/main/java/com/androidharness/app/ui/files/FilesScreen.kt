@@ -213,7 +213,7 @@ fun FilesScreen(
                 val dir = f.resolve(currentPath)
                 if (!dir.isDirectory) emptyList() else dir.list()
             }.getOrElse { e ->
-                loadError = e.message ?: "Could not list $currentPath"
+                loadError = e.message ?: "无法列出 $currentPath"
                 emptyList()
             }.sortedWith(compareBy({ !it.isDirectory }, { it.name.lowercase() }))
         }
@@ -228,10 +228,10 @@ fun FilesScreen(
         scope.launch {
             val failure = withContext(Dispatchers.IO) {
                 runCatching { block() }.exceptionOrNull()?.let { e ->
-                    e.message ?: "${e.javaClass.simpleName} during $description"
+                    e.message ?: "$description 时发生 ${e.javaClass.simpleName}"
                 }
             }
-            toast(failure ?: "$description ✓".replace(" ✓", " done"))
+            toast(failure ?: "$description ✓".replace(" ✓", " 已完成"))
             refreshTick++
         }
     }
@@ -247,7 +247,7 @@ fun FilesScreen(
                     selecting = false
                     selectedPaths = emptySet()
                 }
-                toast("$action ${result.completed.size} of ${nodes.size} items")
+                toast("$action ${result.completed.size} / ${nodes.size} 项")
                 refreshTick++
             } finally {
                 batchBusy = false
@@ -269,12 +269,12 @@ fun FilesScreen(
         WorkspaceToolsSheet(container, sessionId, projectId, mode, onDismiss = { workspaceTools = null },
             onOpenFile = { path, line -> workspaceTools = null; onOpenFileAtLine?.invoke(path, line) ?: onOpenFile(path) },
             commands = listOf(
-                WorkspaceCommand("Refresh files", "Reload the current folder", Icons.Outlined.Refresh) { workspaceTools = null; refreshTick++ },
-                WorkspaceCommand("Filter current folder", "Filter names in this folder", Icons.Outlined.Search) { workspaceTools = null; filterActive = true },
+                WorkspaceCommand("刷新文件", "重新加载当前文件夹", Icons.Outlined.Refresh) { workspaceTools = null; refreshTick++ },
+                WorkspaceCommand("筛选当前文件夹", "筛选此文件夹中的名称", Icons.Outlined.Search) { workspaceTools = null; filterActive = true },
             ) + listOfNotNull(
-                currentWorkspace?.let { project -> WorkspaceCommand("GitHub · Commit & push", "Review and publish workspace changes", Icons.Outlined.Code) { workspaceTools = null; githubProject = project.id to project.name } },
-                onOpenChanges?.let { action -> WorkspaceCommand("Show changes", "Review changes made in this chat", Icons.Outlined.Difference) { workspaceTools = null; action() } },
-                onOpenTerminal?.let { action -> WorkspaceCommand("Open terminal", "Terminal for this workspace", Icons.Outlined.Code) { workspaceTools = null; action() } },
+                currentWorkspace?.let { project -> WorkspaceCommand("GitHub · 提交并推送", "审阅并发布工作区更改", Icons.Outlined.Code) { workspaceTools = null; githubProject = project.id to project.name } },
+                onOpenChanges?.let { action -> WorkspaceCommand("显示更改", "查看此聊天中的更改", Icons.Outlined.Difference) { workspaceTools = null; action() } },
+                onOpenTerminal?.let { action -> WorkspaceCommand("打开终端", "此工作区的终端", Icons.Outlined.Code) { workspaceTools = null; action() } },
             ))
     }
 
@@ -288,7 +288,7 @@ fun FilesScreen(
         containerColor = scheme.surface,
         topBar = {
             AppHeader(
-                title = if (selecting) "${selectedNodes.size} selected" else "Files",
+                title = if (selecting) "已选择 ${selectedNodes.size} 项" else "文件",
                 subtitle = if (currentPath == ".") fs?.displayPath.orEmpty()
                 else "${fs?.displayPath.orEmpty().substringAfterLast('/')}/$currentPath",
                 onBack = { if (selecting) closeSelection() else onBack() },
@@ -301,47 +301,47 @@ fun FilesScreen(
                                 selectedPaths = if (selectedPaths.containsAll(paths)) selectedPaths - paths else selectedPaths + paths
                             },
                         ) {
-                            Text(if (visibleEntries.isNotEmpty() && visibleEntries.all { it.relPath in selectedPaths }) "Deselect all" else "Select all")
+                            Text(if (visibleEntries.isNotEmpty() && visibleEntries.all { it.relPath in selectedPaths }) "取消全选" else "全选")
                         }
                     } else {
                         if (projectId == null || sessionId != null) IconButton(onClick = { showWorkspaceSheet = true }) {
                             Icon(
                                 Icons.Outlined.Folder,
-                                contentDescription = "Switch workspace",
+                                contentDescription = "切换工作区",
                                 tint = if (currentWorkspace != null) scheme.onSurfaceVariant else scheme.primary,
                             )
                         }
                         IconButton(onClick = { workspaceTools = WorkspaceToolMode.SEARCH }) {
-                            Icon(Icons.Outlined.Search, contentDescription = "Search project")
+                            Icon(Icons.Outlined.Search, contentDescription = "搜索项目")
                         }
                         IconButton(onClick = { refreshTick++ }) {
-                            Icon(Icons.Outlined.Refresh, contentDescription = "Refresh")
+                            Icon(Icons.Outlined.Refresh, contentDescription = "刷新")
                         }
                         Box {
                             IconButton(onClick = { headerMenuOpen = true }) {
-                                Icon(Icons.Filled.MoreVert, contentDescription = "More")
+                                Icon(Icons.Filled.MoreVert, contentDescription = "更多")
                             }
                             DropdownMenu(expanded = headerMenuOpen, onDismissRequest = { headerMenuOpen = false }) {
-                                DropdownMenuItem(text = { Text("Quick Open") }, onClick = { headerMenuOpen = false; workspaceTools = WorkspaceToolMode.FILES })
-                                DropdownMenuItem(text = { Text("Command palette") }, onClick = { headerMenuOpen = false; workspaceTools = WorkspaceToolMode.COMMANDS })
-                                DropdownMenuItem(text = { Text("Filter current folder") }, onClick = { headerMenuOpen = false; filterActive = !filterActive })
+                                DropdownMenuItem(text = { Text("快速打开") }, onClick = { headerMenuOpen = false; workspaceTools = WorkspaceToolMode.FILES })
+                                DropdownMenuItem(text = { Text("命令面板") }, onClick = { headerMenuOpen = false; workspaceTools = WorkspaceToolMode.COMMANDS })
+                                DropdownMenuItem(text = { Text("筛选当前文件夹") }, onClick = { headerMenuOpen = false; filterActive = !filterActive })
                                 HorizontalDivider()
                                 DropdownMenuItem(
-                                    text = { Text("GitHub · Commit & push") },
+                                    text = { Text("GitHub · 提交并推送") },
                                     enabled = currentWorkspace != null,
                                     onClick = { headerMenuOpen = false; currentWorkspace?.let { githubProject = it.id to it.name } },
                                 )
                                 DropdownMenuItem(
-                                    text = { Text("Select items") },
+                                    text = { Text("选择项目") },
                                     onClick = { headerMenuOpen = false; selecting = true },
                                 )
                                 DropdownMenuItem(
-                                    text = { Text("New file") },
+                                    text = { Text("新建文件") },
                                     leadingIcon = { Icon(Icons.Outlined.NoteAdd, null) },
                                     onClick = { headerMenuOpen = false; creatingFile = true },
                                 )
                                 DropdownMenuItem(
-                                    text = { Text("New folder") },
+                                    text = { Text("新建文件夹") },
                                     leadingIcon = { Icon(Icons.Outlined.CreateNewFolder, null) },
                                     onClick = { headerMenuOpen = false; creatingFolder = true },
                                 )
@@ -366,21 +366,21 @@ fun FilesScreen(
                                     } catch (cancelled: kotlinx.coroutines.CancellationException) {
                                         throw cancelled
                                     } catch (error: Exception) {
-                                        batchErrors = listOf(error.message ?: "Share failed")
+                                        batchErrors = listOf(error.message ?: "分享失败")
                                     } finally {
                                         batchBusy = false
                                     }
                                 }
-                            }) { Text("Share") }
+                            }) { Text("分享") }
                             TextButton(enabled = selectedNodes.isNotEmpty() && !batchBusy, onClick = {
-                                batchTargets = selectedNodes.toList(); batchAction = "Copy"
-                            }) { Text("Copy") }
+                                batchTargets = selectedNodes.toList(); batchAction = "复制"
+                            }) { Text("复制") }
                             TextButton(enabled = selectedNodes.isNotEmpty() && !batchBusy, onClick = {
-                                batchTargets = selectedNodes.toList(); batchAction = "Move"
-                            }) { Text("Move") }
+                                batchTargets = selectedNodes.toList(); batchAction = "移动"
+                            }) { Text("移动") }
                             TextButton(enabled = selectedNodes.isNotEmpty() && !batchBusy, onClick = {
-                                batchTargets = selectedNodes.toList(); batchAction = "Delete"
-                            }) { Text("Delete", color = if (selectedNodes.isNotEmpty() && !batchBusy) scheme.error else scheme.onSurfaceVariant) }
+                                batchTargets = selectedNodes.toList(); batchAction = "删除"
+                            }) { Text("删除", color = if (selectedNodes.isNotEmpty() && !batchBusy) scheme.error else scheme.onSurfaceVariant) }
                         }
                     }
                 }
@@ -411,7 +411,7 @@ fun FilesScreen(
                         )
                         Spacer(Modifier.width(10.dp))
                         Text(
-                            "${activeChanges.size} files changed",
+                            "${activeChanges.size} 个文件已更改",
                             style = MaterialTheme.typography.labelLarge,
                             modifier = Modifier.weight(1f),
                         )
@@ -434,7 +434,7 @@ fun FilesScreen(
                     value = filter,
                     onValueChange = { filter = it },
                     singleLine = true,
-                    placeholder = { Text("Filter this folder", style = MaterialTheme.typography.bodySmall) },
+                    placeholder = { Text("筛选此文件夹", style = MaterialTheme.typography.bodySmall) },
                     textStyle = MaterialTheme.typography.bodySmall,
                     shape = MaterialTheme.shapes.medium,
                     modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 4.dp),
@@ -551,7 +551,7 @@ fun FilesScreen(
                                 }
                                 if (!selecting) {
                                     IconButton(onClick = { menuNode = node }) {
-                                        Icon(Icons.Filled.MoreVert, contentDescription = "Actions for ${node.name}")
+                                        Icon(Icons.Filled.MoreVert, contentDescription = "${node.name} 的操作")
                                     }
                                 }
                                 if (node.isDirectory && !selecting) {
@@ -586,8 +586,8 @@ fun FilesScreen(
                                     tint = scheme.onSurfaceVariant.copy(alpha = 0.6f),
                                 )
                                 Text(
-                                    if (filter.isNotBlank()) "Nothing matches \"${filter}\"."
-                                    else "Empty directory.",
+                                    if (filter.isNotBlank()) "没有与“${filter}”匹配的项目。"
+                                    else "空目录。",
                                     style = MaterialTheme.typography.bodyMedium,
                                     color = scheme.onSurfaceVariant,
                                     modifier = Modifier.padding(top = 12.dp),
@@ -623,45 +623,45 @@ fun FilesScreen(
                 HorizontalDivider(m, color = scheme.outlineVariant.copy(alpha = 0.4f))
             }
             SheetAction(if (node.isDirectory) Icons.Outlined.Folder else Icons.Outlined.OpenInNew,
-                if (node.isDirectory) "Open" else "Open in editor") {
+                if (node.isDirectory) "打开" else "在编辑器中打开") {
                 menuNode = null
                 if (node.isDirectory) currentPath = node.relPath else onOpenFile(node.relPath)
             }
             divider(Modifier.padding(horizontal = 16.dp))
-            SheetAction(Icons.Outlined.DriveFileRenameOutline, "Rename…") {
+            SheetAction(Icons.Outlined.DriveFileRenameOutline, "重命名…") {
                 menuNode = null
                 renamingNode = node
             }
             divider(Modifier.padding(horizontal = 16.dp))
-            SheetAction(Icons.Outlined.ContentCopy, "Copy to…") {
+            SheetAction(Icons.Outlined.ContentCopy, "复制到…") {
                 menuNode = null
                 pickCopyDest = node
             }
             divider(Modifier.padding(horizontal = 16.dp))
-            SheetAction(Icons.Outlined.Folder, "Move to…") {
+            SheetAction(Icons.Outlined.Folder, "移动到…") {
                 menuNode = null
                 pickMoveDest = node
             }
             divider(Modifier.padding(horizontal = 16.dp))
-            SheetAction(Icons.Outlined.Delete, "Delete", tint = scheme.error) {
+            SheetAction(Icons.Outlined.Delete, "删除", tint = scheme.error) {
                 menuNode = null
                 deletingNode = node
             }
             if (node.isFile) {
                 divider(Modifier.padding(horizontal = 16.dp))
-                SheetAction(Icons.Outlined.Share, "Share…") {
+                SheetAction(Icons.Outlined.Share, "分享…") {
                     menuNode = null
                     scope.launch {
                         runCatching { FileOps.share(context, node) }
-                            .onFailure { toast(it.message ?: "Share failed") }
+                            .onFailure { toast(it.message ?: "分享失败") }
                     }
                 }
                 divider(Modifier.padding(horizontal = 16.dp))
-                SheetAction(Icons.Outlined.OpenInNew, "Open externally…") {
+                SheetAction(Icons.Outlined.OpenInNew, "用其他应用打开…") {
                     menuNode = null
                     scope.launch {
                         runCatching { FileOps.openWith(context, node) }
-                            .onFailure { toast(it.message ?: "No app can open this") }
+                            .onFailure { toast(it.message ?: "没有可打开此文件的应用") }
                     }
                 }
             }
@@ -673,13 +673,13 @@ fun FilesScreen(
     renamingNode?.let { node ->
         val parentRel = node.relPath.substringBeforeLast('/', "")
         NameDialog(
-            title = "Rename “${node.name}”",
+            title = "重命名“${node.name}”",
             initialName = node.name,
             takenNames = siblingNames(fs, parentRel) - setOf(node.name),
-            confirmLabel = "Rename",
+            confirmLabel = "重命名",
             onDismiss = { renamingNode = null },
             onConfirm = { newName ->
-                perform("Renamed") {
+                perform("已重命名") {
                     withContext(Dispatchers.IO) { node.renameTo(newName) }
                     renamingNode = null
                 }
@@ -689,13 +689,13 @@ fun FilesScreen(
 
     if (creatingFolder) {
         NameDialog(
-            title = "New folder",
+            title = "新建文件夹",
             initialName = "",
             takenNames = siblingNames(fs, currentPath),
-            confirmLabel = "Create",
+            confirmLabel = "创建",
             onDismiss = { creatingFolder = false },
             onConfirm = { name ->
-                perform("Created $name") {
+                perform("已创建 $name") {
                     val dirNode = fs?.resolve(currentPath) ?: return@perform
                     dirNode.createDir(name)
                     creatingFolder = false
@@ -705,13 +705,13 @@ fun FilesScreen(
     }
     if (creatingFile) {
         NameDialog(
-            title = "New file",
+            title = "新建文件",
             initialName = "",
             takenNames = siblingNames(fs, currentPath),
-            confirmLabel = "Create",
+            confirmLabel = "创建",
             onDismiss = { creatingFile = false },
             onConfirm = { name ->
-                perform("Created $name") {
+                perform("已创建 $name") {
                     val dirNode = fs?.resolve(currentPath) ?: return@perform
                     dirNode.createFile(name)
                     creatingFile = false
@@ -723,21 +723,21 @@ fun FilesScreen(
     deletingNode?.let { node ->
         AlertDialog(
             onDismissRequest = { deletingNode = null },
-            title = { Text("Delete ${node.name}?") },
+            title = { Text("删除 ${node.name}？") },
             text = {
                 Text(
                     if (node.isDirectory)
-                        "The folder and everything inside it will be removed permanently."
-                    else "This file will be removed permanently.",
+                        "此文件夹及其中所有内容将被永久删除。"
+                    else "此文件将被永久删除。",
                 )
             },
             confirmButton = {
                 TextButton(onClick = {
                     deletingNode = null
-                    perform("Deleted ${node.name}") { node.delete() }
-                }) { Text("Delete", color = scheme.error) }
+                    perform("已删除 ${node.name}") { node.delete() }
+                }) { Text("删除", color = scheme.error) }
             },
-            dismissButton = { TextButton(onClick = { deletingNode = null }) { Text("Cancel") } },
+            dismissButton = { TextButton(onClick = { deletingNode = null }) { Text("取消") } },
         )
     }
 
@@ -746,11 +746,11 @@ fun FilesScreen(
             fs = fs,
             startPath = currentPath,
             mustAvoidSubtreeOf = src.relPath,
-            confirmLabel = "Copy here",
+            confirmLabel = "复制到此处",
             onDismiss = { pickCopyDest = null },
             onPick = { destDir ->
                 pickCopyDest = null
-                perform("Copied ${src.name}") { FileOps.copy(src, destDir, src.name) }
+                perform("已复制 ${src.name}") { FileOps.copy(src, destDir, src.name) }
             },
         )
     }
@@ -759,49 +759,49 @@ fun FilesScreen(
             fs = fs,
             startPath = currentPath,
             mustAvoidSubtreeOf = src.relPath,
-            confirmLabel = "Move here",
+            confirmLabel = "移动到此处",
             onDismiss = { pickMoveDest = null },
             onPick = { destDir ->
                 pickMoveDest = null
-                perform("Moved ${src.name}") { FileOps.move(src, destDir, src.name) }
+                perform("已移动 ${src.name}") { FileOps.move(src, destDir, src.name) }
             },
         )
     }
 
-    if (batchAction == "Delete") {
+    if (batchAction == "删除") {
         AlertDialog(
             onDismissRequest = { batchAction = null },
-            title = { Text("Delete ${batchTargets.size} items?") },
+            title = { Text("删除 ${batchTargets.size} 项？") },
             text = {
                 Text(
                     batchTargets.take(8).joinToString("\n") { it.name } +
-                        (if (batchTargets.size > 8) "\n…and ${batchTargets.size - 8} more" else "") +
-                        "\n\nThese items and any folder contents will be permanently deleted.",
+                        (if (batchTargets.size > 8) "\n…还有 ${batchTargets.size - 8} 项" else "") +
+                        "\n\n这些项目及文件夹中的内容将被永久删除。",
                 )
             },
             confirmButton = {
                 TextButton(onClick = {
                     val nodes = batchTargets
                     batchAction = null
-                    runBatch("Deleted", nodes) { node -> check(node.delete()) { "Could not delete this item." } }
-                }) { Text("Delete", color = scheme.error) }
+                    runBatch("已删除", nodes) { node -> check(node.delete()) { "无法删除此项目。" } }
+                }) { Text("删除", color = scheme.error) }
             },
-            dismissButton = { TextButton(onClick = { batchAction = null }) { Text("Cancel") } },
+            dismissButton = { TextButton(onClick = { batchAction = null }) { Text("取消") } },
         )
     }
-    if (batchAction == "Copy" || batchAction == "Move") {
+    if (batchAction == "复制" || batchAction == "移动") {
         val action = batchAction!!
         DestinationPickerDialog(
             fs = fs,
             startPath = currentPath,
             mustAvoidSubtrees = batchTargets.filter { it.isDirectory }.map { it.relPath },
-            confirmLabel = "$action ${batchTargets.size} here",
+            confirmLabel = "将 ${batchTargets.size} 项$action 到此处",
             onDismiss = { batchAction = null },
             onPick = { destination ->
                 val nodes = batchTargets
                 batchAction = null
-                runBatch(if (action == "Copy") "Copied" else "Moved", nodes) { node ->
-                    if (action == "Copy") FileOps.copy(node, destination, node.name, preserveAll = true)
+                runBatch(if (action == "复制") "已复制" else "已移动", nodes) { node ->
+                    if (action == "复制") FileOps.copy(node, destination, node.name, preserveAll = true)
                     else FileOps.move(node, destination, node.name)
                 }
             },
@@ -810,14 +810,14 @@ fun FilesScreen(
     if (batchErrors.isNotEmpty()) {
         AlertDialog(
             onDismissRequest = { batchErrors = emptyList() },
-            title = { Text("Some items could not be processed") },
+            title = { Text("部分项目无法处理") },
             text = {
                 Text(
                     batchErrors.joinToString("\n\n"),
                     modifier = Modifier.heightIn(max = 320.dp).verticalScroll(rememberScrollState()),
                 )
             },
-            confirmButton = { TextButton(onClick = { batchErrors = emptyList() }) { Text("OK") } },
+            confirmButton = { TextButton(onClick = { batchErrors = emptyList() }) { Text("确定") } },
         )
     }
 
@@ -844,7 +844,7 @@ fun FilesScreen(
             onDelete = { project ->
                 scope.launch {
                     try { container.workspace.deleteProject(project) }
-                    catch (e: Exception) { toast(e.message ?: "Could not remove workspace") }
+                    catch (e: Exception) { toast(e.message ?: "无法移除工作区") }
                 }
             },
         )
@@ -921,8 +921,8 @@ private fun iconFor(node: FsNode): ImageVector = when {
 }
 
 private fun subtitleFor(node: FsNode): String = when {
-    node is com.androidharness.app.workspace.SshFs.RemoteNode && node.isDirectory -> "Remote folder"
-    node.isDirectory -> try { "${node.list().size} items" } catch (_: Exception) { "" }
+    node is com.androidharness.app.workspace.SshFs.RemoteNode && node.isDirectory -> "远程文件夹"
+    node.isDirectory -> try { "${node.list().size} 项" } catch (_: Exception) { "" }
     else -> formatFileSize(node.length)
 }
 
@@ -991,15 +991,15 @@ fun NameDialog(
                 )
                 if (isDuplicate) {
                     Text(
-                        "Something named \"$trimmed\" already exists here.",
+                        "此处已存在名为“$trimmed”的项目。",
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.error,
                         modifier = Modifier.padding(top = 6.dp),
                     )
                 } else if (illegal && trimmed != initialName) {
                     Text(
-                        if (trimmed.isEmpty()) "Enter a name."
-                        else "That name isn't valid.",
+                        if (trimmed.isEmpty()) "请输入名称。"
+                        else "名称无效。",
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.error,
                         modifier = Modifier.padding(top = 6.dp),
@@ -1013,6 +1013,6 @@ fun NameDialog(
                 onClick = { onDismiss(); onConfirm(trimmed) },
             ) { Text(confirmLabel) }
         },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text("取消") } },
     )
 }

@@ -76,7 +76,7 @@ object McpOAuth {
      * a native Android app and is accepted because we register it ourselves
      * during Dynamic Client Registration.
      */
-    const val REDIRECT_URI = "androidharness://mcp/oauth"
+    const val REDIRECT_URI = "${com.androidharness.app.BuildConfig.APPLICATION_ID}://mcp/oauth"
 
     private val json = Json { ignoreUnknownKeys = true }
 

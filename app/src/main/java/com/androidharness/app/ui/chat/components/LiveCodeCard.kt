@@ -47,15 +47,15 @@ internal fun LiveCodeCard(draft: LiveCodeDraft, awaitingApproval: Boolean = fals
     onOpenFile: ((String, Int?) -> Unit)? = null) {
     val scheme = MaterialTheme.colorScheme
     val action = when {
-        awaitingApproval -> "Awaiting approval"
-        draft.stage == CodeDraftStage.FAILED -> "Not saved"
-        draft.tool == "write_file" -> if (draft.stage == CodeDraftStage.SAVED) "Write" else "Writing"
-        else -> if (draft.stage == CodeDraftStage.SAVED) "Edit" else "Editing"
+        awaitingApproval -> "等待批准"
+        draft.stage == CodeDraftStage.FAILED -> "未保存"
+        draft.tool == "write_file" -> if (draft.stage == CodeDraftStage.SAVED) "写入" else "正在写入"
+        else -> if (draft.stage == CodeDraftStage.SAVED) "编辑" else "正在编辑"
     }
     Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(2.dp)) {
         draft.workspaceName?.let { Text(it, style = MaterialTheme.typography.labelSmall,
             color = scheme.primary, modifier = Modifier.padding(horizontal = 2.dp)) }
-        draft.files.ifEmpty { listOf(LiveCodeFile("File name arriving…", 0, 0, emptyList())) }.forEach { file ->
+        draft.files.ifEmpty { listOf(LiveCodeFile("正在接收文件名…", 0, 0, emptyList())) }.forEach { file ->
             key(draft.id, file.path) {
                 var expanded by rememberSaveable(draft.id, file.path) { mutableStateOf(false) }
                 Column {
@@ -77,7 +77,7 @@ internal fun LiveCodeCard(draft: LiveCodeDraft, awaitingApproval: Boolean = fals
                                         if (file.removed > 0) AnimatedLineCount(file.removed, '−', scheme.error)
                                     }
                                     Icon(Icons.Default.KeyboardArrowDown,
-                                        if (expanded) "Collapse code preview" else "Expand code preview",
+                                        if (expanded) "收起代码预览" else "展开代码预览",
                                         Modifier.size(16.dp).rotate(if (expanded) 180f else 0f), tint = scheme.onSurfaceVariant)
                                 }
                                 if (narrow) CodeFileName(file.path, Modifier.padding(start = 24.dp), showFolder = false)
@@ -106,22 +106,22 @@ internal fun LiveCodeCard(draft: LiveCodeDraft, awaitingApproval: Boolean = fals
                                     }
                                 }
                             }
-                            Text("≈ ${formatTokens(draft.estimatedTokens)} tool tokens · estimated",
+                            Text("≈ ${formatTokens(draft.estimatedTokens)} 工具 Token · 估算",
                                 style = MaterialTheme.typography.labelSmall, color = scheme.onSurfaceVariant)
                             draft.responseOutputTokens?.let { tokens ->
-                                Text("Response: ${formatTokens(tokens)} output tokens", style = MaterialTheme.typography.labelSmall,
+                                Text("回复：${formatTokens(tokens)} 个输出 Token", style = MaterialTheme.typography.labelSmall,
                                     color = scheme.onSurfaceVariant)
                             }
-                            if (!draft.comparisonAvailable) Text("Generated code · original file comparison unavailable",
+                            if (!draft.comparisonAvailable) Text("已生成代码 · 无法与原文件比较",
                                 style = MaterialTheme.typography.labelSmall, color = scheme.onSurfaceVariant)
-                            if (draft.limited || file.lines.size >= 80) Text("Showing a bounded code preview",
+                            if (draft.limited || file.lines.size >= 80) Text("仅显示部分代码预览",
                                 style = MaterialTheme.typography.labelSmall, color = scheme.onSurfaceVariant)
-                            if (draft.stage != CodeDraftStage.SAVED) Text("Draft · not saved yet",
+                            if (draft.stage != CodeDraftStage.SAVED) Text("草稿 · 尚未保存",
                                 style = MaterialTheme.typography.labelSmall, color = scheme.onSurfaceVariant)
-                            if (draft.responseOutputTokens != null) Text("Response tokens include reasoning and all generated output.",
+                            if (draft.responseOutputTokens != null) Text("回复 Token 包含推理和全部生成输出。",
                                 style = MaterialTheme.typography.labelSmall, color = scheme.onSurfaceVariant)
                             if (draft.stage == CodeDraftStage.SAVED && onOpenFile != null) TextButton(onClick = { onOpenFile(file.path, null) }) {
-                                Text("Open file")
+                                Text("打开文件")
                             }
                         }
                     }
@@ -157,7 +157,7 @@ private fun CodeFileName(path: String, modifier: Modifier, showFolder: Boolean) 
 private fun AnimatedLineCount(count: Int, sign: Char, color: Color) {
     val displayed by animateIntAsState(count, fastEffectsSpec(), label = "live line count")
     Text("$sign$displayed", style = MaterialTheme.typography.labelMedium, fontFamily = HarnessMono, color = color,
-        modifier = Modifier.semantics { contentDescription = "$count lines ${if (sign == '+') "added" else "removed"}" })
+        modifier = Modifier.semantics { contentDescription = "${if (sign == '+') "新增" else "删除"} $count 行" })
 }
 
 @Composable
@@ -188,5 +188,5 @@ private fun codeLanguage(path: String): String = when (path.substringAfterLast('
     "css", "scss", "sass", "less" -> "CSS"; "json", "jsonc", "json5" -> "JSON"
     "yml", "yaml" -> "YAML"; "sh", "bash", "zsh" -> "Shell"; "md" -> "Markdown"
     "rs" -> "Rust"; "go" -> "Go"; "c", "h" -> "C"; "cpp", "hpp", "cc" -> "C++"
-    else -> "Code"
+    else -> "代码"
 }

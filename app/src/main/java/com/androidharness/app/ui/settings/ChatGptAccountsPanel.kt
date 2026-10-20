@@ -30,28 +30,28 @@ internal fun ChatGptAccountsPanel(
         Column {
             Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text("ChatGPT", style = MaterialTheme.typography.titleMedium)
-                Text("Connect your accounts and choose which one to use.", style = MaterialTheme.typography.bodyMedium,
+                Text("连接账号并选择要使用的账号。", style = MaterialTheme.typography.bodyMedium,
                     color = colors.onSurfaceVariant)
-                SettingsAnchor("Continue with ChatGPT") {
+                SettingsAnchor("使用 ChatGPT 继续") {
                     Button(onClick = onAdd, enabled = !state.signingIn) {
                         Icon(Icons.Outlined.Add, null, Modifier.size(18.dp))
                         Spacer(Modifier.width(8.dp))
-                        Text(if (state.accounts.isEmpty()) "Continue with ChatGPT" else "Add account")
+                        Text(if (state.accounts.isEmpty()) "使用 ChatGPT 继续" else "添加账号")
                     }
                 }
                 if (state.signingIn) {
                     AppLinearProgressIndicator(Modifier.fillMaxWidth())
-                    Text("Finish signing in in your browser, then return here.", style = MaterialTheme.typography.bodySmall)
-                    TextButton(onClick = onCancelSignIn) { Text("Cancel sign-in") }
+                    Text("请在浏览器中完成登录，然后返回此处。", style = MaterialTheme.typography.bodySmall)
+                    TextButton(onClick = onCancelSignIn) { Text("取消登录") }
                 }
                 error?.let { Text(it, color = colors.error, style = MaterialTheme.typography.bodySmall) }
             }
             if (state.accounts.isNotEmpty()) {
                 HorizontalDivider(color = colors.outlineVariant)
-                AccountSwitchRow("Auto-switch at usage limit",
-                    "Continue with another account. Keep the same model when available, otherwise use its fallback.", state.autoSwitch, onAutoSwitch)
+                AccountSwitchRow("达到用量限制时自动切换",
+                    "使用其他账号继续。可用时保留相同模型，否则使用其备用模型。", state.autoSwitch, onAutoSwitch)
                 if (state.autoSwitch && state.accounts.count { it.connected && it.useForAutoSwitch } < 2) {
-                    Text("Add or enable another account to switch automatically.", style = MaterialTheme.typography.bodySmall,
+                    Text("添加或启用其他账号后即可自动切换。", style = MaterialTheme.typography.bodySmall,
                         color = colors.onSurfaceVariant, modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 12.dp))
                 }
             }
@@ -61,11 +61,11 @@ internal fun ChatGptAccountsPanel(
                     var menu by remember { mutableStateOf(false) }
                     val selected = selectedId == account.providerId
                     val subtitle = when {
-                        selecting == account.providerId -> "Checking available models…"
-                        !account.connected -> "Signed out"
-                        account.usageLimited -> if (selected) "Usage limit reached · try again in chat" else "Usage limit reached"
+                        selecting == account.providerId -> "正在检查可用模型…"
+                        !account.connected -> "已退出登录"
+                        account.usageLimited -> if (selected) "已达到用量限制 · 请在聊天中重试" else "已达到用量限制"
                         selected -> account.models.firstOrNull { it.id == selectedModel }?.displayName ?: selectedModel.orEmpty()
-                        else -> "${account.models.size} available ${if (account.models.size == 1) "model" else "models"}"
+                        else -> "${account.models.size} 个可用模型"
                     }
                     Surface(onClick = { if (account.connected) onSelect(account) else onReconnect(account) },
                         enabled = selecting == null && !state.signingIn, color = colors.surface,
@@ -81,34 +81,34 @@ internal fun ChatGptAccountsPanel(
                                 Text(account.label, style = MaterialTheme.typography.titleSmall)
                                 Text(subtitle, style = MaterialTheme.typography.bodySmall,
                                     color = if (account.usageLimited) colors.error else colors.onSurfaceVariant)
-                                if (selected) Text("Selected", style = MaterialTheme.typography.labelSmall, color = colors.primary)
+                                if (selected) Text("已选择", style = MaterialTheme.typography.labelSmall, color = colors.primary)
                             }
                             if (selecting == account.providerId) CircularProgressIndicator(Modifier.size(20.dp), strokeWidth = 2.dp)
                             else if (selected) Icon(Icons.Outlined.CheckCircle, null, tint = colors.primary, modifier = Modifier.size(20.dp))
                             Box {
-                                IconButton(onClick = { menu = true }) { Icon(Icons.Outlined.MoreVert, "Manage ${account.label}") }
+                                IconButton(onClick = { menu = true }) { Icon(Icons.Outlined.MoreVert, "管理 ${account.label}") }
                                 DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
                                     if (account.connected) {
-                                        DropdownMenuItem(text = { Text("Refresh models") }, onClick = { menu = false; onRefresh(account) })
-                                        DropdownMenuItem(text = { Text("Check newer models") }, enabled = state.checkingModelsFor == null,
+                                        DropdownMenuItem(text = { Text("刷新模型") }, onClick = { menu = false; onRefresh(account) })
+                                        DropdownMenuItem(text = { Text("检查新模型") }, enabled = state.checkingModelsFor == null,
                                             onClick = { menu = false; onCheckModels(account) })
                                     }
-                                    DropdownMenuItem(text = { Text(if (account.connected) "Reconnect" else "Sign in again") },
+                                    DropdownMenuItem(text = { Text(if (account.connected) "重新连接" else "重新登录") },
                                         enabled = !state.signingIn, onClick = { menu = false; onReconnect(account) })
-                                    if (account.connected) DropdownMenuItem(text = { Text("Sign out", color = colors.error) },
+                                    if (account.connected) DropdownMenuItem(text = { Text("退出登录", color = colors.error) },
                                         onClick = { menu = false; onSignOut(account) })
                                 }
                             }
                         }
                     }
                     if (state.autoSwitch && account.connected) {
-                        AccountSwitchRow("Include in auto-switch", null, account.useForAutoSwitch,
+                        AccountSwitchRow("参与自动切换", null, account.useForAutoSwitch,
                             { onFallback(account, it, account.fallbackModel) }, inset = true)
                         if (account.useForAutoSwitch) FallbackModelRow(account) { onFallback(account, true, it) }
                     }
                     if (state.checkingModelsFor == account.providerId) {
                         AppLinearProgressIndicator(Modifier.fillMaxWidth().padding(horizontal = 16.dp))
-                        Text("Checking newer models. Small test requests use this account's plan.",
+                        Text("正在检查新模型。小型测试请求会使用此账号的套餐用量。",
                             style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(16.dp), color = colors.onSurfaceVariant)
                     }
                     state.modelCheckResults[account.providerId]?.let {
@@ -120,7 +120,7 @@ internal fun ChatGptAccountsPanel(
             TextButton(onClick = onUsage, modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)) {
                 Icon(Icons.Outlined.OpenInNew, null, Modifier.size(16.dp))
                 Spacer(Modifier.width(8.dp))
-                Text("Limits & usage in ChatGPT")
+                Text("ChatGPT 中的限制与用量")
             }
         }
     }
@@ -146,18 +146,18 @@ private fun FallbackModelRow(account: ChatGptAccount, onSelect: (String?) -> Uni
     Box(Modifier.fillMaxWidth().padding(start = 64.dp, end = 16.dp, bottom = 12.dp)) {
         Surface(onClick = { expanded = true }, color = MaterialTheme.colorScheme.surfaceContainerHigh,
             shape = MaterialTheme.shapes.small, modifier = Modifier.fillMaxWidth().semantics {
-                contentDescription = "Fallback model for ${account.label}"
+                contentDescription = "${account.label} 的备用模型"
             }) {
             Row(Modifier.padding(horizontal = 12.dp, vertical = 10.dp).heightIn(min = 36.dp), verticalAlignment = Alignment.CenterVertically) {
                 Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                    Text("Fallback model", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    Text(choice?.displayName ?: choice?.id ?: "Automatic", style = MaterialTheme.typography.bodyMedium)
+                    Text("备用模型", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(choice?.displayName ?: choice?.id ?: "自动", style = MaterialTheme.typography.bodyMedium)
                 }
                 Icon(Icons.Outlined.ExpandMore, null, Modifier.size(20.dp))
             }
         }
         DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
-            DropdownMenuItem(text = { Text("Automatic") }, onClick = { expanded = false; onSelect(null) })
+            DropdownMenuItem(text = { Text("自动") }, onClick = { expanded = false; onSelect(null) })
             account.models.forEach { model -> DropdownMenuItem(text = { Text(model.displayName ?: model.id) },
                 onClick = { expanded = false; onSelect(model.id) }) }
         }

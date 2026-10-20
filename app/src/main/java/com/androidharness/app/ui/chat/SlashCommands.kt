@@ -178,7 +178,7 @@ object SlashCommands {
                     } else snippetBody
                     return Result(Kind.SNIPPET, agentText = body)
                 }
-                Result(Kind.UNKNOWN, error = "Unknown command: $command")
+                Result(Kind.UNKNOWN, error = "未知命令：$command")
             }
         }
     }

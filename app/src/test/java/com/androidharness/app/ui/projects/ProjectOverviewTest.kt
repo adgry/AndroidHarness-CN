@@ -33,7 +33,7 @@ class ProjectOverviewTest {
             val clean = readProjectGitOverview { git(root, it) }
             assertEquals(0, clean.changedFiles)
             assertEquals(0, git(root, listOf("checkout", "--detach")).code)
-            assertEquals("Detached HEAD", readProjectGitOverview { git(root, it) }.branch)
+            assertEquals("分离的 HEAD", readProjectGitOverview { git(root, it) }.branch)
         } finally { root.deleteRecursively() }
     }
 
@@ -41,11 +41,11 @@ class ProjectOverviewTest {
         val root = Files.createTempDirectory("project-no-git").toFile()
         try {
             val missing = readProjectGitOverview { git(root, it) }
-            assertNull(missing.branch); assertNull(missing.changedFiles); assertEquals("No Git repository", missing.note)
+            assertNull(missing.branch); assertNull(missing.changedFiles); assertEquals("没有 Git 仓库", missing.note)
             val failed = readProjectGitOverview { error("Git timed out") }
             assertNull(failed.changedFiles); assertNotNull(failed.note)
             val denied = readProjectGitOverview { GitCommandResult(126, "", "Permission denied") }
-            assertNull(denied.changedFiles); assertEquals("Repository status unavailable · Retry", denied.note)
+            assertNull(denied.changedFiles); assertEquals("仓库状态不可用 · 重试", denied.note)
         } finally { root.deleteRecursively() }
     }
 }

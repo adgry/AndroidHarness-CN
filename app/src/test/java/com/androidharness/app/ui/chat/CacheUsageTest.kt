@@ -19,10 +19,10 @@ class CacheUsageTest {
     }
 
     @Test fun `near full and tiny cache hits are never rounded to complete hit or miss`() {
-        assertEquals("Cache hit · 99.94%", cacheUsageSummary(listOf(row(125260, 125184))).label)
-        assertEquals("Cache hit · 99.99%", cacheUsageSummary(listOf(row(1000000, 999999))).label)
-        assertEquals("Cache hit · <0.01%", cacheUsageSummary(listOf(row(1000000, 1))).label)
-        assertEquals("Cache hit · 100%", cacheUsageSummary(listOf(row(100, 100))).label)
+        assertEquals("缓存命中 · 99.94%", cacheUsageSummary(listOf(row(125260, 125184))).label)
+        assertEquals("缓存命中 · 99.99%", cacheUsageSummary(listOf(row(1000000, 999999))).label)
+        assertEquals("缓存命中 · <0.01%", cacheUsageSummary(listOf(row(1000000, 1))).label)
+        assertEquals("缓存命中 · 100%", cacheUsageSummary(listOf(row(100, 100))).label)
     }
 
     @Test fun `missing explicit cache rates are not guessed`() {
@@ -34,23 +34,23 @@ class CacheUsageTest {
 
     @Test fun `live indicator follows hit then miss while completion combines both`() {
         val hit = listOf(row(100, 80))
-        assertEquals("Cache hit · 80%", cacheIndicatorSummary(hit, running = true).label)
+        assertEquals("缓存命中 · 80%", cacheIndicatorSummary(hit, running = true).label)
         val mixed = hit + row(100, 0)
-        assertEquals("Cache missed", cacheIndicatorSummary(mixed, running = true).label)
-        assertEquals("Cache hit · 40%", cacheIndicatorSummary(mixed, running = false).label)
+        assertEquals("缓存未命中", cacheIndicatorSummary(mixed, running = true).label)
+        assertEquals("缓存命中 · 40%", cacheIndicatorSummary(mixed, running = false).label)
         assertEquals(80, cacheUsageSummary(mixed).cached.toInt())
     }
 
     @Test fun `live indicator follows miss then hit without averaging the latest hit`() {
         val mixed = listOf(row(900, 0), row(100, 80))
-        assertEquals("Cache hit · 80%", cacheIndicatorSummary(mixed, running = true).label)
-        assertEquals("Cache hit · 8%", cacheIndicatorSummary(mixed, running = false).label)
+        assertEquals("缓存命中 · 80%", cacheIndicatorSummary(mixed, running = true).label)
+        assertEquals("缓存命中 · 8%", cacheIndicatorSummary(mixed, running = false).label)
     }
 
     @Test fun `latest unreported usage cannot leave a stale hit or invent a miss`() {
         val rows = listOf(row(100, 80), row(100, 0, reported = false))
-        assertEquals("Cache unavailable", cacheIndicatorSummary(rows, running = true).label)
-        assertEquals("Cache hit · 80% · partial", cacheIndicatorSummary(rows, running = false).label)
+        assertEquals("缓存不可用", cacheIndicatorSummary(rows, running = true).label)
+        assertEquals("缓存命中 · 80% · 部分", cacheIndicatorSummary(rows, running = false).label)
         assertNull(cacheIndicatorSummary(emptyList(), running = true).rate)
     }
 
@@ -59,7 +59,7 @@ class CacheUsageTest {
         assertEquals(8.0, result.rate!!, 0.00001)
         assertEquals(1, result.hits)
         assertEquals(1, result.misses)
-        assertEquals("Cache hit · 8%", result.label)
+        assertEquals("缓存命中 · 8%", result.label)
     }
 
     @Test fun `missing usage is not a miss or part of the denominator`() {
@@ -67,9 +67,9 @@ class CacheUsageTest {
         assertEquals(80.0, result.rate!!, 0.00001)
         assertEquals(0, result.misses)
         assertEquals(1, result.unknown)
-        assertTrue(result.label.contains("partial"))
-        assertEquals("Cache unavailable", cacheUsageSummary(listOf(row(100, 0, false))).label)
-        assertEquals("Cache missed", cacheUsageSummary(listOf(row(100, 0))).label)
+        assertTrue(result.label.contains("部分"))
+        assertEquals("缓存不可用", cacheUsageSummary(listOf(row(100, 0, false))).label)
+        assertEquals("缓存未命中", cacheUsageSummary(listOf(row(100, 0))).label)
     }
 
     @Test fun `miss cost includes uncached input and cache writes without output`() {

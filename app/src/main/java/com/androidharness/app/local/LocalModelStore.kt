@@ -5,9 +5,9 @@ import java.io.InputStream
 import java.security.MessageDigest
 
 class LocalModelStore(private val root: File, private val find: (String) -> LocalModelSpec? = LocalModelCatalog::find) {
-    init { check(root.isDirectory || root.mkdirs()) { "Cannot create local model storage." } }
+    init { check(root.isDirectory || root.mkdirs()) { "无法创建本地模型存储目录。" } }
     fun file(id: String): File {
-        require(id.matches(Regex("[a-z0-9-]{1,80}")) && find(id) != null) { "Unknown local model." }
+        require(id.matches(Regex("[a-z0-9-]{1,80}")) && find(id) != null) { "未知的本地模型。" }
         return File(root, "$id.gguf")
     }
     fun partial(id: String) = File(root, "${file(id).name}.part")
@@ -19,7 +19,7 @@ class LocalModelStore(private val root: File, private val find: (String) -> Loca
         removeFile(partial(id))
         removeFile(File(root, "${partial(id).name}.unquantized"))
         removeFile(File(root, "${projectorFile(id).name}.part"))
-        check(!sourceDirectory(id).exists() || sourceDirectory(id).deleteRecursively()) { "Could not remove conversion staging files." }
+        check(!sourceDirectory(id).exists() || sourceDirectory(id).deleteRecursively()) { "无法删除转换暂存文件。" }
     }
     fun remove(id: String) {
         clearPartial(id)
@@ -30,7 +30,7 @@ class LocalModelStore(private val root: File, private val find: (String) -> Loca
         removeFile(File(root, "$id.json.new"))
     }
     private fun removeFile(file: File) {
-        check(!file.exists() || file.delete()) { "Could not delete ${file.name}. Storage has not been released." }
+        check(!file.exists() || file.delete()) { "无法删除 ${file.name}，存储空间尚未释放。" }
     }
 
     fun installAsset(asset: LocalModelAsset, source: InputStream, target: File, isCancelled: () -> Boolean, progress: (Long) -> Unit) {
@@ -41,18 +41,18 @@ class LocalModelStore(private val root: File, private val find: (String) -> Loca
             target.outputStream().use { out ->
                 val buffer = ByteArray(256 * 1024)
                 while (true) {
-                    check(!isCancelled()) { "Download cancelled." }
+                    check(!isCancelled()) { "下载已取消。" }
                     val read = source.read(buffer)
                     if (read < 0) break
                     if (read == 0) continue
-                    check(count <= asset.bytes - read) { "Download exceeds expected size." }
+                    check(count <= asset.bytes - read) { "下载内容超出预期大小。" }
                     out.write(buffer, 0, read); digest.update(buffer, 0, read); count += read; progress(count)
                 }
                 out.fd.sync()
             }
-            check(!isCancelled() && count == asset.bytes) { "Incomplete or cancelled download." }
+            check(!isCancelled() && count == asset.bytes) { "下载未完成或已取消。" }
             val hash = digest.digest().joinToString("") { "%02x".format(it) }
-            check(asset.sha256.isEmpty() || hash == asset.sha256) { "Model file checksum mismatch." }
+            check(asset.sha256.isEmpty() || hash == asset.sha256) { "模型文件校验和不匹配。" }
         } catch (e: Exception) { target.delete(); throw e }
     }
     fun install(
@@ -61,7 +61,7 @@ class LocalModelStore(private val root: File, private val find: (String) -> Loca
         isCancelled: () -> Boolean,
         onProgress: (Long) -> Unit,
     ) {
-        check(!file(model.id).exists()) { "Model already installed. Remove it before reinstalling." }
+        check(!file(model.id).exists()) { "模型已安装，请先移除后再重新安装。" }
         val target = partial(model.id)
         clearPartial(model.id)
         try {
@@ -71,11 +71,11 @@ class LocalModelStore(private val root: File, private val find: (String) -> Loca
             target.outputStream().use { output ->
                 val buffer = ByteArray(256 * 1024)
                 while (true) {
-                    check(!isCancelled()) { "Download cancelled." }
+                    check(!isCancelled()) { "下载已取消。" }
                     val read = source.read(buffer)
                     if (read < 0) break
                     if (read == 0) continue
-                    check(count + read <= model.bytes) { "Download exceeds expected size." }
+                    check(count + read <= model.bytes) { "下载内容超出预期大小。" }
                     for (index in 0 until minOf(read, (4 - count).coerceAtLeast(0).toInt())) magic[count.toInt() + index] = buffer[index]
                     output.write(buffer, 0, read)
                     digest.update(buffer, 0, read)
@@ -84,13 +84,13 @@ class LocalModelStore(private val root: File, private val find: (String) -> Loca
                 }
                 output.fd.sync()
             }
-            check(!isCancelled()) { "Download cancelled." }
-            check(count == model.bytes) { "Incomplete download. Retry to download a fresh copy." }
-            check(magic.contentEquals(byteArrayOf(71, 71, 85, 70))) { "Not a GGUF model." }
+            check(!isCancelled()) { "下载已取消。" }
+            check(count == model.bytes) { "下载不完整，请重试以重新下载。" }
+            check(magic.contentEquals(byteArrayOf(71, 71, 85, 70))) { "不是 GGUF 模型。" }
             val hash = digest.digest().joinToString("") { "%02x".format(it) }
-            check(model.custom && model.sha256.isEmpty() || hash == model.sha256) { "Model checksum mismatch. Download discarded." }
+            check(model.custom && model.sha256.isEmpty() || hash == model.sha256) { "模型校验和不匹配，已丢弃下载内容。" }
             if (model.custom) GgufMetadata.inspect(target.inputStream().use { readPrefix(it, GgufMetadata.PROBE_BYTES) })
-            check(target.renameTo(file(model.id))) { "Cannot finalize model download." }
+            check(target.renameTo(file(model.id))) { "无法完成模型下载。" }
         } finally {
             clearPartial(model.id)
         }

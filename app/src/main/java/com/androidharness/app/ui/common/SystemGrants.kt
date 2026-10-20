@@ -47,7 +47,7 @@ object SystemGrants {
     }
 
     /**
-     * Opens the OS "All files access" page for this app. Samsung/OEM builds often
+     * Opens the OS "所有文件访问权限" page for this app. Samsung/OEM builds often
      * ignore the plain ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION + package URI, so
      * we walk a few known intents and fall back to the app details screen.
      */
